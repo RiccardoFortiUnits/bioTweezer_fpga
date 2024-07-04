@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file
+   path="simulation/submodules/altera_avalon_i2c.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_csr.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_clk_cnt.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_condt_det.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_condt_gen.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_fifo.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_mstfsm.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_rxshifter.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_txshifter.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_spksupp.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file
+   path="simulation/submodules/altera_avalon_i2c_txout.v"
+   type="VERILOG"
+   library="i2c_0" />
+ <file path="simulation/i2c_alt_contr.v" type="VERILOG" />
+ <topLevel name="i2c_alt_contr" />
+ <deviceFamily name="cyclonev" />
+</simPackage>

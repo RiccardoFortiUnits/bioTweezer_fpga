@@ -1,0 +1,35 @@
+Info: Starting: Create block symbol file (.bsf)
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\H-cube\Sweep\clk\sweep_clk.qsys --block-symbol-file --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\H-cube\Sweep\clk\sweep_clk --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading clk/sweep_clk.qsys
+Progress: Reading input file
+Progress: Adding altclkctrl_0 [altclkctrl 20.1]
+Progress: Parameterizing module altclkctrl_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+: sweep_clk.altclkctrl_0: Targeting device family: Cyclone V.
+: sweep_clk.altclkctrl_0: Selecting AUTO allows the compiler to pick the best clock buffer to use, while other values restrict usage to only the given clock buffer.
+: sweep_clk.altclkctrl_0: The register mode of port 'ena' is unavailable while 'ena' port not added. 
+Info: qsys-generate succeeded.
+Info: Finished: Create block symbol file (.bsf)
+Info: 
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\H-cube\Sweep\clk\sweep_clk.qsys --synthesis=VERILOG --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\H-cube\Sweep\clk\sweep_clk\synthesis --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading clk/sweep_clk.qsys
+Progress: Reading input file
+Progress: Adding altclkctrl_0 [altclkctrl 20.1]
+Progress: Parameterizing module altclkctrl_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+: sweep_clk.altclkctrl_0: Targeting device family: Cyclone V.
+: sweep_clk.altclkctrl_0: Selecting AUTO allows the compiler to pick the best clock buffer to use, while other values restrict usage to only the given clock buffer.
+: sweep_clk.altclkctrl_0: The register mode of port 'ena' is unavailable while 'ena' port not added. 
+Info: sweep_clk: Generating sweep_clk "sweep_clk" for QUARTUS_SYNTH
+Info: altclkctrl_0: Generating top-level entity sweep_clk_altclkctrl_0.
+Info: altclkctrl_0: "sweep_clk" instantiated altclkctrl "altclkctrl_0"
+Info: sweep_clk: Done "sweep_clk" with 2 modules, 2 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

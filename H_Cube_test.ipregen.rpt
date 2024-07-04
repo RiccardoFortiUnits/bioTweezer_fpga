@@ -1,0 +1,101 @@
+IP Upgrade report for H_Cube_test
+Wed Jul  3 16:01:07 2024
+Quartus Prime Version 23.1std.1 Build 993 05/14/2024 SC Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. IP Upgrade Summary
+  3. Successfully Upgraded IP Components
+  4. IP Upgrade Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2024  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
+
+
+
++-------------------------------------------------------------------------------+
+; IP Upgrade Summary                                                            ;
++------------------------------+------------------------------------------------+
+; IP Components Upgrade Status ; Passed - Wed Jul  3 16:01:07 2024              ;
+; Quartus Prime Version        ; 23.1std.1 Build 993 05/14/2024 SC Lite Edition ;
+; Revision Name                ; H_Cube_test                                    ;
+; Top-level Entity Name        ; H_Cube_test                                    ;
+; Family                       ; Cyclone V                                      ;
++------------------------------+------------------------------------------------+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Successfully Upgraded IP Components                                                                                                                                                                                                                                                     ;
++------------------+----------------+---------+---------------------------------------------------------------------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------+---------+
+; Entity Name      ; Component Name ; Version ; Original Source File                                                      ; Generation File Path                                                    ; New Source File                                                           ; Message ;
++------------------+----------------+---------+---------------------------------------------------------------------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------+---------+
+; adc_fifo_64      ; FIFO           ; 21.1    ; verilog_code/adc_controller/fifo/adc_fifo_64.qip                          ; verilog_code/adc_controller/fifo/adc_fifo_64.v                          ; verilog_code/adc_controller/fifo/adc_fifo_64.qip                          ;         ;
+; adc_lvds         ; ALTLVDS_RX     ; 21.1    ; verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.qip                ; verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.v                ; verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.qip                ;         ;
+; udp_fifo_status8 ; FIFO           ; 21.1    ; verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.qip ; verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.v ; verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.qip ;         ;
+; udp_fifo8        ; FIFO           ; 21.1    ; verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.qip               ; verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.v               ; verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.qip               ;         ;
+; tse_core         ; altera_eth_tse ; 21.1    ; verilog_code/ethernet_1gb/tse_core/tse_core.qip                           ; verilog_code/ethernet_1gb/tse_core/tse_core.v                           ; verilog_code/ethernet_1gb/tse_core/tse_core.qip                           ;         ;
+; pll              ; altera_pll     ; 21.1    ; verilog_code/pll/pll.qip                                                  ; verilog_code/pll/pll.v                                                  ; verilog_code/pll/pll.qip                                                  ;         ;
+; icmp_fifo8       ; FIFO           ; 21.1    ; verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.qip             ; verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.v             ; verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.qip             ;         ;
+; data_fifo        ; FIFO           ; 21.1    ; verilog_code/data_process/data_fifo/data_fifo.qip                         ; verilog_code/data_process/data_fifo/data_fifo.v                         ; verilog_code/data_process/data_fifo/data_fifo.qip                         ;         ;
+; sweep_fifo       ; FIFO           ; 21.1    ; verilog_code/dac_controller/sweep_fifo/sweep_fifo.qip                     ; verilog_code/dac_controller/sweep_fifo/sweep_fifo.v                     ; verilog_code/dac_controller/sweep_fifo/sweep_fifo.qip                     ;         ;
++------------------+----------------+---------+---------------------------------------------------------------------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------+---------+
+
+
++---------------------+
+; IP Upgrade Messages ;
++---------------------+
+Info (11902): Backing up file "verilog_code/adc_controller/fifo/adc_fifo_64.v" to "verilog_code/adc_controller/fifo/adc_fifo_64.BAK.v"
+Info (11837): Started upgrading IP component FIFO with file "verilog_code/adc_controller/fifo/adc_fifo_64.v"
+Info (11902): Backing up file "verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.v" to "verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.BAK.v"
+Info (11837): Started upgrading IP component ALTLVDS_RX with file "verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.v"
+Info (11902): Backing up file "verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.v" to "verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.BAK.v"
+Info (11837): Started upgrading IP component FIFO with file "verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.v"
+Info (11902): Backing up file "verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.v" to "verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.BAK.v"
+Info (11837): Started upgrading IP component FIFO with file "verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.v"
+Info (11902): Backing up file "verilog_code/ethernet_1gb/tse_core/tse_core.v" to "verilog_code/ethernet_1gb/tse_core/tse_core.BAK.v"
+Info (11837): Started upgrading IP component altera_eth_tse with file "verilog_code/ethernet_1gb/tse_core/tse_core.v"
+Info (11902): Backing up file "verilog_code/pll/pll.v" to "verilog_code/pll/pll.BAK.v"
+Info (11837): Started upgrading IP component altera_pll with file "verilog_code/pll/pll.v"
+Info (11902): Backing up file "verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.v" to "verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.BAK.v"
+Info (11837): Started upgrading IP component FIFO with file "verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.v"
+Info (11902): Backing up file "verilog_code/data_process/data_fifo/data_fifo.v" to "verilog_code/data_process/data_fifo/data_fifo.BAK.v"
+Info (11837): Started upgrading IP component FIFO with file "verilog_code/data_process/data_fifo/data_fifo.v"
+Info (11902): Backing up file "verilog_code/dac_controller/sweep_fifo/sweep_fifo.v" to "verilog_code/dac_controller/sweep_fifo/sweep_fifo.BAK.v"
+Info (11837): Started upgrading IP component FIFO with file "verilog_code/dac_controller/sweep_fifo/sweep_fifo.v"
+Info (11131): Completed upgrading IP component FIFO with file "verilog_code/adc_controller/fifo/adc_fifo_64.v"
+Info (11131): Completed upgrading IP component ALTLVDS_RX with file "verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.v"
+Info (11131): Completed upgrading IP component FIFO with file "verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.v"
+Info (11131): Completed upgrading IP component FIFO with file "verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.v"
+Info (11131): Completed upgrading IP component altera_eth_tse with file "verilog_code/ethernet_1gb/tse_core/tse_core.v"
+Info (11131): Completed upgrading IP component altera_pll with file "verilog_code/pll/pll.v"
+Info (11131): Completed upgrading IP component FIFO with file "verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.v"
+Info (11131): Completed upgrading IP component FIFO with file "verilog_code/data_process/data_fifo/data_fifo.v"
+Info (11131): Completed upgrading IP component FIFO with file "verilog_code/dac_controller/sweep_fifo/sweep_fifo.v"
+Info (23030): Evaluation of Tcl script d:/intelfpga_lite/23.1std/quartus/common/tcl/internal/ip_regen/ip_regen.tcl was successful
+Info: Quartus Prime Shell was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 4860 megabytes
+    Info: Processing ended: Wed Jul  3 16:01:07 2024
+    Info: Elapsed time: 00:01:28
+    Info: Total CPU time (on all processors): 00:00:27
+
+

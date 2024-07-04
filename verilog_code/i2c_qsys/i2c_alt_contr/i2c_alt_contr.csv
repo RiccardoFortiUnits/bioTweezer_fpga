@@ -1,0 +1,28 @@
+# system info i2c_alt_contr on 2022.09.26.10:47:44
+system_info:
+name,value
+DEVICE,5CGXFC5C6F27C7
+DEVICE_FAMILY,Cyclone V
+GENERATION_ID,1664182063
+#
+#
+# Files generated for i2c_alt_contr on 2022.09.26.10:47:44
+files:
+filepath,kind,attributes,module,is_top
+simulation/i2c_alt_contr.v,VERILOG,,i2c_alt_contr,true
+simulation/submodules/altera_avalon_i2c.v,VERILOG,TOP_LEVEL_FILE,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_csr.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_clk_cnt.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_condt_det.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_condt_gen.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_fifo.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_mstfsm.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_rxshifter.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_txshifter.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_spksupp.v,VERILOG,,altera_avalon_i2c,false
+simulation/submodules/altera_avalon_i2c_txout.v,VERILOG,,altera_avalon_i2c,false
+#
+# Map from instance-path to kind of module
+instances:
+instancePath,module
+i2c_alt_contr.i2c_0,altera_avalon_i2c

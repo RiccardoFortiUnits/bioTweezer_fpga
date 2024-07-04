@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file
+   path="FP_fixed48_to_double_sim/FP_fixed48_to_double.vo"
+   type="VERILOG" />
+ <topLevel name="FP_fixed48_to_double" />
+ <deviceFamily name="cyclonev" />
+</simPackage>

@@ -1,0 +1,63 @@
+Info: Starting: Create simulation model
+Info: qsys-generate D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr.qsys --simulation=VERILOG --allow-mixed-language-simulation --output-directory=D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr\simulation --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading i2c_qsys/i2c_alt_contr.qsys
+Progress: Reading input file
+Progress: Adding i2c_0 [altera_avalon_i2c 21.1]
+Progress: Parameterizing module i2c_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: i2c_alt_contr: Generating i2c_alt_contr "i2c_alt_contr" for SIM_VERILOG
+Info: i2c_0: "i2c_alt_contr" instantiated altera_avalon_i2c "i2c_0"
+Info: i2c_alt_contr: Done "i2c_alt_contr" with 2 modules, 12 files
+Info: qsys-generate succeeded.
+Info: Finished: Create simulation model
+Info: Starting: Create Modelsim Project.
+Info: sim-script-gen --spd=D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr\i2c_alt_contr.spd --output-directory=D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ --use-relative-paths=true
+Info: Doing: ip-make-simscript --spd=D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr\i2c_alt_contr.spd --output-directory=D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ --use-relative-paths=true
+Info: Generating the following file(s) for MODELSIM simulator in D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ directory:
+Info: 	mentor/msim_setup.tcl
+Info: Generating the following file(s) for VCS simulator in D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ directory:
+Info: 	synopsys/vcs/vcs_setup.sh
+Info: Generating the following file(s) for VCSMX simulator in D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ directory:
+Info: 	synopsys/vcsmx/synopsys_sim.setup
+Info: 	synopsys/vcsmx/vcsmx_setup.sh
+Info: Generating the following file(s) for NCSIM simulator in D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ directory:
+Info: 	cadence/cds.lib
+Info: 	cadence/hdl.var
+Info: 	cadence/ncsim_setup.sh
+Info: 	1 .cds.lib files in cadence/cds_libs/ directory
+Info: Generating the following file(s) for RIVIERA simulator in D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/ directory:
+Info: 	aldec/rivierapro_setup.tcl
+Info: For information on how to simulate your IP, see the explanatory comments in the simulator-specific subdirectories under D:/Gabriele/git_repos/Elettra/LSD/Fast-STM/quartus_mabv1_faststm/verilog_code/i2c_qsys/i2c_alt_contr/simulation/.
+Info: Regenerate these scripts whenever you make any change to any Quartus-generated IP in your project.
+Info: Finished: Create Modelsim Project.
+Info: Starting: Create block symbol file (.bsf)
+Info: qsys-generate D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr.qsys --block-symbol-file --output-directory=D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading i2c_qsys/i2c_alt_contr.qsys
+Progress: Reading input file
+Progress: Adding i2c_0 [altera_avalon_i2c 21.1]
+Progress: Parameterizing module i2c_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: qsys-generate succeeded.
+Info: Finished: Create block symbol file (.bsf)
+Info: 
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr.qsys --synthesis=VERILOG --output-directory=D:\Gabriele\git_repos\Elettra\LSD\Fast-STM\quartus_mabv1_faststm\verilog_code\i2c_qsys\i2c_alt_contr\synthesis --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading i2c_qsys/i2c_alt_contr.qsys
+Progress: Reading input file
+Progress: Adding i2c_0 [altera_avalon_i2c 21.1]
+Progress: Parameterizing module i2c_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: i2c_alt_contr: Generating i2c_alt_contr "i2c_alt_contr" for QUARTUS_SYNTH
+Info: i2c_0: "i2c_alt_contr" instantiated altera_avalon_i2c "i2c_0"
+Info: i2c_alt_contr: Done "i2c_alt_contr" with 2 modules, 12 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

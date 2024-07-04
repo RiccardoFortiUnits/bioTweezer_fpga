@@ -1,0 +1,15 @@
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate D:\Gabriele\git_repos\Elettra\LSD\DINET\quartus_dinet\verilog_code\i2c_qsys\i2c_alt_contr.qsys --synthesis=VERILOG --output-directory=D:\Gabriele\git_repos\Elettra\LSD\DINET\quartus_dinet\verilog_code\i2c_qsys\i2c_alt_contr\synthesis --family="Cyclone V" --part=5CSXFC6C6U23I7
+Progress: Loading i2c_qsys/i2c_alt_contr.qsys
+Progress: Reading input file
+Progress: Adding i2c_0 [altera_avalon_i2c 20.1]
+Progress: Parameterizing module i2c_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: i2c_alt_contr: Generating i2c_alt_contr "i2c_alt_contr" for QUARTUS_SYNTH
+Info: i2c_0: "i2c_alt_contr" instantiated altera_avalon_i2c "i2c_0"
+Info: i2c_alt_contr: Done "i2c_alt_contr" with 2 modules, 12 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

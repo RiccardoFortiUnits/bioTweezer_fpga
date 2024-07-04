@@ -1,0 +1,9 @@
+	component FP_fixed74_to_double is
+		port (
+			clk    : in  std_logic                     := 'X';             -- clk
+			areset : in  std_logic                     := 'X';             -- reset
+			a      : in  std_logic_vector(73 downto 0) := (others => 'X'); -- a
+			q      : out std_logic_vector(63 downto 0)                     -- q
+		);
+	end component FP_fixed74_to_double;
+

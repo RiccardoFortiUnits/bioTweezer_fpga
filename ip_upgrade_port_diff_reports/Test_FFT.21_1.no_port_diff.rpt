@@ -1,0 +1,23 @@
+IP Ports Diff Report for Test_FFT
+Wed Mar 29 14:29:44 2023
+Quartus Prime Version 21.1.0 Build 842 10/21/2021 Patches 0.01std SJ Standard Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. IP Information
+
+
+
++-----------------------------------------------------------------------+
+; IP Information                                                        ;
++----------------------+------------------------------------------------+
+; IP Variation Name    ; Test_FFT                                       ;
+; Prior Version        ; 20.1                                           ;
+; New Version          ; 21.1                                           ;
+; New File             ; verilog_code/FFt/Test_FFT/synthesis/Test_FFT.v ;
+; Has Port Differences ; No                                             ;
++----------------------+------------------------------------------------+
+
+

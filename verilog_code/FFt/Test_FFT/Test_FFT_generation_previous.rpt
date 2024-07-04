@@ -1,0 +1,42 @@
+Info: Starting: Create block symbol file (.bsf)
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\FFt\Test_FFT.qsys --block-symbol-file --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\FFt\Test_FFT --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading FFt/Test_FFT.qsys
+Progress: Reading input file
+Progress: Adding fft_ii_0 [altera_fft_ii 20.1]
+Progress: Parameterizing module fft_ii_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: Test_FFT.fft_ii_0: Radix-2 digit reverse implied
+Info: qsys-generate succeeded.
+Info: Finished: Create block symbol file (.bsf)
+Info: 
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\FFt\Test_FFT.qsys --synthesis=VERILOG --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\verilog_code\FFt\Test_FFT\synthesis --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading FFt/Test_FFT.qsys
+Progress: Reading input file
+Progress: Adding fft_ii_0 [altera_fft_ii 20.1]
+Progress: Parameterizing module fft_ii_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: Test_FFT.fft_ii_0: Radix-2 digit reverse implied
+Info: Test_FFT: Generating Test_FFT "Test_FFT" for QUARTUS_SYNTH
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twi1.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twr1.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twi2.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twi3.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twr2.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twi4.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twr3.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twr4.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twi5.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twr5.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twi6.hex
+Info: fft_ii_0: --- add file: Test_FFT_fft_ii_0_opt_twr6.hex
+Info: fft_ii_0: "Test_FFT" instantiated altera_fft_ii "fft_ii_0"
+Info: Test_FFT: Done "Test_FFT" with 2 modules, 54 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

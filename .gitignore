@@ -1,0 +1,16 @@
+qdb/
+db/
+incremental_db/
+greybox_tmp/
+tmp-clearbox/
+output_files/
+greybox_tmp/
+reconfig_mif/
+*.bak
+.qsys_edit/
+*.qws
+*.srf
+!ci_support/*.srf
+desktop.ini
+ddr3_altera_emif_arch_nf_191_vlww5eq_summary.csv
+ddr3_altera_emif_arch_nf_191_uc4qygi_summary.csv
