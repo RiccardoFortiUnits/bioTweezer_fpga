@@ -12,7 +12,7 @@ module shift_register_parallel  #(
 );
 
 localparam ADDR_WIDTH = $clog2(MAX_LENGTH);
-
+integer i;
 reg [BIT_WIDTH-1:0] shift_register [MAX_LENGTH-1:0];
 //adv_pointer for the write and pointer for the read operations
 always @(posedge clock ) begin

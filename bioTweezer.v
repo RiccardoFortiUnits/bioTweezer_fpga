@@ -1,4 +1,4 @@
-module H_Cube_test(
+module bioTweezer(
 
 	//////////// CLOCK //////////
 	input						REFCLK_125,
@@ -267,67 +267,6 @@ data_processor main_data_processor (
     .acq_rdreq_fifo_108(acq_rdreq_fifo_108)
 );
 
-// wire [5:0] data_out_single_carry ;
-
-// //ALT_INBUF KEY_IN (.i(KEY[0]), .o(data_out_single_carry [0])); 
-
-// assign data_out_single_carry[0] = KEY[0];
-
-// CARRY_SUM CARRY_0 (
-//     .sin(1), 
-//     .cin(data_out_single_carry [0]),  //<carry_in> cannot be fed by an input pin
-//     .cout(data_out_single_carry[1]) //<carry_out> cannot feed an output pin
-// );
-
-// CARRY_SUM CARRY_1 (
-//     .sin(1), 
-//     .cin(data_out_single_carry[1]),  //<carry_in> cannot be fed by an input pin
-//     .cout(data_out_single_carry[2]) //<carry_out> cannot feed an output pin
-// );
-
-// CARRY_SUM CARRY_2(
-//     .sin(1), 
-//     .cin(data_out_single_carry[2]),  //<carry_in> cannot be fed by an input pin
-//     .cout(data_out_single_carry[3]) //<carry_out> cannot feed an output pin
-// );
-
-// CARRY_SUM CARRY_3 (
-//     .sin(1), 
-//     .cin(data_out_single_carry[3]),  //<carry_in> cannot be fed by an input pin
-//     .cout(data_out_single_carry[4]) //<carry_out> cannot feed an output pin
-// );
-
-// CARRY_SUM CARRY_4 (
-//     .sin(1), 
-//     .cin(data_out_single_carry[4]),  //<carry_in> cannot be fed by an input pin
-//     .cout(data_out_single_carry[5]) //<carry_out> cannot feed an output pin
-// );
-
-// genvar i;
-// generate
-// 	for (i = 1; i <= 15; i = i + 1) begin : cascade
-// 		CARRY_SUM CARRY (
-//             .sin(0), 
-//             .cin(data_out_single_carry[i-1]),  //<carry_in> cannot be fed by an input pin
-//             .cout(data_out_single_carry[i]) //<carry_out> cannot feed an output pin
-//         );
-// 	end
-// endgenerate
-
-// reg [5:0] data_out_single_carry_reg ;
-
-// genvar i;
-// generate
-// 	for (i = 0; i <= 5; i = i + 1) begin : cascade
-//         always @(posedge clock_100 ) begin
-//             data_out_single_carry_reg[i] <= data_out_single_carry[i];
-//         end
-//         assign LEDR = data_out_single_carry_reg;
-// 	end
-// endgenerate
-
-////////////////// STATUS //////////////
-
 assign HEX3 = 'h55;
 assign HEX2 = 'hAA;
 assign HEX1 = 'h55;
@@ -339,7 +278,31 @@ assign LEDG[1] = reset_n;
 assign LEDG[2] = ~reset_DAC;
 assign LEDG[7] = DAC_running_50;
 
-assign LEDR[7:0] = input_A_data[15:8];
+
+//assign LEDR[7:0] = input_A_data[15:8];
+//FractionalMultiplier #(
+//	.A_WIDTH			(4),
+//	.B_WIDTH			(10),
+//	.OUTPUT_WIDTH	(10),
+//	.FRAC_BITS_A	(2),
+//	.FRAC_BITS_B	(9),
+//	.FRAC_BITS_OUT	(7)
+//)fm(
+//  .a				(KEY),
+//  .b				(SW),
+//  .result		(LEDR)
+//);
+sqrt_fixedPoint#(
+	.inputWidth 	(10),
+	.inputDecWidth 	(4),
+	.outputWidth 	(10)
+)swdfgh(
+	.aclr		(0),
+	.clk			(clock_100),
+	.radical		(SW),
+	.q			(LEDR),
+	.remainder	()
+);
 
 //assign LEDR[9:8] = 2'b00;
 wire input_saturating = (input_D_data == 16'h7FFF) || (input_D_data == 16'h8000);
