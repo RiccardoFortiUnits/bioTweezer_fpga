@@ -7,7 +7,7 @@ module sqrt_fixedPoint#(
 	input 								clk,
 	input [inputWidth-1:0]			radical,
 	output [outputWidth-1:0]		q,
-	output [inputWidth-1:0]			remainder
+	output [outputWidth+1 -1:0]			remainder
 );
 	localparam outputDecWidth = outputWidth - (inputWidth-inputDecWidth+1)/2;
 
@@ -15,7 +15,12 @@ module sqrt_fixedPoint#(
 //	wire [outputWidth-1:0] 
 	
 //code copied from a compiled IP code
-	altsqrt	ALTSQRT_component (
+altsqrt	 #(
+    .pipeline (2),
+    .q_port_width (outputWidth),
+    .r_port_width (outputWidth+1),
+    .width  (2*outputWidth)
+)ALTSQRT_component(
 				.aclr (aclr),
 				.clk (clk),
 				.radical (paddedRadical),
@@ -26,11 +31,6 @@ module sqrt_fixedPoint#(
 				.ena ()
 				// synopsys translate_on
 				);
-	defparam
-		ALTSQRT_component.pipeline = 2,
-		ALTSQRT_component.q_port_width = outputWidth,
-		ALTSQRT_component.r_port_width = inputWidth,
-		ALTSQRT_component.width = 2*outputWidth;
 
 
 endmodule
