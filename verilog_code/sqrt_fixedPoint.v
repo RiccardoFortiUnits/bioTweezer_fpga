@@ -8,10 +8,18 @@ module sqrt_fixedPoint#(
 	input [inputWidth-1:0]			radical,
 	output [outputWidth-1:0]		q,
 	output [outputWidth+1 -1:0]			remainder
+	//todo aggiungi datavalid
 );
 	localparam outputDecWidth = outputWidth - (inputWidth-inputDecWidth+1)/2;
+	localparam inputWholeWidth = inputWidth - inputDecWidth;
+	localparam isWholePartOdd = inputWholeWidth & 1;
 
-	wire [2*outputWidth-1:0] paddedRadical = {radical, {(2*outputWidth-inputWidth){1'b0}}};
+	wire [2*outputWidth-1:0] paddedRadical = {
+		{isWholePartOdd{1'b0}},
+		radical,
+		{(2*outputWidth-inputWidth-isWholePartOdd){1'b0}}
+	};
+//	assign paddedRadical[2*outputWidth-isWholePartOdd -1-:inputWidth]	= radical;
 //	wire [outputWidth-1:0] 
 	
 //code copied from a compiled IP code

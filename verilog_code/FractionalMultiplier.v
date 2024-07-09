@@ -1,11 +1,14 @@
 
 
-module FractionalMultiplier #(parameter A_WIDTH = 16,
-                              parameter B_WIDTH = 16,
-                              parameter OUTPUT_WIDTH = 16,
-                              parameter FRAC_BITS_A = 4,
-                              parameter FRAC_BITS_B = 4,
-                              parameter FRAC_BITS_OUT = 8) (
+module FractionalMultiplier #(
+	parameter A_WIDTH = 16,
+	parameter B_WIDTH = 16,
+	parameter OUTPUT_WIDTH = 16,
+	parameter FRAC_BITS_A = 4,
+	parameter FRAC_BITS_B = 4,
+	parameter FRAC_BITS_OUT = 8,
+	parameter areSignalsSigned = 1
+ ) (
   input wire signed [A_WIDTH-1:0] a,
   input wire signed [B_WIDTH-1:0] b,
   output wire signed [OUTPUT_WIDTH-1:0] result
@@ -14,9 +17,20 @@ module FractionalMultiplier #(parameter A_WIDTH = 16,
  
   assign full_aByb = $signed(a) * $signed(b);
   
-  assign result = full_aByb[OUTPUT_WIDTH - 1 + FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT: 
-                                               FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT];
+//  assign result = full_aByb[OUTPUT_WIDTH - 1 + FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT: 
+//                                               FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT];
 
+	fixedPointShifter#(
+		.inputBitSize	(A_WIDTH + B_WIDTH),
+		.inputFracSize	(FRAC_BITS_A + FRAC_BITS_B),
+		.outputBitSize	(OUTPUT_WIDTH),
+		.outputFracSize	(FRAC_BITS_OUT),
+		.isSigned		(areSignalsSigned)
+	)outShifter(
+		.in				(full_aByb),
+		.out			(result)
+	);
+															  
 endmodule
 
 module clocked_FractionalMultiplier #(
@@ -35,8 +49,21 @@ module clocked_FractionalMultiplier #(
 );
 wire signed [A_WIDTH + B_WIDTH - 1:0] full_aByb;
 
-assign result = full_aByb[OUTPUT_WIDTH - 1 + FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT: 
-                                               FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT];
+
+
+
+//assign result = full_aByb[OUTPUT_WIDTH - 1 + FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT: 
+//                                               FRAC_BITS_A + FRAC_BITS_B - FRAC_BITS_OUT];
+	fixedPointShifter#(
+		.inputBitSize	(A_WIDTH + B_WIDTH),
+		.inputFracSize	(FRAC_BITS_A + FRAC_BITS_B),
+		.outputBitSize	(OUTPUT_WIDTH),
+		.outputFracSize	(FRAC_BITS_OUT),
+		.isSigned		(areSignalsSigned)
+	)outShifter(
+		.in				(full_aByb),
+		.out			(result)
+	);
 
 generate
     if(areSignalsSigned)begin

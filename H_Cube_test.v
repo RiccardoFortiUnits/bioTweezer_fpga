@@ -171,39 +171,92 @@ clock_synchronizer clock_synchronizer_inst(
 wire DAC_running_50, ADC_acquire;
 wire [79:0] sweep_freq_wfm;
 
-DAC_wrapper DAC_wrapper_0 (
-    .clk_50(ADC_outclock_50),
+//DAC_wrapper DAC_wrapper_0 (
+//    .clk_50(ADC_outclock_50),
+//    .reset(reset_DAC),
+//
+//    .start_fifo_cmd(start_fifo_cmd_50),
+//    .start_dac_cmd(start_dac_cmd_50),
+//    .stop_dac_cmd(stop_dac_cmd_50),// || ~(|KEY)), 
+//    
+//    .running(DAC_running_50),
+//    .running_fb(DAC_running_50_fb),
+//
+//    .DAC_SCK(DAC_SCK),
+//    .DAC_CS_N(DAC_CS_N),
+//    .DAC_SDO(DAC_SDO),
+//
+//    .mode_nCont_disc(mode_nCont_disc),
+//
+//    .ADC_acquire(ADC_acquire),
+//    .sweep_freq_wfm(sweep_freq_wfm),
+//
+//    .SW(SW[3:0]),
+//    .frequency_initial(frequency_initial),
+//    .frequency_final(frequency_final),
+//    .frequency_step(frequency_step),
+//    .step_counter(step_counter),
+//    .wfm_amplitude(wfm_amplitude),
+//    .dem_delay(dem_delay),
+//
+//    //fifo parameters
+//    .fifo_rd_ack(fifo_rd_ack),
+//    .fifo_rd_data(fifo_rd_data),
+//    .fifo_rd_empty(fifo_rd_empty)
+//);
+wire [15:0] controllerOut;
+wire [15:0] ray;
+wire controllerOut_valid;
+tweezerController#(
+	.inputBitSize			(16),
+	.inputFracSize		(15),
+	.outputBitSize		(16),
+	.outputFracSize		(15),
+	.coeffBitSize			(4),
+	.coeffFracSize		(3),
+	.workingBitSize		(24),	
+	.workingFracSize	(20)
+)tc(
+	.clk												(ADC_outclock_50),
+	.reset											(reset_50),
+	.XDIFF											(input_A_data),
+	.YDIFF											(input_B_data),
+	.SUM												(0),
+	.retroactionController			(controllerOut),
+	.retroactionController_valid(controllerOut_valid),
+	.PI_reset										(SW[9]),
+	.PI_enable									(!SW[9]),
+	.PI_freeze									(SW[8]),
+	.PI_kp											(SW[7:4]),
+	.PI_ki											(SW[3:0])
+	,
+	.ray(ray)
+);
+
+
+dacs_ad5541a dacs_ad5541a_0 (
+    .clock(ADC_outclock_50),
     .reset(reset_DAC),
 
-    .start_fifo_cmd(start_fifo_cmd_50),
-    .start_dac_cmd(start_dac_cmd_50),
-    .stop_dac_cmd(stop_dac_cmd_50),// || ~(|KEY)), 
-    
-    .running(DAC_running_50),
-    .running_fb(DAC_running_50_fb),
+    .dac1_datain(16'h8000),//setpoint per l'output shift
+    .dac2_datain(controllerOut+16'h8000),
+    .dac3_datain(input_A_data+16'h8000),
+    .dac4_datain(ray+16'h8000),
+    // .dac1_datain(16'h8000),
+    // .dac2_datain(sweep_data+16'h8000),
+    // .dac3_datain(sweep_data+16'h8000),
+    // .dac4_datain(sweep_data+16'h8000),
 
-    .DAC_SCK(DAC_SCK),
-    .DAC_CS_N(DAC_CS_N),
-    .DAC_SDO(DAC_SDO),
+    .select_dac(3'b100), //all dacs enabled
+    .start(!reset_DAC),
+    .busy(dac_busy),
 
-    .mode_nCont_disc(mode_nCont_disc),
-
-    .ADC_acquire(ADC_acquire),
-    .sweep_freq_wfm(sweep_freq_wfm),
-
-    .SW(SW[3:0]),
-    .frequency_initial(frequency_initial),
-    .frequency_final(frequency_final),
-    .frequency_step(frequency_step),
-    .step_counter(step_counter),
-    .wfm_amplitude(wfm_amplitude),
-    .dem_delay(dem_delay),
-
-    //fifo parameters
-    .fifo_rd_ack(fifo_rd_ack),
-    .fifo_rd_data(fifo_rd_data),
-    .fifo_rd_empty(fifo_rd_empty)
+    .sclk(DAC_SCK),
+    .ldac_n(/*DAC_LDAC_N*/),
+    .dac_sdo(DAC_SDO),
+    .cs_n(DAC_CS_N)
 );
+
 
 /////////// FAST ADC and LOCKIN ///////////////
 //CDC of the reset to the 50 MHz clock domain from the 100MHz of the pll

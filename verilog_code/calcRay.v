@@ -1,82 +1,77 @@
 module calcRay#
 (
 	parameter inputWidth = 8,
-	parameter inputFracWidth = 7,
+	parameter inputFracWidth = 4,
 	parameter outputWidth = 8,
-	parameter outputFracWidth = 7
+	parameter outputFracWidth = 4
 )(
 	input clk,
 	input reset,
 	
-	input signed [7:0] x,
-	input signed [7:0] y,
-	output unsigned [7:0] r
+	input signed [inputWidth -1:0] x,
+	input signed [inputWidth -1:0] y,
+	output [outputWidth -1:0] r
 );
-localparam inputWholeWidth = inputWidth - inputFracWidth;
-localparam outputWholeWidth = outputWidth - outputFracWidth;
+localparam nOfInputs = 2;//3;
 
-localparam nOfInputs = 2;
+localparam 	inputWholeWidth = inputWidth - inputFracWidth,
+				outputWholeWidth = outputWidth - outputFracWidth,
+				squareBitWidth = inputWidth * 2,//with the sqrt we'll lose half of the bits, so there's no reason to be stingy with the multiplication size
+				squareFracWidth = inputFracWidth * 2,
+				squareSumBitWidth = squareBitWidth + 1,//sum of 2 or 3 numbers => we require one bit more
+				squareSumFracWidth = squareFracWidth,
+				sqrtBitWidth = (squareSumBitWidth+1)/2,
+				sqrtFracWidth = squareSumFracWidth/2;
+
 wire [inputWidth-1:0] inputs [nOfInputs-1:0];
 assign inputs[0] = x;
 assign inputs[1] = y;
-wire [inputWidth*2-1:0] inputs_squared[nOfInputs-1:0];
+wire [squareBitWidth-1:0] inputs_squared[nOfInputs-1:0];
 
-wire [inputWidth*2 +nOfInputs-1 -1:0] squareSum = inputs_squared[0]+inputs_squared[1];//+inputs_squared[2];
 
-/*
+
 generate
 genvar gi;
-	for(gi=0;gi<nOfInputs;gi=gi+1)begin
-		FractionalMultiplier #(
+	for(gi=0;gi<nOfInputs;gi=gi+1)begin:forCycle
+		clocked_FractionalMultiplier #(
 			.A_WIDTH			(inputWidth),
 			.B_WIDTH			(inputWidth),
-			.OUTPUT_WIDTH	(inputWidth*2),
+			.OUTPUT_WIDTH	(squareBitWidth),
 			.FRAC_BITS_A	(inputFracWidth),
 			.FRAC_BITS_B	(inputFracWidth),
-			.FRAC_BITS_OUT	(inputFracWidth*2)
+			.FRAC_BITS_OUT	(squareFracWidth)
 		)fm(
+		  .clk(clk),
+		  .reset(reset),
 		  .a				(inputs[gi]),
 		  .b				(inputs[gi]),
 		  .result		(inputs_squared[gi])
 		);
 	end	
 endgenerate
-*/
 
-FractionalMultiplier #(
-	.A_WIDTH			(inputWidth),
-	.B_WIDTH			(inputWidth),
-	.OUTPUT_WIDTH	(inputWidth*2),
-	.FRAC_BITS_A	(inputFracWidth),
-	.FRAC_BITS_B	(inputFracWidth),
-	.FRAC_BITS_OUT	(inputFracWidth*2)
-)fm0(
-  .a				(inputs[0]),
-  .b				(inputs[0]),
-  .result		(inputs_squared[0])
-);
-
-FractionalMultiplier #(
-	.A_WIDTH			(inputWidth),
-	.B_WIDTH			(inputWidth),
-	.OUTPUT_WIDTH	(inputWidth*2),
-	.FRAC_BITS_A	(inputFracWidth),
-	.FRAC_BITS_B	(inputFracWidth),
-	.FRAC_BITS_OUT	(inputFracWidth*2)
-)fm1(
-  .a				(inputs[1]),
-  .b				(inputs[1]),
-  .result		(inputs_squared[1])
-);
-//
+wire [squareSumBitWidth -1:0] squareSum = inputs_squared[0]+inputs_squared[1];//+inputs_squared[2];
+wire [sqrtBitWidth -1:0] sqrtOfSum;
 sqrt_fixedPoint#(
-	.inputWidth			(inputWidth*2 +nOfInputs-1),
-	.outputWidth		(outputWidth)
+	.inputWidth			(squareSumBitWidth),
+	.outputWidth		(sqrtBitWidth)
 )sqrtFp(
 	.aclr(reset),
 	.clk(clk),
 	.radical(squareSum),
-	.q(r),
+	.q(sqrtOfSum),
 	.remainder()
 );
+
+fixedPointShifter#(
+	.inputBitSize	(sqrtBitWidth),
+	.inputFracSize	(sqrtFracWidth),
+	.outputBitSize	(outputWidth),
+	.outputFracSize	(outputFracWidth),
+	.isSigned		(0)
+)shifOutput(
+	.in		(sqrtOfSum),
+	.out	(r)
+);
 endmodule
+
