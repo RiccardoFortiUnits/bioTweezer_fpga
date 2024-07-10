@@ -32,9 +32,9 @@ module tweezerController#(
 wire [workingBitSize -1:0] x,y;
 
 //for now, x=XDIFF, y=YDIFF
-fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize) 
+fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
 	XDIFF_to_x(XDIFF, x);
-fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize) 
+fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
 	YDIFF_to_y(YDIFF, y);
 	
 //get distance of the bead
@@ -80,13 +80,13 @@ pi_controller#(
 	.pi_output_valid	(retroactionController_valid)
 );
 
-fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize) 
+fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	pi_out_to_retroactionController(pi_out, retroactionController);
 	
 	
 //debug wires
 
-fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize) 
+fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	r_to_ray(r, ray);
 
 endmodule

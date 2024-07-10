@@ -47,7 +47,7 @@ localparam ERROR_COMPUTATION_DELAY          = 1,
            MULTIPLICATION_ERROR_KP_DELAY    = 1,
            MULTIPLICATION_ERROR_KP_TI_DELAY = 1,
            INTEGRAL_ADDITION_DELAY          = 0,
-           PI_OUTPUT_ADDITION_DELAY         = 0,
+           PI_OUTPUT_ADDITION_DELAY         = 1,
            INTEGRAL_COMPONENT_DELAY         = ERROR_COMPUTATION_DELAY + MULTIPLICATION_ERROR_KP_DELAY + MULTIPLICATION_ERROR_KP_TI_DELAY + INTEGRAL_ADDITION_DELAY,
            PI_OUTPUT_DELAY                  = PI_OUTPUT_ADDITION_DELAY + INTEGRAL_COMPONENT_DELAY;
 
@@ -220,7 +220,7 @@ adder#(
   .result   (integralSum)
 );
 
-assign integralSum_cleaned = (pi_limiting || reset || reset_pi) ?
+assign integralSum_cleaned = save_integral_component_pi && (pi_limiting || reset || reset_pi) ?
                                 integralSum_delayed :
                                 integralSum;
 

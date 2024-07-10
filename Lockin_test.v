@@ -75,13 +75,13 @@ debouncer debouncer_stop_start_button(
 );
 
 //inversion because enable is active low while mux2 is active high
-assign aux_io[15] = !mux_2[2];
-assign aux_io[13] = mux_2[1];
-assign aux_io[11] = mux_2[0];
+assign aux_io[15] = 0;
+assign aux_io[13] = 0;
+assign aux_io[11] = 0;
 
-assign aux_io[14] = !mux_1[2];
-assign aux_io[12] = mux_1[1];
-assign aux_io[10] = mux_1[0];
+assign aux_io[14] = 0;
+assign aux_io[12] = 0;
+assign aux_io[10] = 0;
 
 assign aux_io[9] = ttl2;
 assign aux_io[8] = ttl1;
@@ -297,39 +297,57 @@ clock_synchronizer clock_synchronizer_inst(
 
 wire DAC_running_50, ADC_acquire, XY_acquire;
 wire [79:0] sweep_freq_wfm;
+wire [15:0] controllerOut;
+wire [15:0] ray;
+wire controllerOut_valid;
+tweezerController#(
+	.inputBitSize			(16),
+	.inputFracSize		(15),
+	.outputBitSize		(16),
+	.outputFracSize		(15),
+	.coeffBitSize			(4),
+	.coeffFracSize		(3),
+	.workingBitSize		(24),	
+	.workingFracSize	(20)
+)tc(
+	.clk												(ADC_outclock_50),
+	.reset											(reset_50),
+	.XDIFF											(input_A_data),
+	.YDIFF											(input_B_data),
+	.SUM												(0),
+	.retroactionController			(controllerOut),
+	.retroactionController_valid(controllerOut_valid),
+	.PI_reset										(SW[9]),
+	.PI_enable									(!SW[9]),
+	.PI_freeze									(SW[8]),
+	.PI_kp											(SW[7:4]),
+	.PI_ki											(SW[3:0])
+	,
+	.ray(ray)
+);
 
-DAC_wrapper DAC_wrapper_0 (
-    .clk_50(ADC_outclock_50),
-    .clk_adc_fast(ADC_outclock_100),
+
+dacs_ad5541a dacs_ad5541a_0 (
+    .clock(ADC_outclock_50),
     .reset(reset_DAC),
 
-    .start_fifo_cmd(start_fifo_cmd_50),
-    .stop_dac_cmd(stop_dac_cmd_50),// || ~(|KEY)), 
-    
-    .running(DAC_running_50),
-    .running_fb(DAC_running_50_fb),
+    .dac1_datain(16'h8000),//setpoint per l'output shift
+    .dac2_datain(controllerOut+16'h8000),
+    .dac3_datain(input_A_data+16'h8000),
+    .dac4_datain(ray+16'h8000),
+    // .dac1_datain(16'h8000),
+    // .dac2_datain(sweep_data+16'h8000),
+    // .dac3_datain(sweep_data+16'h8000),
+    // .dac4_datain(sweep_data+16'h8000),
 
-    .DAC_SCK(DAC_SCK),
-    .DAC_CS_N(DAC_CS_N),
-    .DAC_SDO(DAC_SDO),
+    .select_dac(3'b100), //all dacs enabled
+    .start(!reset_DAC),
+    .busy(dac_busy),
 
-    .ADC_acquire(ADC_acquire),
-    .XY_acquire(XY_acquire),
-    .sweep_freq_wfm(sweep_freq_wfm),
-
-    .SW(SW[3:0]),
-    .wfm_amplitude(wfm_amplitude),
-    .dem_delay(dem_delay),
-
-    //DACs data from NCOs
-    .data_DAC_PML(dac_data_PML),
-    .data_DAC_PML_valid(dac_data_PML_valid),
-    .filtering(SW[6]),
-
-    //fifo parameters
-    .fifo_rd_ack(fifo_rd_ack),
-    .fifo_rd_data(fifo_rd_data),
-    .fifo_rd_empty(fifo_rd_empty)
+    .sclk(DAC_SCK),
+    .ldac_n(/*DAC_LDAC_N*/),
+    .dac_sdo(DAC_SDO),
+    .cs_n(DAC_CS_N)
 );
 
 /////////// FAST ADC and LOCKIN ///////////////
@@ -410,10 +428,10 @@ data_processor main_data_processor (
 
 ////////////////// STATUS //////////////
 
-assign HEX3 = 7'b1000110;
-assign HEX2 = 7'b1000001;
-assign HEX1 = 7'b0000011;
-assign HEX0 = 7'b0100100;
+assign HEX3 = 'h55;
+assign HEX2 = 'hAA;
+assign HEX1 = 'h55;
+assign HEX0 = 'hAA;
 
 
 assign LEDG[0] = pll_locked;
