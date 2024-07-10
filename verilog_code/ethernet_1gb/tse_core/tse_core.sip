@@ -1,5 +1,5 @@
 set_global_assignment -entity "tse_core" -library "lib_tse_core" -name IP_TOOL_NAME "altera_eth_tse"
-set_global_assignment -entity "tse_core" -library "lib_tse_core" -name IP_TOOL_VERSION "23.1"
+set_global_assignment -entity "tse_core" -library "lib_tse_core" -name IP_TOOL_VERSION "22.1"
 set_global_assignment -entity "tse_core" -library "lib_tse_core" -name IP_TOOL_ENV "mwpim"
 set_global_assignment -library "lib_tse_core" -name SPD_FILE [file join $::quartus(sip_path) "tse_core.spd"]
 

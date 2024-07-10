@@ -1,0 +1,65 @@
+Info: Starting: Create simulation model
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic.qsys --simulation=VERILOG --allow-mixed-language-simulation --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic\simulation --family="Cyclone V" --part=5CEBA2F17A7
+Progress: Loading cordic/cordic.qsys
+Progress: Reading input file
+Progress: Adding CORDIC_0 [altera_CORDIC 22.1]
+Progress: Parameterizing module CORDIC_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: cordic: Generating cordic "cordic" for SIM_VERILOG
+Info: CORDIC_0: D:/intelfpga/22.1std/quartus/dspba/backend/windows64/cmdPolyEval -target CycloneV -frequency 50 -name cordic_CORDIC_0 -noChanValid -faithfulRounding -enable -printMachineReadable -lang VHDL -speedgrade 7 FXPVecTranslate 32 30 1 24 0
+Info: CORDIC_0: Latency on Cyclone V is 7 cycles
+Info: CORDIC_0: DSP Blocks Used: 0
+Info: CORDIC_0: LUTs Used: 3841
+Info: CORDIC_0: Memory Bits Used: 0
+Info: CORDIC_0: Memory Blocks Used: 0
+Info: CORDIC_0: "cordic" instantiated altera_CORDIC "CORDIC_0"
+Info: cordic: Done "cordic" with 2 modules, 4 files
+Info: qsys-generate succeeded.
+Info: Finished: Create simulation model
+Info: Starting: Create Modelsim Project.
+Info: sim-script-gen --spd=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic\cordic.spd --output-directory=D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/ --use-relative-paths=true
+Info: Doing: ip-make-simscript --spd=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic\cordic.spd --output-directory=D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/ --use-relative-paths=true
+Info: Generating the following file(s) for MODELSIM simulator in D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/ directory:
+Info: 	mentor/msim_setup.tcl
+Info: Generating the following file(s) for RIVIERA simulator in D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/ directory:
+Info: 	aldec/rivierapro_setup.tcl
+Info: For information on how to simulate your IP, see the explanatory comments in the simulator-specific subdirectories under D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/.
+Info: Regenerate these scripts whenever you make any change to any Quartus-generated IP in your project.
+Info: Finished: Create Modelsim Project.
+Info: Starting: Create block symbol file (.bsf)
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic.qsys --block-symbol-file --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic --family="Cyclone V" --part=5CEBA2F17A7
+Progress: Loading cordic/cordic.qsys
+Progress: Reading input file
+Progress: Adding CORDIC_0 [altera_CORDIC 22.1]
+Progress: Parameterizing module CORDIC_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: qsys-generate succeeded.
+Info: Finished: Create block symbol file (.bsf)
+Info: 
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic.qsys --synthesis=VERILOG --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\cordic\cordic\synthesis --family="Cyclone V" --part=5CEBA2F17A7
+Progress: Loading cordic/cordic.qsys
+Progress: Reading input file
+Progress: Adding CORDIC_0 [altera_CORDIC 22.1]
+Progress: Parameterizing module CORDIC_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: cordic: Generating cordic "cordic" for QUARTUS_SYNTH
+Info: CORDIC_0: D:/intelfpga/22.1std/quartus/dspba/backend/windows64/cmdPolyEval -target CycloneV -frequency 50 -name cordic_CORDIC_0 -noChanValid -faithfulRounding -enable -printMachineReadable -lang VHDL -speedgrade 7 FXPVecTranslate 32 30 1 24 0
+Info: CORDIC_0: Latency on Cyclone V is 7 cycles
+Info: CORDIC_0: DSP Blocks Used: 0
+Info: CORDIC_0: LUTs Used: 3841
+Info: CORDIC_0: Memory Bits Used: 0
+Info: CORDIC_0: Memory Blocks Used: 0
+Info: CORDIC_0: "cordic" instantiated altera_CORDIC "CORDIC_0"
+Info: cordic: Done "cordic" with 2 modules, 4 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

@@ -1,0 +1,911 @@
+m255
+K4
+z2
+!s11e MIXED_VERSIONS
+!s11f vlog 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dD:/intelFPGA/20.1/modelsim_ase/win32aloem
+vS0pa9Hsk7Czy4VV+vJfh7A==
+Z0 !s110 1706110956
+!i10b 0
+!s100 Q5h71PD:BAfY<ckQ4fLEM2
+Z1 !s11b Dg1SIo80bB@j0V0VzS_@n1
+IX[>0[ffh5d6g5]nb8i9@h0
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+!i119 1
+!i8a 1504175968
+Z3 dD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/modelsim
+Z4 w1706110956
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_altqmcash.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_altqmcash.v
+!i122 514
+Z5 L0 12 1
+Z6 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z7 !s108 1706110956.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_altqmcash.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_altqmcash.v|
+!i113 1
+Z8 o-work work
+Z9 tCvgOpt 0
+n3e3c0c8
+v7O3TuoXHiayvt0HTLvzaTw==
+R0
+!i10b 0
+!s100 R@7=1AhB0j5KUiB8]<Ob>0
+R1
+I=gS]FWg55D68a>MGM`4ko3
+R2
+!i119 1
+!i8a 889822800
+R3
+R4
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx.v
+!i122 515
+R5
+R6
+r1
+!s85 0
+31
+R7
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx.v|
+!i113 1
+R8
+R9
+n8a05b98
+vQazsIQIMGqJuF3T0HSd9dg==
+R0
+!i10b 0
+!s100 fQQ<9nOFAmDNIe_e`@NG`1
+R1
+IehJSD3oN;9]e<ni97kmPe0
+R2
+!i119 1
+!i8a 781207728
+R3
+R4
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx_g.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx_g.v
+!i122 516
+R5
+R6
+r1
+!s85 0
+31
+R7
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx_g.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx_g.v|
+!i113 1
+R8
+R9
+n5b96f7
+vVyhE37hYto7BWdL3pbCa4A==
+R0
+!i10b 0
+!s100 afk_JoN6`m``^aEU24GzN2
+R1
+I7HS3h?7VIH70?nniPQ>Ii2
+R2
+!i119 1
+!i8a 842226464
+R3
+R4
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_gar.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_gar.v
+!i122 517
+R5
+R6
+r1
+!s85 0
+31
+R7
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_gar.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_gar.v|
+!i113 1
+R8
+R9
+n8a05de2
+vhSJTByvTytELWiF8qPr0qA==
+R0
+!i10b 0
+!s100 lna[6f5PEU6aYj13S>1Lk3
+R1
+IbC>aPMYd<0hG=5e6HLn]m3
+R2
+!i119 1
+!i8a 335783312
+R3
+R4
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_apr_dxx.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_apr_dxx.v
+!i122 518
+R5
+R6
+r1
+!s85 0
+31
+R7
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_apr_dxx.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_apr_dxx.v|
+!i113 1
+R8
+R9
+n8135608
+vxa5a4Ch0KuFLPQOdzVNAedu/oXhc/9lBeIyXxWE4v0U=
+R0
+!i10b 0
+!s100 KQI=eRJJjDmlzm^F>f4X90
+R1
+Ie5?TGnMcIZ<za4cRD]OaD2
+R2
+!i119 1
+!i8a 1354454208
+R3
+R4
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_as_m_cen.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_as_m_cen.v
+!i122 519
+R5
+R6
+r1
+!s85 0
+31
+R7
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_as_m_cen.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_as_m_cen.v|
+!i113 1
+R8
+R9
+nf13863e
+vAW+J0IuNbImooTclU5nsgw==
+Z10 !s110 1706110957
+!i10b 0
+!s100 6eSfjRDf]G3f?8i<=T8>l1
+R1
+IIPe=a@RMn@N1MOM;O>3_z0
+R2
+!i119 1
+!i8a 1383004720
+R3
+Z11 w1706110957
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_fxx.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_fxx.v
+!i122 520
+R5
+R6
+r1
+!s85 0
+31
+Z12 !s108 1706110957.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_fxx.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_fxx.v|
+!i113 1
+R8
+R9
+n50dfd98
+vJ+qUDCOKMp6boYNQzFpVDg==
+R10
+!i10b 0
+!s100 67zDX1;QaW>oMPbiZH=6I3
+R1
+IV5NV<JioJ>BiP2EL888T@3
+R2
+!i119 1
+!i8a 384546432
+R3
+R11
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_isdr.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_isdr.v
+!i122 521
+R5
+R6
+r1
+!s85 0
+31
+R12
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_isdr.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_isdr.v|
+!i113 1
+R8
+R9
+ne00fe2
+vhn9N6FNOtO0o53KqicXNDA==
+R10
+!i10b 0
+!s100 `hOT6M0>6BJSlRU6_V=O71
+R1
+IT9j9]>6@GOemAT9W:OPbJ2
+R2
+!i119 1
+!i8a 645984688
+R3
+R11
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_mob_rw.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_mob_rw.v
+!i122 522
+R5
+R6
+r1
+!s85 0
+31
+R12
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_mob_rw.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_mob_rw.v|
+!i113 1
+R8
+R9
+n433677
+vu1hHN4Iu89BEQE3vPa0ylA==
+R10
+!i10b 0
+!s100 EGi4^Y[k=ZVNDzg7OZiK[2
+R1
+ILED^1hQS6RC<1QdjhidC00
+R2
+!i119 1
+!i8a 711722784
+R3
+R11
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_xnqg.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_xnqg.v
+!i122 523
+R5
+R6
+r1
+!s85 0
+31
+R12
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_xnqg.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_xnqg.v|
+!i113 1
+R8
+R9
+na06f3f7
+vcordic
+Z13 !s110 1717423847
+!i10b 1
+!s100 JLIh:KM0nQ=]BkJAoB]an2
+R1
+IoLIU22jTNi9W8105mj:C00
+R2
+R3
+w1705059744
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/cordic.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/cordic.v
+!i122 613
+L0 6 21
+R6
+r1
+!s85 0
+31
+Z14 !s108 1717423847.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/cordic.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/cordic.v|
+!i113 1
+R8
+R9
+Ecordic_cordic_0
+Z15 w1705059747
+Z16 DPx3 lpm 14 lpm_components 0 22 jlWe>e^2@cAI7EQaRX2E;1
+Z17 DPx12 altera_lnsim 23 altera_lnsim_components 0 22 3dzZ?YU_4FC5UU0cTXRET1
+Z18 DPx9 altera_mf 20 altera_mf_components 0 22 HVLmIbRl@QhXfWVOmhK<j1
+Z19 DPx4 work 21 dspba_library_package 0 22 g5ge0<PbUA3NecLg[8;Cj3
+Z20 DPx4 ieee 9 math_real 0 22 gNk<PdFJ<XNPcfef`f?Z81
+Z21 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
+Z22 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z23 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
+!i122 614
+R3
+Z24 8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/cordic_CORDIC_0.vhd
+Z25 FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/cordic_CORDIC_0.vhd
+l0
+L36 1
+V<X=?fYU]@Id`EAJ9e8M6O2
+!s100 8dZ_B3eM1XW6DNaX>VJo@0
+Z26 OV;C;2020.1;71
+32
+R13
+!i10b 1
+R14
+Z27 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/cordic_CORDIC_0.vhd|
+Z28 !s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/cordic_CORDIC_0.vhd|
+!i113 1
+Z29 o-work work -2002 -explicit
+Z30 tExplicit 1 CvgOpt 0
+Anormal
+R16
+R17
+R18
+R19
+R20
+R21
+R22
+R23
+DEx4 work 15 cordic_cordic_0 0 22 <X=?fYU]@Id`EAJ9e8M6O2
+!i122 614
+l664
+L48 3162
+VQl>6EjbN7Y8g_R@lCG0_B1
+!s100 [M[IP[7c3>6XKf:TZk9^Y1
+R26
+32
+R13
+!i10b 1
+R14
+R27
+R28
+!i113 1
+R29
+R30
+vcordic_tb
+Z31 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
+Z32 !s110 1717423846
+!i10b 1
+!s100 V?lah<RSZhnGVZ[@1QVOB1
+R1
+I_b45H<b1EX?6g`;kKeFN:2
+R2
+S1
+R3
+w1705074284
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/cordic_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/cordic_tb.sv
+!i122 604
+L0 3 76
+R6
+r1
+!s85 0
+31
+Z33 !s108 1717423846.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/cordic_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/cordic_tb.sv|
+!i113 1
+Z34 o-work work -sv
+R9
+vdemodulator_tb
+R31
+R32
+!i10b 1
+!s100 <;fEY`IP3jBjV`8<zDG0S2
+R1
+I:<VW;VHZEkB46e`08PRI33
+R2
+S1
+R3
+w1704816591
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv
+!i122 605
+L0 3 77
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv|
+!i113 1
+R34
+R9
+vdeserializer
+R32
+!i10b 1
+!s100 7@M?gZozb3Y<09ZGLZDB91
+R1
+IAX827KRFAL60W`X^MQFo52
+R2
+R3
+w1705496385
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/deserializer.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/deserializer.v
+!i122 608
+L0 1 55
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/deserializer.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/deserializer.v|
+!i113 1
+R8
+R9
+Edspba_delay
+R15
+R19
+R22
+R23
+!i122 615
+R3
+Z35 8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library.vhd
+Z36 FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library.vhd
+l0
+L18 1
+VJZ>XXZi]3nAML><T1OJmD2
+!s100 >TY9@l4a>2O5Wd_6jF4:g0
+R26
+32
+R13
+!i10b 1
+R14
+Z37 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library.vhd|
+Z38 !s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library.vhd|
+!i113 1
+R29
+R30
+Adelay
+R19
+R22
+R23
+DEx4 work 11 dspba_delay 0 22 JZ>XXZi]3nAML><T1OJmD2
+!i122 615
+l37
+L34 51
+VH[ibU<H]FT4<DCgHmIjFa0
+!s100 DAfPXKZhR<Ac>Wg8zYj1H3
+R26
+32
+R13
+!i10b 1
+R14
+R37
+R38
+!i113 1
+R29
+R30
+Pdspba_library_package
+R22
+R23
+!i122 616
+R15
+R3
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library_package.vhd
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library_package.vhd
+l0
+L17 1
+Vg5ge0<PbUA3NecLg[8;Cj3
+!s100 @e;XE0e^oAdIdzY=Rc];H3
+R26
+32
+R13
+!i10b 1
+R14
+!s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library_package.vhd|
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library_package.vhd|
+!i113 1
+R29
+R30
+Edspba_pipe
+R15
+R21
+R22
+R23
+!i122 615
+R3
+R35
+R36
+l0
+L343 1
+VhX_ehDHUhEGT`<4CLHDEW1
+!s100 ko3XcgZgdPgSD;SDR?Wmi2
+R26
+32
+R13
+!i10b 1
+R14
+R37
+R38
+!i113 1
+R29
+R30
+Artl
+R21
+R22
+R23
+DEx4 work 10 dspba_pipe 0 22 hX_ehDHUhEGT`<4CLHDEW1
+!i122 615
+l362
+L356 21
+VF>oh8b`LjePmYI9jU_S=k2
+!s100 =]hA3YBJaaU9dNBMla?I?2
+R26
+32
+R13
+!i10b 1
+R14
+R37
+R38
+!i113 1
+R29
+R30
+Edspba_sync_reg
+R15
+R19
+R21
+R22
+R23
+!i122 615
+R3
+R35
+R36
+l0
+L93 1
+V[2:MQ1fH@k]9VCDY^FzcN0
+!s100 G`[2Ci2RQWoL`zK>2h>oj2
+R26
+32
+R13
+!i10b 1
+R14
+R37
+R38
+!i113 1
+R29
+R30
+Async_reg
+R19
+R21
+R22
+R23
+DEx4 work 14 dspba_sync_reg 0 22 [2:MQ1fH@k]9VCDY^FzcN0
+!i122 615
+l136
+L117 219
+VZKLBIVGKhdlX>MS;1P6Rc3
+!s100 3CF6gEiK7^`H_<3Ne[inV2
+R26
+32
+R13
+!i10b 1
+R14
+R37
+R38
+!i113 1
+R29
+R30
+vlockin
+R13
+!i10b 1
+!s100 gbbcDB9eJjaIHC3>D2>Bm3
+R1
+I?BhhdX0UY?gmS>4C?Lbzg2
+R2
+R3
+w1713255490
+8D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\data_process\lockin\lockin.v
+FD:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\data_process\lockin\lockin.v
+!i122 617
+L0 16 161
+R6
+r1
+!s85 0
+31
+R14
+!s107 D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\data_process\lockin\lockin.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\data_process\lockin\lockin.v|
+!i113 1
+R8
+R9
+vlockin_tb
+R31
+R13
+!i10b 1
+!s100 UXGVjAXj_>?gShQFdMX[o0
+R1
+I`9a7nB[UWHOV_^mU143S?2
+R2
+S1
+R3
+w1717423832
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv
+!i122 618
+L0 3 104
+R6
+r1
+!s85 0
+31
+R14
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv|
+!i113 1
+R34
+R9
+vlpf_tb
+R31
+R32
+!i10b 1
+!s100 H6N5liFQ<ia;fYZLmVJzI1
+R1
+IDh0l3kDX`f1@[i]mok;792
+R2
+S1
+R3
+w1705413373
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv
+!i122 606
+L0 3 117
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv|
+!i113 1
+R34
+R9
+vNCO_multiple_nco_ii_0
+R0
+!i10b 1
+!s100 7a?3[:a4V>AI9>zfjP]bF3
+R1
+IlAlUe9oh[hn`eiURRg>c92
+R2
+R3
+Z39 w1706109944
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0.v
+!i122 513
+L0 23 517
+R6
+r1
+!s85 0
+31
+R7
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0.v|
+!i113 1
+R8
+R9
+n@n@c@o_multiple_nco_ii_0
+Enco_multiple_nco_ii_0_tb
+R39
+Z40 DPx4 ieee 16 std_logic_signed 0 22 C<aanc0R`<LWPSe[JYRP^3
+Z41 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+R22
+R23
+!i122 512
+R3
+Z42 8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd
+Z43 FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd
+l0
+L31 1
+VK0ioXno2KH=Ml4aSWa`5e2
+!s100 ;anWUecf7`zY`6==Di9I@3
+R26
+32
+R0
+!i10b 1
+Z44 !s108 1706110955.000000
+Z45 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd|
+Z46 !s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd|
+!i113 1
+R29
+R30
+Atb
+R40
+R41
+R22
+R23
+DEx4 work 24 nco_multiple_nco_ii_0_tb 0 22 K0ioXno2KH=Ml4aSWa`5e2
+!i122 512
+l114
+L40 249
+V7cUQUmQl^N9GzF]3TbF@O0
+!s100 a4;7?OR`=X[ZeL3hCDXh@2
+R26
+32
+R0
+!i10b 1
+R44
+R45
+R46
+!i113 1
+R29
+R30
+vrom
+R32
+!i10b 1
+!s100 jAU>zZdGV1FjjeOSYlZdk3
+R1
+IiahY`7]26^A7GWa`IPj3G3
+R2
+R3
+w1705413546
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/rom.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/rom.v
+!i122 609
+L0 1 31
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/rom.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/rom.v|
+!i113 1
+R8
+R9
+v7tN3O26vCgzJ15vH1RPr1w==
+R10
+!i10b 0
+!s100 I7=YH0XQ5i[fdGffODJiI1
+R1
+I^78eQjL8oQ;Z5EUYmA4iS2
+R2
+!i119 1
+!i8a 773953264
+R3
+R11
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_arr_tdl.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_arr_tdl.v
+!i122 524
+R5
+R6
+r1
+!s85 0
+31
+R12
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_arr_tdl.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_arr_tdl.v|
+!i113 1
+R8
+R9
+n6ac4b4c
+vYRmvcr7YJKfhMLcEV8S2yQ==
+R10
+!i10b 0
+!s100 4H1oV^:@dHYGCUNY]XdOn0
+R1
+IC6LP6nOjhDTIH0cS?naD]0
+R2
+!i119 1
+!i8a 1385031696
+R3
+R11
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_sel.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_sel.v
+!i122 525
+R5
+R6
+r1
+!s85 0
+31
+R12
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_sel.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_sel.v|
+!i113 1
+R8
+R9
+nc21d78c
+vserializer
+R32
+!i10b 1
+!s100 KKhXh@@L:Td]dB09gLSFm2
+R1
+I5fX3eWFNHe5]G4jm6Pm^=1
+R2
+R3
+w1705412309
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/serializer.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/serializer.v
+!i122 610
+L0 11 47
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/serializer.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/serializer.v|
+!i113 1
+R8
+R9
+vserializer_tb
+R31
+R32
+!i10b 1
+!s100 12h:6KeC7nbo2ONO7IQf21
+R1
+IK`Hg12JhOka>eY4h04iSR3
+R2
+S1
+R3
+w1704882637
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv
+!i122 607
+L0 3 101
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv|
+!i113 1
+R34
+R9
+vuOsq6wpxrrpM9NYX6+8KMQ==
+R10
+!i10b 0
+!s100 koBoiZ?_O9TI2zY6@4A9?3
+R1
+Ie;GY`dLBDb?fHdkBbRaOC0
+R2
+!i119 1
+!i8a 1262936720
+R3
+R11
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/sid_2c_1p.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/sid_2c_1p.v
+!i122 526
+R5
+R6
+r1
+!s85 0
+31
+R12
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/sid_2c_1p.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/sid_2c_1p.v|
+!i113 1
+R8
+R9
+na290b70
+vtustin_lpf
+R32
+!i10b 1
+!s100 L9J=C5W6iD@<@e`jMlIZ50
+R1
+I>GQ5[;nW49Beh=C91LYXd2
+R2
+R3
+w1704965366
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf.v
+!i122 611
+L0 3 113
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf.v|
+!i113 1
+R8
+R9
+vtustin_lpf2
+R13
+!i10b 1
+!s100 ajZ]J6;DCnX7IiZ3XnYK@0
+R1
+I:a]f?f>^zBC_ljR6QOJok2
+R2
+R3
+w1706608166
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf2.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf2.v
+!i122 612
+L0 8 120
+R6
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf2.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf2.v|
+!i113 1
+R8
+R9

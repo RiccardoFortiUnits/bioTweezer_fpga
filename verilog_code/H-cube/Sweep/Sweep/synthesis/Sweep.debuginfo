@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<EnsembleReport name="Sweep" kind="system" version="21.1" fabric="QSYS">
- <!-- Format version 21.1 842 (Future versions may contain additional information.) -->
- <!-- 2023.05.12.13:56:13 -->
+<EnsembleReport name="Sweep" kind="system" version="22.1" fabric="QSYS">
+ <!-- Format version 22.1 922 (Future versions may contain additional information.) -->
+ <!-- 2024.01.16.15:01:09 -->
  <!-- A collection of modules and connections -->
  <parameter name="clockCrossingAdapter">
   <type>com.altera.sopcmodel.ensemble.EClockAdapter</type>
@@ -53,7 +53,7 @@
  </parameter>
  <parameter name="generationId">
   <type>int</type>
-  <value>1683892572</value>
+  <value>1705413668</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>true</visible>
@@ -147,7 +147,7 @@
   <visible>false</visible>
   <valid>true</valid>
  </parameter>
- <module name="nco_ii_0" kind="altera_nco_ii" version="21.1" path="nco_ii_0">
+ <module name="nco_ii_0" kind="altera_nco_ii" version="22.1" path="nco_ii_0">
   <!-- Describes a single module. Module parameters are
 the requested settings for a module instance. -->
   <parameter name="design_env">
@@ -384,7 +384,7 @@ the requested settings for a module instance. -->
    <visible>true</visible>
    <valid>true</valid>
   </parameter>
-  <interface name="clk" kind="clock_sink" version="21.1">
+  <interface name="clk" kind="clock_sink" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -429,7 +429,7 @@ parameters are a RESULT of the module parameters. -->
     <role>clk</role>
    </port>
   </interface>
-  <interface name="rst" kind="reset_sink" version="21.1">
+  <interface name="rst" kind="reset_sink" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -474,7 +474,7 @@ parameters are a RESULT of the module parameters. -->
     <role>reset_n</role>
    </port>
   </interface>
-  <interface name="in" kind="conduit_end" version="21.1">
+  <interface name="in" kind="conduit_end" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -531,7 +531,7 @@ parameters are a RESULT of the module parameters. -->
     <role>freq_mod_i</role>
    </port>
   </interface>
-  <interface name="out" kind="conduit_end" version="21.1">
+  <interface name="out" kind="conduit_end" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -599,7 +599,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IModule</subtype>
   <displayName>NCO</displayName>
-  <version>21.1</version>
+  <version>22.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -607,7 +607,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Clock Input</displayName>
-  <version>21.1</version>
+  <version>22.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -615,7 +615,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Reset Input</displayName>
-  <version>21.1</version>
+  <version>22.1</version>
  </plugin>
  <plugin>
   <instanceCount>2</instanceCount>
@@ -623,8 +623,8 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Conduit</displayName>
-  <version>21.1</version>
+  <version>22.1</version>
  </plugin>
- <reportVersion>21.1 842</reportVersion>
- <uniqueIdentifier>9C7BEF510EA0000001880FD192EF</uniqueIdentifier>
+ <reportVersion>22.1 922</reportVersion>
+ <uniqueIdentifier>9C7BEF510EA00000018D1293711A</uniqueIdentifier>
 </EnsembleReport>

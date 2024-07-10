@@ -1,0 +1,456 @@
+m255
+K4
+z2
+!s11e MIXED_VERSIONS
+!s11f vlog 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog
+vcordic
+Z1 !s110 1705412384
+!i10b 1
+!s100 JLIh:KM0nQ=]BkJAoB]an2
+Z2 !s11b Dg1SIo80bB@j0V0VzS_@n1
+IbDQl`zA?i;m:h6b=Q=;@W1
+Z3 VDg1SIo80bB@j0V0VzS_@n1
+R0
+w1705059744
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic.v
+!i122 432
+L0 6 21
+Z4 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z5 !s108 1705412384.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic.v|
+!i113 1
+Z6 o-work work
+Z7 tCvgOpt 0
+Ecordic_cordic_0
+Z8 w1705059747
+Z9 DPx3 lpm 14 lpm_components 0 22 MQaJVKl6c9@C2XO9DaM[F2
+Z10 DPx12 altera_lnsim 23 altera_lnsim_components 0 22 IQDXgb[P4;E3;`ULzHn@83
+Z11 DPx9 altera_mf 20 altera_mf_components 0 22 ^:alB2MJEEXl;OOBQIDHY2
+Z12 DPx4 work 21 dspba_library_package 0 22 g5ge0<PbUA3NecLg[8;Cj3
+Z13 DPx4 ieee 9 math_real 0 22 gNk<PdFJ<XNPcfef`f?Z81
+Z14 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
+Z15 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z16 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
+!i122 434
+R0
+Z17 8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/cordic_CORDIC_0.vhd
+Z18 FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/cordic_CORDIC_0.vhd
+l0
+L36 1
+V<X=?fYU]@Id`EAJ9e8M6O2
+!s100 8dZ_B3eM1XW6DNaX>VJo@0
+Z19 OV;C;2020.1;71
+32
+R1
+!i10b 1
+R5
+Z20 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/cordic_CORDIC_0.vhd|
+Z21 !s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/cordic_CORDIC_0.vhd|
+!i113 1
+Z22 o-work work -2002 -explicit
+Z23 tExplicit 1 CvgOpt 0
+Anormal
+R9
+R10
+R11
+R12
+R13
+R14
+R15
+R16
+DEx4 work 15 cordic_cordic_0 0 22 <X=?fYU]@Id`EAJ9e8M6O2
+!i122 434
+l664
+L48 3162
+VQl>6EjbN7Y8g_R@lCG0_B1
+!s100 [M[IP[7c3>6XKf:TZk9^Y1
+R19
+32
+R1
+!i10b 1
+R5
+R20
+R21
+!i113 1
+R22
+R23
+vcordic_tb
+Z24 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
+R1
+!i10b 1
+!s100 V?lah<RSZhnGVZ[@1QVOB1
+R2
+I81VZTbeb5GUMB1V?iMl9^2
+R3
+S1
+R0
+w1705074284
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic_tb.sv
+!i122 433
+L0 3 76
+R4
+r1
+!s85 0
+31
+R5
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/cordic_tb.sv|
+!i113 1
+Z25 o-work work -sv
+R7
+vdemodulator
+Z26 !s110 1705412380
+!i10b 1
+!s100 47OVCL9[lRY5HR_>XU3TK3
+R2
+IV6:THFRJ[8<nU?d3:NoW;0
+R3
+R0
+w1704810700
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator.v
+!i122 428
+L0 1 72
+R4
+r1
+!s85 0
+31
+Z27 !s108 1705412380.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator.v|
+!i113 1
+R6
+R7
+vdemodulator_tb
+R24
+R26
+!i10b 1
+!s100 <;fEY`IP3jBjV`8<zDG0S2
+R2
+I:<VW;VHZEkB46e`08PRI33
+R3
+S1
+R0
+w1704816591
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv
+!i122 429
+L0 3 77
+R4
+r1
+!s85 0
+31
+R27
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv|
+!i113 1
+R25
+R7
+vdeserializer
+!s110 1705395989
+!i10b 1
+!s100 212;@]P@W25fdG?3`gcKc0
+R2
+INK9a?9]BGSdccV`N2T35d2
+R3
+R0
+w1704819419
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/deserializer.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/deserializer.v
+!i122 417
+L0 1 56
+R4
+r1
+!s85 0
+31
+!s108 1705395989.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/deserializer.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/deserializer.v|
+!i113 1
+R6
+R7
+Edspba_delay
+R8
+R12
+R15
+R16
+!i122 435
+R0
+Z28 8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library.vhd
+Z29 FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library.vhd
+l0
+L18 1
+VJZ>XXZi]3nAML><T1OJmD2
+!s100 >TY9@l4a>2O5Wd_6jF4:g0
+R19
+32
+R1
+!i10b 1
+R5
+Z30 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library.vhd|
+Z31 !s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library.vhd|
+!i113 1
+R22
+R23
+Adelay
+R12
+R15
+R16
+DEx4 work 11 dspba_delay 0 22 JZ>XXZi]3nAML><T1OJmD2
+!i122 435
+l37
+L34 51
+VH[ibU<H]FT4<DCgHmIjFa0
+!s100 DAfPXKZhR<Ac>Wg8zYj1H3
+R19
+32
+R1
+!i10b 1
+R5
+R30
+R31
+!i113 1
+R22
+R23
+Pdspba_library_package
+R15
+R16
+!i122 436
+R8
+R0
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library_package.vhd
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library_package.vhd
+l0
+L17 1
+Vg5ge0<PbUA3NecLg[8;Cj3
+!s100 @e;XE0e^oAdIdzY=Rc];H3
+R19
+32
+!s110 1705412385
+!i10b 1
+!s108 1705412385.000000
+!s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library_package.vhd|
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/simulation/submodules/dspba_library_package.vhd|
+!i113 1
+R22
+R23
+Edspba_pipe
+R8
+R14
+R15
+R16
+!i122 435
+R0
+R28
+R29
+l0
+L343 1
+VhX_ehDHUhEGT`<4CLHDEW1
+!s100 ko3XcgZgdPgSD;SDR?Wmi2
+R19
+32
+R1
+!i10b 1
+R5
+R30
+R31
+!i113 1
+R22
+R23
+Artl
+R14
+R15
+R16
+DEx4 work 10 dspba_pipe 0 22 hX_ehDHUhEGT`<4CLHDEW1
+!i122 435
+l362
+L356 21
+VF>oh8b`LjePmYI9jU_S=k2
+!s100 =]hA3YBJaaU9dNBMla?I?2
+R19
+32
+R1
+!i10b 1
+R5
+R30
+R31
+!i113 1
+R22
+R23
+Edspba_sync_reg
+R8
+R12
+R14
+R15
+R16
+!i122 435
+R0
+R28
+R29
+l0
+L93 1
+V[2:MQ1fH@k]9VCDY^FzcN0
+!s100 G`[2Ci2RQWoL`zK>2h>oj2
+R19
+32
+R1
+!i10b 1
+R5
+R30
+R31
+!i113 1
+R22
+R23
+Async_reg
+R12
+R14
+R15
+R16
+DEx4 work 14 dspba_sync_reg 0 22 [2:MQ1fH@k]9VCDY^FzcN0
+!i122 435
+l136
+L117 219
+VZKLBIVGKhdlX>MS;1P6Rc3
+!s100 3CF6gEiK7^`H_<3Ne[inV2
+R19
+32
+R1
+!i10b 1
+R5
+R30
+R31
+!i113 1
+R22
+R23
+vlpf_tb
+R24
+!s110 1705412382
+!i10b 1
+!s100 ZSmlScgeaVl`gXJ9O]l5]3
+R2
+I:6`j^ZSbY]f<dDjf4T3dE3
+R3
+S1
+R0
+w1705395975
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv
+!i122 430
+L0 3 117
+R4
+r1
+!s85 0
+31
+!s108 1705412382.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv|
+!i113 1
+R25
+R7
+vserializer
+Z32 !s110 1705395990
+!i10b 1
+!s100 ;^lZ?K9UndVglKoJa7^]e2
+R2
+I2MoX3S3fb50[[7]KMe4:L0
+R3
+R0
+w1704818964
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer.v
+!i122 419
+L0 1 47
+R4
+r1
+!s85 0
+31
+Z33 !s108 1705395990.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer.v|
+!i113 1
+R6
+R7
+vserializer_tb
+R24
+!s110 1705412383
+!i10b 1
+!s100 12h:6KeC7nbo2ONO7IQf21
+R2
+IK`Hg12JhOka>eY4h04iSR3
+R3
+S1
+R0
+w1704882637
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv
+!i122 431
+L0 3 101
+R4
+r1
+!s85 0
+31
+!s108 1705412383.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv|
+!i113 1
+R25
+R7
+vtustin_lpf
+R32
+!i10b 1
+!s100 84fbHY`Whfj_oVKQ=DEd?1
+R2
+I2RVSjb0?3:_K3boPKc4hU1
+R3
+R0
+w1704885114
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf.v
+!i122 421
+L0 1 113
+R4
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf.v|
+!i113 1
+R6
+R7
+vtustin_lpf2
+R32
+!i10b 1
+!s100 XkLCLN[=ihoAVUHPfiHzK1
+R2
+IBPVIn:1<5[G:T:I79cbZC0
+R3
+R0
+w1705331422
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf2.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf2.v
+!i122 422
+L0 8 119
+R4
+r1
+!s85 0
+31
+R33
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf2.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/tustin_lpf2.v|
+!i113 1
+R6
+R7

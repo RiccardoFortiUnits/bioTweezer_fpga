@@ -1,4 +1,4 @@
-`define FOUR_TX_PORTS
+//`define FOUR_TX_PORTS
 
 `include "xcvr_reset_synchronizer.v"
 `include "mac_config/mac_config.v"

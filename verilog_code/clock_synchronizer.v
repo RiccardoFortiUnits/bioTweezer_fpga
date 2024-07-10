@@ -1,13 +1,20 @@
-module clock_synchronizer (
+module clock_synchronizer #(
+    parameter LOCKIN_NUMBER = 32
+)(
     input   clk_125,
     input   clk_50,
 
-    input   start_dac_cmd_125,
-    output  start_dac_cmd_50,
     input   start_fifo_cmd_125,
     output  start_fifo_cmd_50,
     input   stop_dac_cmd_125,
     output  stop_dac_cmd_50,
+
+    input [LOCKIN_NUMBER-1 : 0]   start_fifo_cmd_2_125,
+    output [LOCKIN_NUMBER-1 : 0]  start_fifo_cmd_2_50,
+    input [LOCKIN_NUMBER-1 : 0]   stop_dac_cmd_2_125,
+    output  [LOCKIN_NUMBER-1 : 0] stop_dac_cmd_2_50,
+    input   filter_order_125,
+    output  filter_order_50,
 
     input   DAC_running_50,
     output  DAC_running_125,
@@ -31,18 +38,37 @@ stretcher_edge_det stretcher_edge_det_start_fifo(
     .data_out_b(start_fifo_cmd_50)
 );
 
-stretcher_edge_det stretcher_edge_det_start(
-    .clk_a(clk_125),  
-    .clk_b(clk_50),
-    .data_in_a(start_dac_cmd_125),
-    .data_out_b(start_dac_cmd_50)
-);
-
 stretcher_edge_det stretcher_edge_det_stop(
     .clk_a(clk_125),  
     .clk_b(clk_50),
     .data_in_a(stop_dac_cmd_125),
     .data_out_b(stop_dac_cmd_50)
+);
+
+genvar i;
+generate
+    for (i = 0; i < LOCKIN_NUMBER; i = i+1) begin : loop_CDC
+        stretcher_edge_det stretcher_edge_det_start_PML(
+            .clk_a(clk_125),  
+            .clk_b(clk_50),
+            .data_in_a(start_fifo_cmd_2_125[i]),
+            .data_out_b(start_fifo_cmd_2_50[i])
+        );
+        stretcher_edge_det stretcher_edge_det_stop_PML(
+            .clk_a(clk_125),  
+            .clk_b(clk_50),
+            .data_in_a(stop_dac_cmd_2_125[i]),
+            .data_out_b(stop_dac_cmd_2_50[i])
+        );
+    end
+endgenerate
+
+// CROSSING SLOW SIGNALS FROM 125MHz to 50MHz
+
+sync_edge_det sync_edge_det_filter_order(
+    .clk(clk_50),
+    .signal_in(filter_order_125),
+    .data_out(filter_order_50)
 );
 
 // CROSSING SLOW SIGNALS FROM 50MHz to 125MHz

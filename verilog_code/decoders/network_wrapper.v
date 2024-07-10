@@ -10,8 +10,7 @@ module network_wrapper #(
     IP_BOARD_1 = {8'd192, 8'd168, 8'd1, 8'd12},     //IP
     PORT_1 = 2047,
     PORT_2 = 2048,
-    PORT_3 = 2049,
-    PORT_4 = 2050
+    LOCKIN_NUMBER = 32
 ) (
     input   clock_100,  //100 MHz clock input
     input   ref_clk_125,  //125 MHz clock input for ethernet
@@ -27,38 +26,56 @@ module network_wrapper #(
     output  mac_configured,
     output  rx_xcvr_clk,  //125 MHz clock output for synchronization with the ethernet wrapper
     
-    //MODE selection
-    output  mode_nCont_disc,
-    output  mode_nRaw_dem,
-
+    // GENERAL PARAMETERS //
+    //INPUT MUX selection
+    output [2:0]    mux_1,
+    output [2:0]    mux_2,
     //parameters
-    output [31:0]   frequency_initial,
-    output [31:0]   frequency_final,
-    output [63:0]   frequency_step,
-    output [31:0]   step_counter,
-    output [15:0]   wfm_amplitude,
-    output [2:0]   gain,    
     output [15:0]   dem_delay,
+    //for white noise
+    output [15:0]   wfm_amplitude,
+    //for ttl control
+    output [3:0]    TTL_control,
 
+    //  LEGACYMODE //
+    //mode selection
+    output          mode_nRaw_dem,
+    output [2:0]    gain,
+    //commands
+    output          start_fifo_cmd,
+    output          stop_dac_cmd,
     //fifo parameters
     input           fifo_rd_clk,
     input           fifo_rd_ack,
     output [195:0]  fifo_rd_data,
     output          fifo_rd_empty,
 
-    //acq mode commands
-    output  start_fifo_cmd,
-    output  start_dac_cmd,
-    output  stop_dac_cmd,
-
+    // PML //
+    //lockin configuration
+    output [LOCKIN_NUMBER*8 - 1 : 0] lockin_config,
+    output [26:0]   alpha,
+    output          filter_order,
+    //acquisition mode commands
+    output [31:0]   start_fifo_cmd_2,
+    output [31:0]   stop_dac_cmd_2,
+    //NCOS FIFOs data
+    output [31:0]   clr_fifo_cmd_2,
+    output [191:0]  sweep_data,
+    output [31:0]   fifo_wr_2,
+    input [31:0]    fifo_full_2,   
+    
     // DACs and ADC status
     input  DAC_running,
     input  ADC_ready,
 
     // acq FIFO
-	output acq_rdreq_fifo_108,
-	input [107:0] acq_rddata_fifo_108,
-	input acq_rdempty_fifo_108
+	output acq_rdreq_fifo_legacy,
+	input [107:0] acq_rddata_fifo_legacy,
+	input acq_rdempty_fifo_legacy,
+    
+	output acq_rdreq_fifo_PML,
+	input [107:0] acq_rddata_fifo_PML,
+	input acq_rdempty_fifo_PML
 );
 
 //////////// ETHERNET - UDP core ////////////////
@@ -88,20 +105,6 @@ wire [95:0]	         tx_fifo_status1;
 wire		         tx_fifo_status_write1;
 wire		         tx_fifo_status_full1;
 
-wire [7:0]	         tx_fifo_data2;
-wire		         tx_fifo_data_write2;
-wire		         tx_fifo_data_full2;
-wire [95:0]	         tx_fifo_status2;
-wire		         tx_fifo_status_write2;
-wire		         tx_fifo_status_full2;
-
-wire [7:0]	         tx_fifo_data3;
-wire		         tx_fifo_data_write3;
-wire		         tx_fifo_data_full3;
-wire [95:0]	         tx_fifo_status3;
-wire		         tx_fifo_status_write3;
-wire		         tx_fifo_status_full3;
-
 eth_1gb_wrapper eth_1gb_wrapper_0 (
 
     .csr_clk(clock_100),          //100 MHz clock for configuration
@@ -113,9 +116,7 @@ eth_1gb_wrapper eth_1gb_wrapper_0 (
     .MAC_BOARD(MAC_BOARD_1),
     .IP_BOARD(IP_BOARD_1),
     .PORT_1(PORT_1),
-    .PORT_2(PORT_2),
-    .PORT_3(PORT_3),
-    .PORT_4(PORT_4),    
+    .PORT_2(PORT_2),   
 
     .led_link(led_link),
     .led_activity(),
@@ -164,26 +165,6 @@ eth_1gb_wrapper eth_1gb_wrapper_0 (
     .wrfull_status_udp_txfifo_1(tx_fifo_status_full1),
     .wrusedw_status_udp_txfifo_1(),
 
-    .wrclk_udp_txfifo_2(rx_xcvr_clk),
-    .wrreq_data_udp_txfifo_2(tx_fifo_data_write2),
-    .data_to_udp_txfifo_2(tx_fifo_data2),
-    .wrfull_data_udp_txfifo_2(tx_fifo_data_full2),
-    .wrusedw_data_udp_txfifo_2(),
-    .wrreq_status_udp_txfifo_2(tx_fifo_status_write2),
-	.status_to_udp_txfifo_2(tx_fifo_status2),
-    .wrfull_status_udp_txfifo_2(tx_fifo_status_full2),
-    .wrusedw_status_udp_txfifo_2(),
-
-    .wrclk_udp_txfifo_3(rx_xcvr_clk),
-    .wrreq_data_udp_txfifo_3(tx_fifo_data_write3),
-    .data_to_udp_txfifo_3(tx_fifo_data3),
-    .wrfull_data_udp_txfifo_3(tx_fifo_data_full3),
-    .wrusedw_data_udp_txfifo_3(),
-    .wrreq_status_udp_txfifo_3(tx_fifo_status_write3),
-	.status_to_udp_txfifo_3(tx_fifo_status3),
-    .wrfull_status_udp_txfifo_3(tx_fifo_status_full3),
-    .wrusedw_status_udp_txfifo_3(),
-    
     //diff pair to SFP module
 	.tx_serial_data(sfp_tx_0),
 	.rx_serial_data(sfp_rx_0)
@@ -202,7 +183,7 @@ sync_edge_det sync_edge_det_mac_configured(
 wire [47:0] client_mac; //MAC of the client
 wire [31:0] client_ip; //IP of the client
 
-dec_comm8_port1 dec_comm8_1 
+dec_comm8_port1 #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) dec_comm8_1 
 (
     .clk(rx_xcvr_clk),
     .reset(~mac_configured_125),
@@ -225,26 +206,44 @@ dec_comm8_port1 dec_comm8_1
     .tx_fifo_data_full(tx_fifo_data_full0),
     .tx_fifo_status_full(tx_fifo_status_full0),
 
-    .mode_nCont_disc(mode_nCont_disc),
-    .mode_nRaw_dem(mode_nRaw_dem),
-
-    .frequency_initial(frequency_initial),
-    .frequency_final(frequency_final),
-    .frequency_step(frequency_step),
-    .step_counter(step_counter),
-    .wfm_amplitude(wfm_amplitude),
-    .gain(gain),
+    // GENERAL PARAMETERS //
+    //INPUT MUX selection
+    .mux_1(mux_1),
+    .mux_2(mux_2),
+    //parameters
     .dem_delay(dem_delay),
+    //for white noise
+    .wfm_amplitude(wfm_amplitude),
+    //for TTL control
+    .TTL_control(TTL_control),
 
+    //  LEGACYMODE //
+    //mode selection
+    .mode_nRaw_dem(mode_nRaw_dem),
+    .gain(gain),
+    //commands
+    .start_fifo_cmd(start_fifo_cmd),
+    .stop_dac_cmd(stop_dac_cmd),
     //fifo parameters
     .fifo_rd_clk(fifo_rd_clk),
     .fifo_rd_ack(fifo_rd_ack),
     .fifo_rd_data(fifo_rd_data),
     .fifo_rd_empty(fifo_rd_empty),
 
-    .start_fifo_cmd(start_fifo_cmd),
-    .start_dac_cmd(start_dac_cmd),
-    .stop_dac_cmd(stop_dac_cmd),
+    // PML //
+    //lockin configuration
+    .lockin_config(lockin_config),
+    .alpha(alpha),
+    .filter_order(filter_order),
+    //acquisition mode commands
+    .start_fifo_cmd_2(start_fifo_cmd_2),
+    .stop_dac_cmd_2(stop_dac_cmd_2),
+    //FIFO data
+    .clr_fifo_cmd_2(clr_fifo_cmd_2),
+    .sweep_data(sweep_data),
+    .fifo_wr_2(fifo_wr_2),
+    .fifo_full_2(fifo_full_2),
+
     // DACs and ADC status
     .DAC_running(DAC_running),
     .ADC_ready(ADC_ready)
@@ -280,12 +279,17 @@ dec_comm8_port2 dec_comm8_2
     .destination_mac(client_mac),
     .destination_ip(client_ip),
 
-    .mode_nCont_disc(mode_nCont_disc),
+    .mode_nCont_disc(1'b1),
     .mode_nRaw_dem(mode_nRaw_dem),
 
-    .acq_rdreq_fifo_108(acq_rdreq_fifo_108),
-	.acq_rddata_fifo_108(acq_rddata_fifo_108),
-	.acq_rdempty_fifo_108(acq_rdempty_fifo_108)  
+    // acquisition FIFOs
+	.acq_rdreq_fifo_legacy(acq_rdreq_fifo_legacy),
+	.acq_rddata_fifo_legacy(acq_rddata_fifo_legacy),
+	.acq_rdempty_fifo_legacy(acq_rdempty_fifo_legacy),
+
+	.acq_rdreq_fifo_PML(acq_rdreq_fifo_PML),
+	.acq_rddata_fifo_PML(acq_rddata_fifo_PML),
+	.acq_rdempty_fifo_PML(acq_rdempty_fifo_PML) 
 );
     
 endmodule

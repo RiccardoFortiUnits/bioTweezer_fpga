@@ -1,8 +1,8 @@
 Info: Starting: Create block symbol file (.bsf)
-Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\FPGA\verilog_code\H-cube\Sweep\Sweep.qsys --block-symbol-file --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\FPGA\verilog_code\H-cube\Sweep\Sweep --family="Cyclone V" --part=5CGXFC5C6F27C7
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\H-cube\Sweep\Sweep.qsys --block-symbol-file --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\H-cube\Sweep\Sweep --family="Cyclone V" --part=5CGXFC5C6F27C7
 Progress: Loading Sweep/Sweep.qsys
 Progress: Reading input file
-Progress: Adding nco_ii_0 [altera_nco_ii 21.1]
+Progress: Adding nco_ii_0 [altera_nco_ii 22.1]
 Progress: Parameterizing module nco_ii_0
 Progress: Building connections
 Progress: Parameterizing connections
@@ -12,10 +12,10 @@ Info: qsys-generate succeeded.
 Info: Finished: Create block symbol file (.bsf)
 Info: 
 Info: Starting: Create HDL design files for synthesis
-Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\FPGA\verilog_code\H-cube\Sweep\Sweep.qsys --synthesis=VERILOG --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\FPGA\verilog_code\H-cube\Sweep\Sweep\synthesis --family="Cyclone V" --part=5CGXFC5C6F27C7
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\H-cube\Sweep\Sweep.qsys --synthesis=VERILOG --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\H-cube\Sweep\Sweep\synthesis --family="Cyclone V" --part=5CGXFC5C6F27C7
 Progress: Loading Sweep/Sweep.qsys
 Progress: Reading input file
-Progress: Adding nco_ii_0 [altera_nco_ii 21.1]
+Progress: Adding nco_ii_0 [altera_nco_ii 22.1]
 Progress: Parameterizing module nco_ii_0
 Progress: Building connections
 Progress: Parameterizing connections

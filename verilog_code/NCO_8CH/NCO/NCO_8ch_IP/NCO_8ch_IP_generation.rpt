@@ -1,0 +1,53 @@
+Info: Starting: Create simulation model
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP.qsys --simulation=VERILOG --allow-mixed-language-simulation --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP\simulation --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading NCO/NCO_8ch_IP.qsys
+Progress: Reading input file
+Progress: Adding nco_ii_0 [altera_nco_ii 22.1]
+Progress: Parameterizing module nco_ii_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: NCO_8ch_IP: Generating NCO_8ch_IP "NCO_8ch_IP" for SIM_VERILOG
+Info: nco_ii_0: "NCO_8ch_IP" instantiated altera_nco_ii "nco_ii_0"
+Info: NCO_8ch_IP: Done "NCO_8ch_IP" with 2 modules, 32 files
+Info: qsys-generate succeeded.
+Info: Finished: Create simulation model
+Info: Starting: Create Modelsim Project.
+Info: sim-script-gen --spd=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP\NCO_8ch_IP.spd --output-directory=D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/NCO_8CH/NCO/NCO_8ch_IP/simulation/ --use-relative-paths=true
+Info: Doing: ip-make-simscript --spd=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP\NCO_8ch_IP.spd --output-directory=D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/NCO_8CH/NCO/NCO_8ch_IP/simulation/ --use-relative-paths=true
+Info: Generating the following file(s) for MODELSIM simulator in D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/NCO_8CH/NCO/NCO_8ch_IP/simulation/ directory:
+Info: 	mentor/msim_setup.tcl
+Info: Generating the following file(s) for RIVIERA simulator in D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/NCO_8CH/NCO/NCO_8ch_IP/simulation/ directory:
+Info: 	aldec/rivierapro_setup.tcl
+Info: For information on how to simulate your IP, see the explanatory comments in the simulator-specific subdirectories under D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/NCO_8CH/NCO/NCO_8ch_IP/simulation/.
+Info: Regenerate these scripts whenever you make any change to any Quartus-generated IP in your project.
+Info: Finished: Create Modelsim Project.
+Info: Starting: Create block symbol file (.bsf)
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP.qsys --block-symbol-file --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading NCO/NCO_8ch_IP.qsys
+Progress: Reading input file
+Progress: Adding nco_ii_0 [altera_nco_ii 22.1]
+Progress: Parameterizing module nco_ii_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: qsys-generate succeeded.
+Info: Finished: Create block symbol file (.bsf)
+Info: 
+Info: Starting: Create HDL design files for synthesis
+Info: qsys-generate D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP.qsys --synthesis=VERILOG --output-directory=D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\NCO_8CH\NCO\NCO_8ch_IP\synthesis --family="Cyclone V" --part=5CGXFC5C6F27C7
+Progress: Loading NCO/NCO_8ch_IP.qsys
+Progress: Reading input file
+Progress: Adding nco_ii_0 [altera_nco_ii 22.1]
+Progress: Parameterizing module nco_ii_0
+Progress: Building connections
+Progress: Parameterizing connections
+Progress: Validating
+Progress: Done reading input file
+Info: NCO_8ch_IP: Generating NCO_8ch_IP "NCO_8ch_IP" for QUARTUS_SYNTH
+Info: nco_ii_0: "NCO_8ch_IP" instantiated altera_nco_ii "nco_ii_0"
+Info: NCO_8ch_IP: Done "NCO_8ch_IP" with 2 modules, 19 files
+Info: qsys-generate succeeded.
+Info: Finished: Create HDL design files for synthesis

@@ -26,7 +26,7 @@ always @(posedge clock ) begin
 		for (i=1; i<MAX_LENGTH; i=i+1) begin
 			shift_register[i] <= shift_register[i-1];
 		end
-		shift_register[0] <= {BIT_WIDTH{1'b0}};
+		shift_register[0] <= data_in;
 		
 		if (length == 0) begin
 			data_out <= 0;

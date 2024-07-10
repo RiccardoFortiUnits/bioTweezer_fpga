@@ -1,0 +1,48 @@
+# system info NCO_8ch_IP on 2024.05.09.11:56:55
+system_info:
+name,value
+DEVICE,5CGXFC5C6F27C7
+DEVICE_FAMILY,Cyclone V
+GENERATION_ID,1715248614
+#
+#
+# Files generated for NCO_8ch_IP on 2024.05.09.11:56:55
+files:
+filepath,kind,attributes,module,is_top
+simulation/NCO_8ch_IP.v,VERILOG,,NCO_8ch_IP,true
+simulation/submodules/mentor/sid_2c_1p.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/sid_2c_1p.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_nco_mob_rw.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_nco_mob_rw.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_gar.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_gar.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_nco_isdr.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_nco_isdr.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_nco_apr_dxx.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_nco_apr_dxx.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/segment_arr_tdl.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/segment_arr_tdl.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_altqmcash.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_altqmcash.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/segment_sel.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/segment_sel.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_dxx_g.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_dxx_g.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_dxx.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_dxx.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_xnqg.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_xnqg.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/mentor/asj_nco_as_m_cen.v,VERILOG_ENCRYPT,MENTOR_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/aldec/asj_nco_as_m_cen.v,VERILOG_ENCRYPT,ALDEC_SPECIFIC,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/NCO_8ch_IP_nco_ii_0_sin.hex,HEX,,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/NCO_8ch_IP_nco_ii_0_cos.hex,HEX,,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/NCO_8ch_IP_nco_ii_0.v,VERILOG,,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/NCO_8ch_IP_nco_ii_0_tb.vhd,OTHER,,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/c_model/model_wrapper.cpp,OTHER,,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/c_model/nco_model.cpp,OTHER,,NCO_8ch_IP_nco_ii_0,false
+simulation/submodules/c_model/nco_model.h,OTHER,,NCO_8ch_IP_nco_ii_0,false
+#
+# Map from instance-path to kind of module
+instances:
+instancePath,module
+NCO_8ch_IP.nco_ii_0,NCO_8ch_IP_nco_ii_0

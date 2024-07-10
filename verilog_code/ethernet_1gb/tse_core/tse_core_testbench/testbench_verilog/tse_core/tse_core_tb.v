@@ -1,4 +1,4 @@
-// (C) 2001-2024 Intel Corporation. All rights reserved.
+// (C) 2001-2023 Intel Corporation. All rights reserved.
 // Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files from any of the foregoing (including device programming or simulation 
@@ -20,7 +20,7 @@
 // $Source: /ipbu/cvs/sio/projects/TriSpeedEthernet/src/testbench/MAC_PCS/verilog/testbench_mac8_pcs_pma.v,v $
 //
 // $Revision: #1 $
-// $Date: 2022/10/30 $
+// $Date: 2021/10/27 $
 // Check in by : $Author: psgswbuild $
 // Author      : SKNg/TTChong
 //
@@ -50,7 +50,7 @@ module tb ;
 parameter ENABLE_MAGIC_DETECT = 0;
 parameter ENABLE_MDIO = 0;
 parameter ENABLE_SUP_ADDR = 0;
-parameter CORE_VERSION = 5889;
+parameter CORE_VERSION = 5633;
 parameter MDIO_CLK_DIV = 40;
 parameter ENA_HASH = 0;
 parameter STAT_CNT_ENA = 0;
@@ -82,7 +82,7 @@ parameter ING_ADDR = 8;
 parameter REG_ADDR_WIDTH = 8;
 parameter RX_AFULL_CHANNEL_WIDTH = 1;
 parameter PHY_IDENTIFIER = 0;
-parameter DEV_VERSION = 5889;
+parameter DEV_VERSION = 5633;
 parameter ENABLE_SGMII = 0;
 parameter EXPORT_PWRDN = 0;
 parameter ENABLE_ALT_RECONFIG = 0;

@@ -4,9 +4,14 @@
 module ADC_configurator(
 		input 			clk,
 		input 			reset,
-		input 			start,		
+		input 			start,
+
+		input [15:0]	align_data,	
+		input 			align_data_locked,	
+		output reg 		bitslip,
 		
 		output reg 		ADC_ready,
+		output reg 		ADC_aligned,
 		output [7:0] 	data_read,
 		output 			data_valid,
 		output 			busy,
@@ -17,15 +22,33 @@ module ADC_configurator(
 		inout 			data_adc
 );
 
+wire align_data_locked_reg;
+
+sync_edge_det align_data_locked_sync(
+    .clk(clk),
+    .signal_in(align_data_locked),
+    .data_out(align_data_locked_reg)
+);
+
+wire [15:0] align_data_reg;
+
+sync_edge_det #(.WIDTH(16)) align_data_sync(
+    .clk(clk),
+    .signal_in(align_data),
+    .data_out(align_data_reg)
+);
+
 //LUT for the ADC
 wire [12:0] address;
 wire [7:0] data_spi;
 wire rw;
 
+reg [1:0] test_pattern;
+
 AD9653_lut_config AD9653_lut_config_1 ( 
 	.index(lut_index),
 	.pwr(1'b1),	//power-on
-	.test_pattern(2'b00), //normal operation
+	.test_pattern(test_pattern), //normal operation
 	.sel_chan(4'b1111), //all channels
 	
 	.data(data_spi), 
@@ -58,24 +81,35 @@ ADC_spi_interface ADC_spi_interface_1(
 localparam	LUT_START_RESET_INDEX = 5'd0,
 			LUT_END_RESET_INDEX = 5'd1,
 			LUT_START_CONFIG_INDEX = 5'd2,
-			LUT_STOP_CONFIG_INDEX = 5'd9;
+			LUT_STOP_CONFIG_INDEX = 5'd9,
+			LUT_TEST_MODE = 5'd7;
 
-localparam	IDLE = 3'd0,
- 			START_RESET = 3'd1,
-			WAIT_RESET = 3'd2,
- 			START_CONFIGURATION = 3'd3,
-			WAIT_CONFIGURATION = 3'd4,
-			DONE = 3'd5;
+localparam	IDLE = 6'd0,
+ 			START_RESET = 6'd1,
+			WAIT_RESET = 6'd2,
+ 			START_CONFIGURATION = 6'd3,
+			WAIT_CONFIGURATION = 6'd4,
+			DONE = 6'd5,
+			WAIT_LOCKED = 6'd6,
+			CHECK_ALIGN = 6'd7,
+			WAIT_ALIGN = 6'd8,
+			SET_NORMAL_OPERATION = 6'd9,
+			WAIT_NORMAL_OPERATION = 6'd10;
 
-reg [2:0] STATE_CONF = IDLE;
+reg [5:0] STATE_CONF = IDLE;
 
 reg [4:0] start_index, stop_index;
 reg adc_configured;
+reg [7:0] bitslip_counter;
 
 //Main FSM handling the reset and configuration part of the LUT
 always @(posedge clk ) begin
 	if(reset) begin
 		ADC_ready <= 1'b0;
+		ADC_aligned <= 1'b0;
+		test_pattern <= 2'b11;
+		bitslip <= 1'b0;
+		bitslip_counter <= 8'd0;
 		adc_configured <= 1'b0;
 		start_index <= LUT_START_RESET_INDEX;
 		stop_index <= LUT_END_RESET_INDEX;
@@ -106,9 +140,6 @@ always @(posedge clk ) begin
 				if (lut_burst_done_delayed && adc_configured == 1'b0) begin
 					STATE_CONF <= START_CONFIGURATION;
 				end
-				if (lut_burst_done_delayed && adc_configured == 1'b1) begin
-					STATE_CONF <= DONE;
-				end
 			end
 
 			START_CONFIGURATION: begin
@@ -120,14 +151,54 @@ always @(posedge clk ) begin
 
 			WAIT_CONFIGURATION: begin	
 				start_lut_burst <= 0;
-				if (lut_burst_done) begin
+				if (lut_burst_done_delayed) begin
+					adc_configured <= 1'b1;
+					ADC_ready <= 1'b1;
+					STATE_CONF <= WAIT_LOCKED;
+				end
+			end
+
+			WAIT_LOCKED: begin
+				if(align_data_locked_reg) STATE_CONF <= CHECK_ALIGN;
+			end
+
+			CHECK_ALIGN: begin
+				if (align_data_reg == 16'b1010000110011100) begin
+					STATE_CONF <= SET_NORMAL_OPERATION;
+				end
+				else begin
+					STATE_CONF <= WAIT_ALIGN;
+					bitslip <= 1'b1;
+					bitslip_counter <= 8'd0;
+				end 
+			end
+
+			WAIT_ALIGN: begin
+				bitslip <= 1'b0;
+				bitslip_counter <= bitslip_counter + 1;
+				if (bitslip_counter == 8'd16) begin
+					STATE_CONF <= CHECK_ALIGN;
+				end
+			end
+
+			SET_NORMAL_OPERATION:begin
+				test_pattern <= 2'b00;
+				start_index <= LUT_TEST_MODE;
+				stop_index <= LUT_TEST_MODE;
+				start_lut_burst <= 1;
+				STATE_CONF <= WAIT_NORMAL_OPERATION;
+			end
+
+			WAIT_NORMAL_OPERATION: begin	
+				start_lut_burst <= 0;
+				if (lut_burst_done_delayed) begin
 					adc_configured <= 1'b1;
 					STATE_CONF <= DONE;
 				end
 			end
 
 			DONE: begin			
-				ADC_ready <= 1'b1;
+				ADC_aligned <= 1'b1;
 				STATE_CONF <= DONE;
 			end
 

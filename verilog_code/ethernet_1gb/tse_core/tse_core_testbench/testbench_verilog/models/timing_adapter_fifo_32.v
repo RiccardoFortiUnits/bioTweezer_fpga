@@ -1,4 +1,4 @@
-// (C) 2001-2024 Intel Corporation. All rights reserved.
+// (C) 2001-2023 Intel Corporation. All rights reserved.
 // Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files from any of the foregoing (including device programming or simulation 
@@ -20,7 +20,7 @@
 // $Source: /ipbu/cvs/sio/projects/TriSpeedEthernet/src/testbench/models/verilog/ethernet_model/gen/timing_adapter_fifo_32.v,v $
 //
 // $Revision: #1 $
-// $Date: 2022/10/30 $
+// $Date: 2021/10/27 $
 // Check in by : $Author: psgswbuild $
 // Author      : SKNg/TTChong
 //

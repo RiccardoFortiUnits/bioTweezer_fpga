@@ -1,4 +1,4 @@
--- (C) 2001-2024 Intel Corporation. All rights reserved.
+-- (C) 2001-2023 Intel Corporation. All rights reserved.
 -- Your use of Intel Corporation's design tools, logic functions and other 
 -- software and tools, and its AMPP partner logic functions, and any output 
 -- files from any of the foregoing (including device programming or simulation 
@@ -20,7 +20,7 @@
 -- $Source: /ipbu/cvs/sio/projects/TriSpeedEthernet/src/testbench/MAC_PCS/vhdl/testbench_mac8_pcs_pma.vhd,v $
 --
 -- $Revision: #1 $
--- $Date: 2022/10/30 $
+-- $Date: 2021/10/27 $
 -- Check in by : $Author: psgswbuild $
 -- Author      : SKNg/TTChong
 --
@@ -166,7 +166,7 @@ constant MCAST_ADDRESSLIST : mctable := (
 constant ENABLE_MAGIC_DETECT : INTEGER := 0;
 constant ENABLE_MDIO : INTEGER := 0;
 constant ENABLE_SUP_ADDR : INTEGER := 0;
-constant CORE_VERSION : INTEGER := 5889;
+constant CORE_VERSION : INTEGER := 5633;
 constant MDIO_CLK_DIV : INTEGER := 40;
 constant ENA_HASH : INTEGER := 0;
 constant STAT_CNT_ENA : INTEGER := 0;
@@ -198,7 +198,7 @@ constant ING_ADDR : INTEGER := 8;
 constant REG_ADDR_WIDTH : INTEGER := 8;
 constant RX_AFULL_CHANNEL_WIDTH : INTEGER := 1;
 constant PHY_IDENTIFIER : INTEGER := 0;
-constant DEV_VERSION : INTEGER := 5889;
+constant DEV_VERSION : INTEGER := 5633;
 constant ENABLE_SGMII : INTEGER := 0;
 constant EXPORT_PWRDN : INTEGER := 0;
 constant ENABLE_ALT_RECONFIG : INTEGER := 0;

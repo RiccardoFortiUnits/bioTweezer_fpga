@@ -39,6 +39,7 @@
 // synopsys translate_on
 module adc_lvds (
 	pll_areset,
+	rx_channel_data_align,
 	rx_in,
 	rx_inclock,
 	rx_locked,
@@ -46,6 +47,7 @@ module adc_lvds (
 	rx_outclock);
 
 	input	  pll_areset;
+	input	[7:0]  rx_channel_data_align;
 	input	[7:0]  rx_in;
 	input	  rx_inclock;
 	output	  rx_locked;
@@ -61,6 +63,7 @@ module adc_lvds (
 
 	altlvds_rx	ALTLVDS_RX_component (
 				.pll_areset (pll_areset),
+				.rx_channel_data_align (rx_channel_data_align),
 				.rx_in (rx_in),
 				.rx_inclock (rx_inclock),
 				.rx_locked (sub_wire0),
@@ -75,7 +78,6 @@ module adc_lvds (
 				.pll_scanclk (),
 				.rx_cda_max (),
 				.rx_cda_reset ({8{1'b0}}),
-				.rx_channel_data_align ({8{1'b0}}),
 				.rx_coreclk ({8{1'b1}}),
 				.rx_data_align (1'b0),
 				.rx_data_align_reset (1'b0),
@@ -98,7 +100,7 @@ module adc_lvds (
 		ALTLVDS_RX_component.buffer_implementation = "RAM",
 		ALTLVDS_RX_component.cds_mode = "UNUSED",
 		ALTLVDS_RX_component.common_rx_tx_pll = "OFF",
-		ALTLVDS_RX_component.data_align_rollover = 4,
+		ALTLVDS_RX_component.data_align_rollover = 8,
 		ALTLVDS_RX_component.data_rate = "800.0 Mbps",
 		ALTLVDS_RX_component.deserialization_factor = 8,
 		ALTLVDS_RX_component.dpa_initial_phase_value = 0,
@@ -116,7 +118,7 @@ module adc_lvds (
 		ALTLVDS_RX_component.inclock_boost = 0,
 		ALTLVDS_RX_component.inclock_data_alignment = "EDGE_ALIGNED",
 		ALTLVDS_RX_component.inclock_period = 10000,
-		ALTLVDS_RX_component.inclock_phase_shift = 5000,
+		ALTLVDS_RX_component.inclock_phase_shift = 625,
 		ALTLVDS_RX_component.input_data_rate = 800,
 		ALTLVDS_RX_component.intended_device_family = "Cyclone V",
 		ALTLVDS_RX_component.lose_lock_on_one_change = "UNUSED",
@@ -127,7 +129,7 @@ module adc_lvds (
 		ALTLVDS_RX_component.outclock_resource = "AUTO",
 		ALTLVDS_RX_component.pll_operation_mode = "NORMAL",
 		ALTLVDS_RX_component.pll_self_reset_on_loss_lock = "UNUSED",
-		ALTLVDS_RX_component.port_rx_channel_data_align = "PORT_UNUSED",
+		ALTLVDS_RX_component.port_rx_channel_data_align = "PORT_USED",
 		ALTLVDS_RX_component.port_rx_data_align = "PORT_UNUSED",
 		ALTLVDS_RX_component.refclk_frequency = "100.000000 MHz",
 		ALTLVDS_RX_component.registered_data_align_input = "UNUSED",
@@ -166,7 +168,7 @@ endmodule
 // Retrieval info: PRIVATE: Num_Channel NUMERIC "8"
 // Retrieval info: PRIVATE: Outclock_Divide_By NUMERIC "0"
 // Retrieval info: PRIVATE: pCNX_OUTCLK_ALIGN NUMERIC "0"
-// Retrieval info: PRIVATE: pINCLOCK_PHASE_SHIFT STRING "180.00"
+// Retrieval info: PRIVATE: pINCLOCK_PHASE_SHIFT STRING "22.50"
 // Retrieval info: PRIVATE: PLL_Enable NUMERIC "0"
 // Retrieval info: PRIVATE: PLL_Freq STRING "100.000000"
 // Retrieval info: PRIVATE: PLL_Period STRING "10.000"
@@ -175,7 +177,7 @@ endmodule
 // Retrieval info: PRIVATE: Use_Cda_Reset NUMERIC "0"
 // Retrieval info: PRIVATE: Use_Clock_Resc STRING "AUTO"
 // Retrieval info: PRIVATE: Use_Common_Rx_Tx_Plls NUMERIC "0"
-// Retrieval info: PRIVATE: Use_Data_Align NUMERIC "0"
+// Retrieval info: PRIVATE: Use_Data_Align NUMERIC "1"
 // Retrieval info: PRIVATE: Use_Lock NUMERIC "1"
 // Retrieval info: PRIVATE: Use_Pll_Areset NUMERIC "1"
 // Retrieval info: PRIVATE: Use_Rawperror NUMERIC "0"
@@ -184,7 +186,7 @@ endmodule
 // Retrieval info: CONSTANT: CDS_MODE STRING "UNUSED"
 // Retrieval info: CONSTANT: COMMON_RX_TX_PLL STRING "OFF"
 // Retrieval info: CONSTANT: clk_src_is_pll STRING "off"
-// Retrieval info: CONSTANT: DATA_ALIGN_ROLLOVER NUMERIC "4"
+// Retrieval info: CONSTANT: DATA_ALIGN_ROLLOVER NUMERIC "8"
 // Retrieval info: CONSTANT: DATA_RATE STRING "800.0 Mbps"
 // Retrieval info: CONSTANT: DESERIALIZATION_FACTOR NUMERIC "8"
 // Retrieval info: CONSTANT: DPA_INITIAL_PHASE_VALUE NUMERIC "0"
@@ -202,7 +204,7 @@ endmodule
 // Retrieval info: CONSTANT: INCLOCK_BOOST NUMERIC "0"
 // Retrieval info: CONSTANT: INCLOCK_DATA_ALIGNMENT STRING "EDGE_ALIGNED"
 // Retrieval info: CONSTANT: INCLOCK_PERIOD NUMERIC "10000"
-// Retrieval info: CONSTANT: INCLOCK_PHASE_SHIFT NUMERIC "5000"
+// Retrieval info: CONSTANT: INCLOCK_PHASE_SHIFT NUMERIC "625"
 // Retrieval info: CONSTANT: INPUT_DATA_RATE NUMERIC "800"
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone V"
 // Retrieval info: CONSTANT: LOSE_LOCK_ON_ONE_CHANGE STRING "UNUSED"
@@ -213,7 +215,7 @@ endmodule
 // Retrieval info: CONSTANT: OUTCLOCK_RESOURCE STRING "AUTO"
 // Retrieval info: CONSTANT: PLL_OPERATION_MODE STRING "NORMAL"
 // Retrieval info: CONSTANT: PLL_SELF_RESET_ON_LOSS_LOCK STRING "UNUSED"
-// Retrieval info: CONSTANT: PORT_RX_CHANNEL_DATA_ALIGN STRING "PORT_UNUSED"
+// Retrieval info: CONSTANT: PORT_RX_CHANNEL_DATA_ALIGN STRING "PORT_USED"
 // Retrieval info: CONSTANT: PORT_RX_DATA_ALIGN STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: REFCLK_FREQUENCY STRING "100.000000 MHz"
 // Retrieval info: CONSTANT: REGISTERED_DATA_ALIGN_INPUT STRING "UNUSED"
@@ -230,6 +232,8 @@ endmodule
 // Retrieval info: CONSTANT: X_ON_BITSLIP STRING "ON"
 // Retrieval info: USED_PORT: pll_areset 0 0 0 0 INPUT NODEFVAL "pll_areset"
 // Retrieval info: CONNECT: @pll_areset 0 0 0 0 pll_areset 0 0 0 0
+// Retrieval info: USED_PORT: rx_channel_data_align 0 0 8 0 INPUT NODEFVAL "rx_channel_data_align[7..0]"
+// Retrieval info: CONNECT: @rx_channel_data_align 0 0 8 0 rx_channel_data_align 0 0 8 0
 // Retrieval info: USED_PORT: rx_in 0 0 8 0 INPUT NODEFVAL "rx_in[7..0]"
 // Retrieval info: CONNECT: @rx_in 0 0 8 0 rx_in 0 0 8 0
 // Retrieval info: USED_PORT: rx_inclock 0 0 0 0 INPUT NODEFVAL "rx_inclock"
@@ -243,7 +247,7 @@ endmodule
 // Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds.v TRUE FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds.qip TRUE FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds.bsf FALSE TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds_inst.v FALSE TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds_inst.v TRUE TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds_bb.v FALSE TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds.inc FALSE TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL adc_lvds.cmp FALSE TRUE

@@ -4,7 +4,8 @@
 module averager #(
 	parameter AVERAGING_POINTS_BITS = 48,	//BITS for averaging_points (so max averaging factor (2^AVERAGING_POINTS_BITS)-1)
 	parameter INPUT_DATA_BITS = 16,			//BITS for the input data
-	parameter SIGNED = 1					//1 for signed data_in
+	parameter SIGNED = 1,					//1 for signed data_in
+	parameter OUTPUT_DATA_BITS = INPUT_DATA_BITS + AVERAGING_POINTS_BITS
 )(
     input   clock,
     input   reset,
@@ -19,11 +20,18 @@ module averager #(
     output reg  data_valid
 );
 
-localparam 	OUTPUT_DATA_BITS = INPUT_DATA_BITS + AVERAGING_POINTS_BITS;
+wire signed [OUTPUT_DATA_BITS-1:0] data_in_extended;
+wire signed [OUTPUT_DATA_BITS-1:0] sum_shifted;
+reg signed [OUTPUT_DATA_BITS-1:0] sum;
 
 
-wire [OUTPUT_DATA_BITS-1:0] data_in_extended;
-wire [OUTPUT_DATA_BITS-1:0] sum_shifted;
+wire [$clog2(AVERAGING_POINTS_BITS)-1:0] shift_value;
+log2n #(.BITS(AVERAGING_POINTS_BITS)) log2_averaging(
+	.clock(clock),
+	.reset(reset),
+	.data_in(averaging_points),
+	.log2_out(shift_value)
+);
 
 // If the averager is signed the input data must be sign extended to a length of OUTPUT_DATA_BITS, otherwise zero extended
 // If the averager is signed (and shift is 1) the sum must be arithmetically shifted, otherwise logically shifted
@@ -43,7 +51,6 @@ localparam IDLE = 0,
 
 reg [1:0] state = IDLE;
 reg [AVERAGING_POINTS_BITS-1:0] sum_counter;
-reg signed [OUTPUT_DATA_BITS-1:0] sum;
 
 always @(posedge clock ) begin
 	if (reset) begin
@@ -67,7 +74,7 @@ always @(posedge clock ) begin
 			ADD: begin
 				if (run_averaging) begin
 					sum_counter <= sum_counter + 1'b1;
-					sum <= sum + data_in_extended;
+					sum <= $signed(sum) + $signed(data_in_extended);
 					if (sum_counter >= averaging_points - 1) begin
 						data_valid <= 1'b1;
 						state <= IDLE;
@@ -85,13 +92,6 @@ always @(posedge clock ) begin
 	end
 end
 
-wire [$clog2(AVERAGING_POINTS_BITS)-1:0] shift_value;
-log2n #(.BITS(AVERAGING_POINTS_BITS)) log2_averaging(
-	.clock(clock),
-	.reset(reset),
-	.data_in(averaging_points),
-	.log2_out(shift_value)
-);
 
 assign data_out = shift? sum_shifted : sum;
     

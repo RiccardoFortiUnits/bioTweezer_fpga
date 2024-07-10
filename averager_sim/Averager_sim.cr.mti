@@ -1,0 +1,30 @@
+D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/adc_controller/adc_fast/ADC_data_moving_average.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/adc_controller/adc_fast/ADC_data_moving_average.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module ADC_data_moving_average
+
+Top level modules:
+	ADC_data_moving_average
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim/averager_tb.sv {1 {vlog -work work -sv -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim/averager_tb.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module averager_tb
+-- Compiling module sinusoid_gen
+
+Top level modules:
+	averager_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/averager.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/averager.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module averager
+
+Top level modules:
+	averager
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/log2n.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/log2n.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module log2n
+
+Top level modules:
+	log2n
+
+} {} {}}

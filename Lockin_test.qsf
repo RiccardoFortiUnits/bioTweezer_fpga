@@ -1,0 +1,1186 @@
+#============================================================
+# Build by Terasic System Builder
+#============================================================
+
+set_global_assignment -name FAMILY "Cyclone V"
+set_global_assignment -name DEVICE 5CGXFC5C6F27C7
+set_global_assignment -name TOP_LEVEL_ENTITY Lockin_test
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 14.0
+set_global_assignment -name LAST_QUARTUS_VERSION "23.1std.1 Lite Edition"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "12:16:33 JANUARY 18,2022"
+set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
+set_global_assignment -name DEVICE_FILTER_PIN_COUNT 672
+set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 8_H6
+
+#============================================================
+# CLOCK
+#============================================================
+set_location_assignment PIN_U12 -to CLOCK_125_p
+set_location_assignment PIN_R20 -to CLOCK_50_B5B
+set_location_assignment PIN_N20 -to CLOCK_50_B6A
+set_location_assignment PIN_H12 -to CLOCK_50_B7A
+set_location_assignment PIN_M10 -to CLOCK_50_B8A
+set_location_assignment PIN_V6 -to REFCLK_125
+
+#============================================================
+# LED
+#============================================================
+set_location_assignment PIN_L7 -to LEDG[0]
+set_location_assignment PIN_K6 -to LEDG[1]
+set_location_assignment PIN_D8 -to LEDG[2]
+set_location_assignment PIN_E9 -to LEDG[3]
+set_location_assignment PIN_A5 -to LEDG[4]
+set_location_assignment PIN_B6 -to LEDG[5]
+set_location_assignment PIN_H8 -to LEDG[6]
+set_location_assignment PIN_H9 -to LEDG[7]
+set_location_assignment PIN_F7 -to LEDR[0]
+set_location_assignment PIN_F6 -to LEDR[1]
+set_location_assignment PIN_G6 -to LEDR[2]
+set_location_assignment PIN_G7 -to LEDR[3]
+set_location_assignment PIN_J8 -to LEDR[4]
+set_location_assignment PIN_J7 -to LEDR[5]
+set_location_assignment PIN_K10 -to LEDR[6]
+set_location_assignment PIN_K8 -to LEDR[7]
+set_location_assignment PIN_H7 -to LEDR[8]
+set_location_assignment PIN_J10 -to LEDR[9]
+
+#============================================================
+# KEY
+#============================================================
+set_location_assignment PIN_P11 -to KEY[0]
+set_location_assignment PIN_P12 -to KEY[1]
+set_location_assignment PIN_Y15 -to KEY[2]
+set_location_assignment PIN_Y16 -to KEY[3]
+set_location_assignment PIN_AB24 -to CPU_RESET_n
+
+#============================================================
+# SW
+#============================================================
+set_location_assignment PIN_AC9 -to SW[0]
+set_location_assignment PIN_AE10 -to SW[1]
+set_location_assignment PIN_AD13 -to SW[2]
+set_location_assignment PIN_AC8 -to SW[3]
+set_location_assignment PIN_W11 -to SW[4]
+set_location_assignment PIN_AB10 -to SW[5]
+set_location_assignment PIN_V10 -to SW[6]
+set_location_assignment PIN_AC10 -to SW[7]
+set_location_assignment PIN_Y11 -to SW[8]
+set_location_assignment PIN_AE19 -to SW[9]
+
+#============================================================
+# SEG7
+#============================================================
+set_location_assignment PIN_V19 -to HEX0[0]
+set_location_assignment PIN_V18 -to HEX0[1]
+set_location_assignment PIN_V17 -to HEX0[2]
+set_location_assignment PIN_W18 -to HEX0[3]
+set_location_assignment PIN_Y20 -to HEX0[4]
+set_location_assignment PIN_Y19 -to HEX0[5]
+set_location_assignment PIN_Y18 -to HEX0[6]
+set_location_assignment PIN_AA18 -to HEX1[0]
+set_location_assignment PIN_AD26 -to HEX1[1]
+set_location_assignment PIN_AB19 -to HEX1[2]
+set_location_assignment PIN_AE26 -to HEX1[3]
+set_location_assignment PIN_AE25 -to HEX1[4]
+set_location_assignment PIN_AC19 -to HEX1[5]
+set_location_assignment PIN_AF24 -to HEX1[6]
+set_location_assignment PIN_AD7 -to HEX2[0]
+set_location_assignment PIN_AD6 -to HEX2[1]
+set_location_assignment PIN_U20 -to HEX2[2]
+set_location_assignment PIN_V22 -to HEX2[3]
+set_location_assignment PIN_V20 -to HEX2[4]
+set_location_assignment PIN_W21 -to HEX2[5]
+set_location_assignment PIN_W20 -to HEX2[6]
+set_location_assignment PIN_Y24 -to HEX3[0]
+set_location_assignment PIN_Y23 -to HEX3[1]
+set_location_assignment PIN_AA23 -to HEX3[2]
+set_location_assignment PIN_AA22 -to HEX3[3]
+set_location_assignment PIN_AC24 -to HEX3[4]
+set_location_assignment PIN_AC23 -to HEX3[5]
+set_location_assignment PIN_AC22 -to HEX3[6]
+
+#============================================================
+# I2C for Audio/HDMI-TX/Si5338/HSMC
+#============================================================
+set_location_assignment PIN_B7 -to I2C_SCL
+set_location_assignment PIN_G11 -to I2C_SDA
+
+
+#============================================================
+# HSMC, HSMC connect to HSMC Default With Transceiver
+#============================================================
+
+# Transceivers
+
+set_location_assignment PIN_AE4 -to sfp_tx_0
+set_location_assignment PIN_AD2 -to sfp_rx_0
+
+# ADC DDR interface
+
+set_location_assignment PIN_G15 -to adc_fclk
+set_location_assignment PIN_N12 -to adc_ch_D[1]
+set_location_assignment PIN_M11 -to adc_ch_D[0]
+set_location_assignment PIN_H18 -to adc_ch_C[1]
+set_location_assignment PIN_L12 -to adc_ch_C[0]
+set_location_assignment PIN_H15 -to adc_ch_B[1]
+set_location_assignment PIN_J12 -to adc_ch_B[0]
+set_location_assignment PIN_G16 -to adc_ch_A[1]
+set_location_assignment PIN_G12 -to adc_ch_A[0]
+
+# ADC SPI interface
+
+set_location_assignment PIN_E18 -to adc_spi_sclk
+set_location_assignment PIN_F18 -to adc_spi_sdio
+set_location_assignment PIN_F16 -to adc_spi_csb
+set_location_assignment PIN_E15 -to adc_spi_sync
+
+
+# I2C clock source interface
+
+set_location_assignment PIN_H13 -to lmk_i2c_sda
+set_location_assignment PIN_H14 -to lmk_i2c_scl
+
+
+# DAC SPI interface
+
+set_location_assignment PIN_D10 -to DAC_CS_N[3]
+set_location_assignment PIN_C10 -to DAC_CS_N[2]
+set_location_assignment PIN_A12 -to DAC_CS_N[1]
+set_location_assignment PIN_B11 -to DAC_CS_N[0]
+set_location_assignment PIN_B10 -to DAC_SCK
+set_location_assignment PIN_A11 -to DAC_SDO[3]
+set_location_assignment PIN_E10 -to DAC_SDO[2]
+set_location_assignment PIN_D11 -to DAC_SDO[1]
+set_location_assignment PIN_N9 -to DAC_SDO[0]
+
+# Digital I/Os
+
+set_location_assignment PIN_B12 -to aux_io[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[0]
+set_location_assignment PIN_A13 -to aux_io[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[1]
+set_location_assignment PIN_C23 -to aux_io[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[2]
+set_location_assignment PIN_C22 -to aux_io[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[3]
+set_location_assignment PIN_A14 -to aux_io[4]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[4]
+set_location_assignment PIN_B14 -to aux_io[5]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[5]
+set_location_assignment PIN_A23 -to aux_io[6]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[6]
+set_location_assignment PIN_A22 -to aux_io[7]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[7]
+set_location_assignment PIN_C17 -to aux_io[8]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[8]
+set_location_assignment PIN_B17 -to aux_io[9]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[9]
+set_location_assignment PIN_C19 -to aux_io[10]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[10]
+set_location_assignment PIN_C18 -to aux_io[11]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[11]
+set_location_assignment PIN_B21 -to aux_io[12]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[12]
+set_location_assignment PIN_B20 -to aux_io[13]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[13]
+set_location_assignment PIN_A17 -to aux_io[14]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[14]
+set_location_assignment PIN_A16 -to aux_io[15]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to aux_io[15]
+
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "1 MHz" -to aux_io
+
+#============================================================
+# End of pin assignments by Terasic System Builder
+#============================================================
+
+
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name ENABLE_SIGNALTAP ON
+set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
+set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name OPTIMIZATION_MODE BALANCED
+set_global_assignment -name SEARCH_PATH "d:\\leonardo\\git_repos\\faststm-cvgx\\verilog_code"
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name SAFE_STATE_MACHINE OFF
+set_global_assignment -name ROUTER_CLOCKING_TOPOLOGY_ANALYSIS ON
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name IO_STANDARD LVDS -to CLOCK_125_p
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50_B5B
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50_B6A
+set_instance_assignment -name IO_STANDARD "2.5 V" -to CLOCK_50_B7A
+set_instance_assignment -name IO_STANDARD "2.5 V" -to CLOCK_50_B8A
+set_instance_assignment -name IO_STANDARD LVDS -to REFCLK_125
+set_instance_assignment -name XCVR_REFCLK_PIN_TERMINATION AC_COUPLING -to REFCLK_125
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[4]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[5]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[6]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDG[7]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[4]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[5]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[6]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[7]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[8]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to LEDR[9]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to KEY[0]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to KEY[1]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to KEY[2]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to KEY[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CPU_RESET_n
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[0]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[1]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[2]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[3]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[4]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[5]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[6]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[7]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[8]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to SW[9]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[0]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[1]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[2]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[3]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[4]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[5]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX0[6]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[0]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[1]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[2]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[3]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[4]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[5]
+set_instance_assignment -name IO_STANDARD "1.2 V" -to HEX1[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX2[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX3[6]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to I2C_SCL
+set_instance_assignment -name IO_STANDARD "2.5 V" -to I2C_SDA
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "1 MHz" -to I2C_SCL
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "1 MHz" -to I2C_SDA
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to sfp_tx_0
+set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to sfp_rx_0
+set_instance_assignment -name IO_STANDARD LVDS -to adc_fclk
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_fclk
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_D[1]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_D[1]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_D[0]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_D[0]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_C[1]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_C[1]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_C[0]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_C[0]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_B[1]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_B[1]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_B[0]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_B[0]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_A[1]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_A[1]
+set_instance_assignment -name IO_STANDARD LVDS -to adc_ch_A[0]
+set_instance_assignment -name INPUT_TERMINATION DIFFERENTIAL -to adc_ch_A[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to adc_spi_sclk
+set_instance_assignment -name IO_STANDARD "2.5 V" -to adc_spi_sdio
+set_instance_assignment -name IO_STANDARD "2.5 V" -to adc_spi_csb
+set_instance_assignment -name IO_STANDARD "2.5 V" -to adc_spi_sync
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "10 MHz" -to adc_spi_sclk
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "10 MHz" -to adc_spi_sdio
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "10 MHz" -to adc_spi_csb
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "10 MHz" -to adc_spi_sync
+set_instance_assignment -name IO_STANDARD "2.5 V" -to lmk_i2c_sda
+set_instance_assignment -name IO_STANDARD "2.5 V" -to lmk_i2c_scl
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "1 MHz" -to lmk_i2c_sda
+set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "1 MHz" -to lmk_i2c_scl
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_CS_N[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_CS_N[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_CS_N[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_CS_N[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_SCK
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_SDO[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_SDO[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_SDO[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to DAC_SDO[0]
+set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
+set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT NONE -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH NCO_multiple_nco_ii_0_tb -section_id eda_simulation
+set_global_assignment -name EDA_TEST_BENCH_NAME NCO_multiple_nco_ii_0_tb -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id NCO_multiple_nco_ii_0_tb
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME NCO_multiple_nco_ii_0_tb -section_id NCO_multiple_nco_ii_0_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd -section_id NCO_multiple_nco_ii_0_tb
+set_global_assignment -name EDA_NATIVELINK_GENERATE_SCRIPT_ONLY ON -section_id eda_simulation
+set_global_assignment -name SLD_NODE_CREATOR_ID 110 -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_ENTITY_NAME sld_signaltap -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_clk -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|clk" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[0] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[1] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[2] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[3] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[4] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[5] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[6] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[7] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[8] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[9] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[10] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[11] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[12] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[13] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[14] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[15] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[16] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[17] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[18] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[19] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[20] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[21] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[22] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[23] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[24] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[25] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[26] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[27] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[28] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[29] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[30] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[31] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[32] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[33] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[34] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[35] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[36] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[37] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[38] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[39] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[40] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[41] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[42] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[43] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[44] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[45] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[46] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[47] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[48] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[49] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[50] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[51] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[52] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[53] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[54] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[55] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[56] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[57] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[58] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[59] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[60] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[61] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[62] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[63] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[64] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[65] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[66] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[67] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[68] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[69] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[70] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[71] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[72] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[73] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[74] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[75] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[76] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[77] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[78] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[79] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[80] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[81] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[82] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[83] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[84] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[85] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[86] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[87] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[88] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[89] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[90] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[91] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[92] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[93] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[94] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[95] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[96] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[97] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[98] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[99] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[100] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[101] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[102] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[103] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[104] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[105] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[106] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[107] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[108] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[109] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[110] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[111] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[112] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[113] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[114] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[115] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[116] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[117] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[118] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[119] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[120] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[121] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[122] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[123] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[124] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[125] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[126] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[127] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[128] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[129] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[130] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[131] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[132] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[133] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[134] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[135] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[136] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[137] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[138] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[139] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[140] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[141] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[142] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[143] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[144] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[145] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[146] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[147] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[148] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[149] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[150] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[151] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[152] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[153] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[154] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[155] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[156] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[157] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[158] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[159] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[160] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[161] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[162] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[163] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[164] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[165] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[166] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[167] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[168] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[169] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[170] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[171] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[172] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[173] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[174] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[175] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[176] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|filter_order" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[177] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|in_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[178] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[179] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[180] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[181] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[182] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[183] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[184] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[185] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[186] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[187] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[188] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[189] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[190] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[191] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[192] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[193] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[194] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[195] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[196] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[197] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[198] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[199] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[200] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[201] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[202] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[203] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[204] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[205] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[206] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[207] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[208] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[209] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[210] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[211] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|out_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[212] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[213] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[214] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[215] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[216] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[217] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[218] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[219] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[220] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[221] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[222] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[223] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[224] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[225] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[226] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[227] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[228] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[229] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[230] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[231] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[232] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[233] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[234] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[235] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[236] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[237] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[238] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[239] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[240] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[241] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[242] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[243] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[244] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[245] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[246] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[247] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[248] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[249] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[250] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[251] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[252] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[253] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[254] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[255] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[256] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[257] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[258] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[259] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[260] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[261] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[262] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[263] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[264] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[265] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[266] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[267] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[268] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[269] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[270] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[271] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[272] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[273] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[274] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[275] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[276] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[277] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[278] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[279] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[280] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[281] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[282] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[283] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[284] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[285] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[286] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[287] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[288] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[289] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[290] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[291] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[292] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[293] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[294] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[295] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[296] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[297] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[298] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[299] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[300] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[301] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[302] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[303] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[304] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[305] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[306] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[307] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[308] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[309] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[310] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[311] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[312] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[313] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[314] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[315] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[316] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[317] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[318] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[319] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[320] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[321] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[322] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[323] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[324] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[325] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[326] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[327] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[328] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[329] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[330] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[331] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[332] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[333] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[334] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[335] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[336] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[337] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[338] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[339] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[340] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[341] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[342] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[343] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[344] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[345] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[346] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[347] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[348] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[349] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[350] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[351] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[352] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[353] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[354] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[355] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[356] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[357] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[358] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[359] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[360] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[361] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[362] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[363] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[364] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin_output_acquire" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[0] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[1] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[2] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[3] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[4] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[5] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[6] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[7] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[8] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[9] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[10] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[11] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[12] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[13] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[14] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[15] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[16] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[17] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[18] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[19] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[20] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[21] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[22] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[23] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[24] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[25] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[26] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[27] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[28] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[29] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[30] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[31] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|X_reg[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[32] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[33] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[34] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[35] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[36] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[37] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[38] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[39] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[40] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[41] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[42] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[43] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[44] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[45] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[46] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[47] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[48] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[49] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[50] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[51] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[52] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[53] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[54] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[55] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[56] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[57] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[58] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[59] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[60] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[61] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[62] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[63] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|Y_reg[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[64] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[65] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[66] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[67] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[68] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[69] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[70] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[71] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[72] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[73] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[74] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[75] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[76] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[77] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[78] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[79] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[80] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[81] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[82] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[83] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[84] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[85] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[86] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[87] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[88] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[89] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[90] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[91] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[92] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[93] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[94] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[95] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|freq_reg[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[96] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[97] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[98] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[99] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[100] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[101] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[102] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[103] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[104] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[105] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[106] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[107] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[108] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[109] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[110] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[111] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[112] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[113] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[114] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[115] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[116] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[117] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[118] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[119] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[120] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[121] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[122] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[123] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[124] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[125] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[126] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[127] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|X_out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[128] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[129] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[130] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[131] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[132] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[133] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[134] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[135] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[136] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[137] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[138] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[139] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[140] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[141] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[142] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[143] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[144] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[145] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[146] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[147] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[148] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[149] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[150] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[151] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[152] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[153] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[154] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[155] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[156] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[157] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[158] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[159] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|Y_out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[160] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[161] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[162] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[163] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[164] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[165] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[166] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[167] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[168] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[169] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[170] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[171] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[172] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[173] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[174] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[175] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|cos_ref[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[176] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|filter_order" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[177] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|in_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[178] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[179] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[180] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[181] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[182] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[183] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[184] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[185] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[186] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[187] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[188] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[189] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[190] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[191] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[192] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[193] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[194] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[195] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[196] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[197] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[198] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[199] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[200] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[201] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[202] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[203] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[204] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[205] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[206] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[207] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[208] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[209] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[210] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|mult_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[211] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|out_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[212] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[213] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[214] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[215] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[216] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[217] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[218] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[219] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[220] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[221] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[222] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[223] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[224] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[225] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[226] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[227] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|signal_in[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[228] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[229] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[230] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[231] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[232] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[233] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[234] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[235] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[236] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[237] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[238] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[239] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[240] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[241] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[242] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[243] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|sin_ref[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[244] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[245] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[246] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[247] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[248] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[249] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[250] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[251] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[252] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[253] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[254] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[255] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[256] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[257] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[258] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[259] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[260] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[261] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[262] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[263] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[264] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[265] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[266] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[267] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[268] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[269] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[270] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|in_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[271] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[272] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[273] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[274] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[275] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[276] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[277] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[278] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[279] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[280] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[281] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[282] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[283] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[284] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[285] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[286] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[287] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[288] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[289] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[290] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[291] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[292] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[293] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[294] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[295] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[296] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[297] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[298] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[299] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[300] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[301] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[302] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[303] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf1|out_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[304] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[305] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[306] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[307] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[308] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[309] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[310] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[311] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[312] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[313] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[314] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[315] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[316] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[317] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[318] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[319] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[320] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[321] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[322] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[323] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[324] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[325] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[326] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[327] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[328] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[329] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[330] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|in_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[331] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[0]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[332] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[10]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[333] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[11]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[334] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[12]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[335] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[13]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[336] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[14]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[337] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[15]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[338] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[16]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[339] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[17]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[340] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[18]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[341] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[19]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[342] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[1]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[343] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[20]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[344] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[21]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[345] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[22]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[346] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[23]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[347] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[24]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[348] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[25]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[349] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[26]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[350] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[27]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[351] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[28]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[352] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[29]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[353] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[2]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[354] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[30]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[355] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[31]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[356] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[3]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[357] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[4]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[358] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[5]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[359] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[6]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[360] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[7]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[361] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[8]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[362] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out[9]" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[363] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin:lockin_0|tustin_lpf2:iir_lpf2|out_valid" -section_id auto_signaltap_16
+set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_data_in[364] -to "parallel_data_processor:parallel_data_processor|lockin_ch:loop_lockins[0].lockins|lockin_output_acquire" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_RAM_BLOCK_TYPE=AUTO" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_DATA_BITS=365" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_BITS=365" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_BITS=365" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_NODE_INFO=805334544" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_POWER_UP_TRIGGER=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK=0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK_LENGTH=1114" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STORAGE_QUALIFIER_INVERSION_MASK_LENGTH=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SEGMENT_SIZE=32" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ATTRIBUTE_MEM_MODE=OFF" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STATE_FLOW_USE_GENERATED=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_STATE_BITS=11" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_BUFFER_FULL_STOP=1" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_CURRENT_RESOURCE_WIDTH=1" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INCREMENTAL_ROUTING=1" -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[0] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[1] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[2] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[4] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[5] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[6] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[7] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[8] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[9] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[10] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[11] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[13] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[14] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[16] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[17] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[19] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[21] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[23] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[27] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[29] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[30] -to auto_signaltap_16|vcc -section_id auto_signaltap_16
+set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[31] -to auto_signaltap_16|gnd -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL=1" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_SAMPLE_DEPTH=512" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_IN_ENABLED=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_PIPELINE=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_RAM_PIPELINE=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_COUNTER_PIPELINE=0" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=basic,1," -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL_PIPELINE=1" -section_id auto_signaltap_16
+set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ENABLE_ADVANCED_TRIGGER=0" -section_id auto_signaltap_16
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
+set_global_assignment -name VERILOG_FILE verilog_code/lpf/tustin_lpf2_duplicate.v
+set_global_assignment -name VERILOG_FILE verilog_code/dac_controller/dac_filter/dac_filter.v
+set_global_assignment -name VERILOG_FILE verilog_code/debouncer.v
+set_global_assignment -name VERILOG_FILE verilog_code/data_process/lockin/lockin_ch.v
+set_global_assignment -name VERILOG_FILE verilog_code/data_process/parallel_data_processor.v
+set_global_assignment -name VERILOG_FILE verilog_code/shift_register_parallel.v
+set_global_assignment -name VERILOG_FILE verilog_code/NCO_8CH/FSM_CH/FSM_NCOch.v
+set_global_assignment -name VERILOG_FILE verilog_code/NCO_8CH/NCO_8ch.v
+set_global_assignment -name QSYS_FILE verilog_code/NCO_8CH/NCO/NCO_8ch_IP.qsys
+set_global_assignment -name VERILOG_FILE verilog_code/data_process/lockin/lockin.v
+set_global_assignment -name VERILOG_FILE verilog_code/lpf/serializer.v
+set_global_assignment -name VERILOG_FILE verilog_code/lpf/rom.v
+set_global_assignment -name TEXT_FILE verilog_code/lpf/rom.txt
+set_global_assignment -name VERILOG_FILE verilog_code/lpf/deserializer.v
+set_global_assignment -name VERILOG_FILE verilog_code/lpf/tustin_lpf2.v
+set_global_assignment -name VERILOG_FILE verilog_code/lpf/tustin_lpf.v
+set_global_assignment -name VERILOG_FILE Lockin_test.v
+set_global_assignment -name SDC_FILE Lockin_test.sdc
+set_global_assignment -name VERILOG_FILE verilog_code/data_process/data_processor.v
+set_global_assignment -name VERILOG_FILE verilog_code/shift_register_ram_based.v
+set_global_assignment -name VERILOG_FILE verilog_code/shift_register_delayer.v
+set_global_assignment -name QSYS_FILE verilog_code/i2c_qsys/i2c_alt_contr.qsys
+set_global_assignment -name VERILOG_FILE verilog_code/i2c_wrapper/i2c_wrapper.v
+set_global_assignment -name QIP_FILE verilog_code/adc_controller/fifo/adc_fifo_64.qip
+set_global_assignment -name QIP_FILE verilog_code/adc_controller/adc_fast/adc_lvds/adc_lvds.qip
+set_global_assignment -name VERILOG_FILE "verilog_code/H-cube/Gaussian/gng.v"
+set_global_assignment -name QSYS_FILE "verilog_code/H-cube/Sweep/Sweep.qsys"
+set_global_assignment -name VERILOG_FILE verilog_code/decoders/network_wrapper.v
+set_global_assignment -name VERILOG_FILE verilog_code/stretcher_edge_det.v
+set_global_assignment -name VERILOG_FILE verilog_code/clock_synchronizer.v
+set_global_assignment -name VERILOG_FILE verilog_code/averager.v
+set_global_assignment -name VERILOG_FILE verilog_code/log2n.v
+set_global_assignment -name VERILOG_FILE verilog_code/delayer.v
+set_global_assignment -name VERILOG_FILE verilog_code/si5338_controller/si5338_controller.v
+set_global_assignment -name VERILOG_FILE verilog_code/sync_edge_det.v
+set_global_assignment -name VERILOG_FILE verilog_code/stretcher.v
+set_global_assignment -name VERILOG_FILE verilog_code/pulser.v
+set_global_assignment -name VERILOG_FILE verilog_code/initial_reset.v
+set_global_assignment -name VERILOG_FILE verilog_code/dec_comm_fifo.v
+set_global_assignment -name SDC_FILE verilog_code/ethernet_1gb/udp_core8/udp_core8.sdc
+set_global_assignment -name VERILOG_FILE verilog_code/dac_controller/DAC_wrapper.v
+set_global_assignment -name QIP_FILE verilog_code/ethernet_1gb/xcvr_rst/xcvr_rst.qip
+set_global_assignment -name SIP_FILE verilog_code/ethernet_1gb/xcvr_rst/xcvr_rst.sip
+set_global_assignment -name QIP_FILE verilog_code/ethernet_1gb/udp_core8/udp_fifo_status8/udp_fifo_status8.qip
+set_global_assignment -name QIP_FILE verilog_code/ethernet_1gb/udp_core8/udp_fifo8/udp_fifo8.qip
+set_global_assignment -name QIP_FILE verilog_code/ethernet_1gb/tse_core/tse_core.qip
+set_global_assignment -name SIP_FILE verilog_code/ethernet_1gb/tse_core/tse_core.sip
+set_global_assignment -name QIP_FILE verilog_code/pll/pll.qip
+set_global_assignment -name SIP_FILE verilog_code/pll/pll.sip
+set_global_assignment -name QIP_FILE verilog_code/ethernet_1gb/udp_core8/icmp_fifo8/icmp_fifo8.qip
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name SOURCE_FILE "db/FastSTM-CVGX.cmp.rdb"
+set_global_assignment -name VERILOG_FILE verilog_code/adc_controller/adc_fast/ADC_FAST_wrapper.v
+set_global_assignment -name QIP_FILE verilog_code/data_process/data_fifo/data_fifo.qip
+set_global_assignment -name QIP_FILE verilog_code/dac_controller/sweep_fifo/sweep_fifo.qip
+set_global_assignment -name SOURCE_FILE db/Lockin_test.cmp.rdb
+set_global_assignment -name QIP_FILE verilog_code/adc_controller/adc_fast/pll_adc_IP/pll_adc.qip
+set_global_assignment -name SIP_FILE verilog_code/adc_controller/adc_fast/pll_adc_IP/pll_adc.sip

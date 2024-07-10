@@ -1,0 +1,221 @@
+# Compile of cordic_tb.sv was successful.
+# Compile of demodulator_tb.sv was successful.
+# Compile of lpf_tb.sv was successful.
+# Compile of serializer_tb.sv was successful.
+# Compile of deserializer.v was successful.
+# Compile of rom.v was successful.
+# Compile of serializer.v was successful.
+# Compile of tustin_lpf.v was successful.
+# Compile of tustin_lpf2.v was successful.
+# Compile of cordic.v was successful.
+# Compile of cordic_CORDIC_0.vhd was successful.
+# Compile of dspba_library.vhd was successful.
+# Compile of dspba_library_package.vhd was successful.
+# Compile of lockin.v was successful.
+# Compile of lockin_tb.sv was successful.
+# 15 compiles, 15 failed with no errors.
+vsim -gui work.lockin_tb
+# vsim -gui work.lockin_tb 
+# Start time: 15:27:24 on Jun 03,2024
+# Loading sv_std.std
+# Loading work.lockin_tb
+# Loading work.lockin
+# Loading work.serializer
+# Loading work.tustin_lpf2
+# Loading work.deserializer
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 85
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-2685) [TFMPC] - Too few port connections for 'uut'.  Expected 11, found 10.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+# ** Warning: (vsim-3722) D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv(31): [TFMPC] - Missing connection for port 'filter_order'.
+add wave -position end  sim:/lockin_tb/uut/filter_order
+add wave -position end  sim:/lockin_tb/uut/signal_in
+add wave -position end  sim:/lockin_tb/uut/sin_ref
+add wave -position end  sim:/lockin_tb/uut/cos_ref
+add wave -position end  sim:/lockin_tb/uut/in_valid
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: lastline  Hostname: LSD-STUDENTE2  ProcessID: 47452
+#           Attempting to use alternate WLF file "./wlftfbxnzs".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftfbxnzs
+add wave -position end  sim:/lockin_tb/uut/alpha
+add wave -position end  sim:/lockin_tb/uut/serializer_ref/in
+add wave -position end  sim:/lockin_tb/uut/serializer_ref/in_valid
+add wave -position end  sim:/lockin_tb/uut/serializer_ref/out
+add wave -position end  sim:/lockin_tb/uut/serializer_ref/out_valid
+add wave -position end  sim:/lockin_tb/uut/mult
+add wave -position end  sim:/lockin_tb/uut/mult_valid
+add wave -position end  sim:/lockin_tb/uut/iir_lpf1/in
+add wave -position end  sim:/lockin_tb/uut/iir_lpf1/in_valid
+add wave -position end  sim:/lockin_tb/uut/iir_lpf1/out
+add wave -position end  sim:/lockin_tb/uut/iir_lpf1/out_valid
+add wave -position end  sim:/lockin_tb/uut/deserialize_out/in
+add wave -position end  sim:/lockin_tb/uut/deserialize_out/in_valid
+add wave -position end  sim:/lockin_tb/uut/deserialize_out/out
+add wave -position end  sim:/lockin_tb/uut/deserialize_out/out_valid
+run -all
+# ** Note: $finish    : D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv(102)
+#    Time: 501141 ns  Iteration: 0  Instance: /lockin_tb
+# 1
+# Break in Module lockin_tb at D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv line 102
+# Compile of cordic_tb.sv was successful.
+# Compile of demodulator_tb.sv was successful.
+# Compile of lpf_tb.sv was successful.
+# Compile of serializer_tb.sv was successful.
+# Compile of deserializer.v was successful.
+# Compile of rom.v was successful.
+# Compile of serializer.v was successful.
+# Compile of tustin_lpf.v was successful.
+# Compile of tustin_lpf2.v was successful.
+# Compile of cordic.v was successful.
+# Compile of cordic_CORDIC_0.vhd was successful.
+# Compile of dspba_library.vhd was successful.
+# Compile of dspba_library_package.vhd was successful.
+# Compile of lockin.v was successful.
+# Compile of lockin_tb.sv failed with 1 errors.
+# 15 compiles, 16 failed with 1 error.
+# Compile of lockin_tb.sv failed with 1 errors.
+# Compile of lockin.v was successful.
+# Compile of cordic_tb.sv was successful.
+# Compile of demodulator_tb.sv was successful.
+# Compile of lpf_tb.sv was successful.
+# Compile of serializer_tb.sv was successful.
+# Compile of deserializer.v was successful.
+# Compile of rom.v was successful.
+# Compile of serializer.v was successful.
+# Compile of tustin_lpf.v was successful.
+# Compile of tustin_lpf2.v was successful.
+# Compile of cordic.v was successful.
+# Compile of cordic_CORDIC_0.vhd was successful.
+# Compile of dspba_library.vhd was successful.
+# Compile of dspba_library_package.vhd was successful.
+# Compile of lockin.v was successful.
+# Compile of lockin_tb.sv was successful.
+# 15 compiles, 15 failed with no errors.
+restart -f
+# ** Note: (vsim-12125) Error and warning message counts have been reset to '0' because of 'restart'.
+# Loading work.lockin_tb
+# Loading work.lockin
+# Loading work.serializer
+# Loading work.tustin_lpf2
+# Loading work.deserializer
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 88
+# ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'filter_order'. The port definition is at: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v(24).
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+add wave -position 0  sim:/lockin_tb/clk_50MHz
+add wave -position 1  sim:/lockin_tb/clk_100MHz
+run -all
+# ** Note: $finish    : D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv(103)
+#    Time: 501141 ns  Iteration: 0  Instance: /lockin_tb
+# 1
+# Break in Module lockin_tb at D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv line 103
+# Compile of lockin.v was successful.
+# Compile of cordic_tb.sv was successful.
+# Compile of demodulator_tb.sv was successful.
+# Compile of lpf_tb.sv was successful.
+# Compile of serializer_tb.sv was successful.
+# Compile of deserializer.v was successful.
+# Compile of rom.v was successful.
+# Compile of serializer.v was successful.
+# Compile of tustin_lpf.v was successful.
+# Compile of tustin_lpf2.v was successful.
+# Compile of cordic.v was successful.
+# Compile of cordic_CORDIC_0.vhd was successful.
+# Compile of dspba_library.vhd was successful.
+# Compile of dspba_library_package.vhd was successful.
+# Compile of lockin.v was successful.
+# Compile of lockin_tb.sv was successful.
+# 15 compiles, 15 failed with no errors.
+restart -f
+# ** Note: (vsim-12125) Error and warning message counts have been reset to '0' because of 'restart'.
+# Loading work.lockin_tb
+# Loading work.lockin
+# Loading work.serializer
+# Loading work.tustin_lpf2
+# Loading work.deserializer
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 88
+# ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'filter_order'. The port definition is at: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v(24).
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+run
+add wave -position end  sim:/lockin_tb/X_reg
+add wave -position end  sim:/lockin_tb/Y_reg
+restart
+# ** Note: (vsim-12125) Error and warning message counts have been reset to '0' because of 'restart'.
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 88
+# ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'filter_order'. The port definition is at: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v(24).
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+run
+restart -f
+# ** Note: (vsim-12125) Error and warning message counts have been reset to '0' because of 'restart'.
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 88
+# ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'filter_order'. The port definition is at: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v(24).
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+# Compile of cordic_tb.sv was successful.
+# Compile of demodulator_tb.sv was successful.
+# Compile of lpf_tb.sv was successful.
+# Compile of serializer_tb.sv was successful.
+# Compile of deserializer.v was successful.
+# Compile of rom.v was successful.
+# Compile of serializer.v was successful.
+# Compile of tustin_lpf.v was successful.
+# Compile of tustin_lpf2.v was successful.
+# Compile of cordic.v was successful.
+# Compile of cordic_CORDIC_0.vhd was successful.
+# Compile of dspba_library.vhd was successful.
+# Compile of dspba_library_package.vhd was successful.
+# Compile of lockin.v was successful.
+# Compile of lockin_tb.sv was successful.
+# 15 compiles, 15 failed with no errors.
+restart
+# ** Note: (vsim-12125) Error and warning message counts have been reset to '0' because of 'restart'.
+# Loading work.lockin_tb
+# Loading work.lockin
+# Loading work.serializer
+# Loading work.tustin_lpf2
+# Loading work.deserializer
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 88
+# ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'filter_order'. The port definition is at: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v(24).
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+restart -f
+# ** Note: (vsim-12125) Error and warning message counts have been reset to '0' because of 'restart'.
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 86
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 87
+# ** Warning: (vsim-PLI-3691) Expected a system task, not a system function '$fscanf'.
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 88
+# ** Warning: (vsim-3015) [PCDPC] - Port size (1) does not match connection size (32) for port 'filter_order'. The port definition is at: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v(24).
+#    Time: 0 ps  Iteration: 0  Instance: /lockin_tb/uut File: D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv Line: 31
+run
+# End time: 17:46:26 on Jun 04,2024, Elapsed time: 26:19:02
+# Errors: 0, Warnings: 5
+# Closing project D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/modelsim/lockin.mpf

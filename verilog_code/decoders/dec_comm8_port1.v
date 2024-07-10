@@ -4,7 +4,7 @@ module dec_comm8_port1 #(parameter AVL_SIZE = 8,
                     BYTE_SIZE = 8,
                     IP_SIZE = 32,
                     MAC_SIZE = 48,
-                    MAX_WFM_LENGTH = 8192)
+                    LOCKIN_NUMBER = 32)
 (
     input	        clk,
     input           reset,
@@ -27,29 +27,44 @@ module dec_comm8_port1 #(parameter AVL_SIZE = 8,
     input      tx_fifo_data_full,
     input      tx_fifo_status_full,
 
-    //MODE selection
-    output reg  mode_nCont_disc,
-    output reg  mode_nRaw_dem,
-
+    
+    // GENERAL PARAMETERS //
+    //INPUT MUX selection
+    output reg [2:0]    mux_1,
+    output reg [2:0]    mux_2,
     //parameters
-    output reg [COMMAND_ONLY*BYTE_SIZE-1:0] frequency_initial,
-    output reg [COMMAND_ONLY*BYTE_SIZE-1:0] frequency_final,
-    output reg [63:0]                       frequency_step,
-    output reg [COMMAND_ONLY*BYTE_SIZE-1:0] step_counter,
-    output reg [15:0]                       wfm_amplitude,
-    output reg [2:0] gain,
-    output reg [15:0]                       dem_delay,
+    output reg [15:0]   dem_delay,
+    //for white noise
+    output reg [15:0]   wfm_amplitude,
+    //for ttl control
+    output reg [3:0]    TTL_control,
 
+    //  LEGACYMODE //
+    //mode selection
+    output reg  mode_nRaw_dem,
+    output reg [2:0]    gain,
+    //commands
+    output reg          start_fifo_cmd,
+    output reg          stop_dac_cmd,
     //fifo parameters
     input           fifo_rd_clk,
     input           fifo_rd_ack,
     output [195:0]  fifo_rd_data,
     output          fifo_rd_empty,
 
+    // PML //
+    //lockin configuration
+    output [LOCKIN_NUMBER*8 - 1 : 0]    lockin_config,
+    output reg [26:0]                   alpha,    
+    output reg                          filter_order,
     //acquisition mode commands
-    output reg          start_fifo_cmd,
-    output reg          start_dac_cmd,
-    output reg          stop_dac_cmd,
+    output reg [31:0]   start_fifo_cmd_2,
+    output reg [31:0]   stop_dac_cmd_2,
+    //NCOS FIFOs data
+    output reg [31:0]   clr_fifo_cmd_2,
+    output [191:0]      sweep_data,
+    output reg [31:0]   fifo_wr_2,
+    input [31:0]        fifo_full_2,    
 
     // DACs and ADC status 
     input   DAC_running, //FAST DAC running in a regime state (0 in soft start/stop)
@@ -73,7 +88,16 @@ localparam  SHOW_VERSION = 32'h5645_523F, //(VER?)
             GAIN = 32'h4741_494E, //digital gain for demodulation (GAIN) usefull for small signals in
             START_FROM_FIFO = 32'h5354_4646, //start the sweeps from the FIFO until it's empty (STFF)
             LOAD_FIFO = 32'h4C44_4646, //load one fifo word (LDFF)
-            CLEAR_FIFO = 32'h434C_4646; //clear the fifo (CLFF)
+            CLEAR_FIFO = 32'h434C_4646,//clear the fifo (CLFF)
+            MUX_CONFIG = 32'h4D58_434E,//config the input muxes (MXCN)
+            LOCKIN_CONFIG = 32'h4C43_434E,//config one lockin input at the time(LCCN)
+            FILTER_ORDER = 32'h4F52_4452,//filter order (ORDR)
+            ALPHA = 32'h414C_5048, //alpha value (27 bit)
+            TTLC = 32'h5454_4C43, //TTLC
+            START_DAC_2 = 32'h4143_4732, //DAC GO one or more NCOS(ACG2)
+            STOP_DAC_2 = 32'h4143_5332, //DAC STOP one or more NCOS(ACS2)
+            LOAD_FIFO_2 = 32'h4C44_4632, //load one fifo word in one or more NCOS (LDF2)
+            CLEAR_FIFO_2 = 32'h434C_4632; //clear the fifo of one or more NCOS (CLF2)
 
 
 
@@ -99,6 +123,19 @@ reg [COMMAND_ONLY*BYTE_SIZE-1:0] received_data; //command part of the incoming d
 reg with_data; //if the received command is with data or not
 reg nak, ack, ver, err; //signals for the TX state machine
 
+reg [31:0] frequency_initial, frequency_final, step_counter;
+reg [63:0] frequency_step;
+
+reg [7:0] lockin_config_unpacked [LOCKIN_NUMBER - 1 : 0];
+integer j;
+genvar i;
+generate
+    for (i = 0; i < LOCKIN_NUMBER ; i = i+1) begin : loop_lockins
+        // extract the multiplexing controls for each lockin
+        assign lockin_config[(i+1)*8 - 1 -: 8] = lockin_config_unpacked[i];
+    end
+endgenerate
+
 always @(posedge clk)
 begin
 	if(reset)
@@ -117,7 +154,6 @@ begin
         ver <= 1'b0;
         err <= 1'b0;
        
-        mode_nCont_disc <= 0;
         mode_nRaw_dem <= 0;
         frequency_initial <= 0;
         frequency_final <= 0;
@@ -126,12 +162,24 @@ begin
         gain <= 0;
         dem_delay <= 1;
         start_fifo_cmd <= 0;
-        start_dac_cmd <= 0;
         stop_dac_cmd <= 0;
 
+        mux_1 <= 3'b100;
+        mux_2 <= 3'b100;
+        TTL_control <= 4'd0;
         
         fifo_wr <= 1'b0;
         clr_fifo_cmd <= 1'b0;
+
+        alpha <= 27'd0;
+        filter_order <= 1'b0;
+        start_fifo_cmd_2 <= 32'd0;
+        stop_dac_cmd_2 <= 32'd0;
+        clr_fifo_cmd_2 <= 32'd0;
+        fifo_wr_2 <= 32'd0;
+        for (j = 0; j < LOCKIN_NUMBER ; j = j+1) begin : loop_lockins
+            lockin_config_unpacked[j] <= 8'd0;
+        end
 
         RX_STATUS <= RX_IDLE;
     end
@@ -146,10 +194,13 @@ begin
                 ver <= 1'b0;
                 err <= 1'b0;
                 start_fifo_cmd <= 0;
-                start_dac_cmd <= 0;
                 stop_dac_cmd <= 0;
                 fifo_wr <= 1'b0;
                 clr_fifo_cmd <= 1'b0;
+                start_fifo_cmd_2 <= 32'd0;
+                stop_dac_cmd_2 <= 32'd0;
+                clr_fifo_cmd_2 <= 32'd0;
+                fifo_wr_2 <= 32'd0;
                 if(!rx_fifo_status_empty) begin
                     rx_fifo_status_read <= 1'b1;
                     byte_counter <= rx_fifo_status[2*BYTE_SIZE+IP_SIZE+MAC_SIZE-1 -: 2*BYTE_SIZE];
@@ -212,9 +263,10 @@ begin
                         ver <= 1'b1;
                     end
 
-                    START_DAC: begin //start the acquistion
+                    START_DAC: begin //kept for compatibility: save the current values in the fifo and start
                         if (!DAC_running && ADC_ready) begin
-                            start_dac_cmd <= 1'b1;
+                            fifo_wr <= 1'b1;
+                            start_fifo_cmd <= 1'b1;
                             ack <= 1'b1;
                         end
                         else begin
@@ -233,7 +285,7 @@ begin
                     end
 
                     FREQUENCY_INITIAL: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             frequency_initial <= received_data;
                             ack <= 1'b1;
                         end
@@ -243,7 +295,7 @@ begin
                     end
 
                     FREQUENCY_FINAL: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             frequency_final <= received_data;
                             ack <= 1'b1;
                         end
@@ -253,7 +305,7 @@ begin
                     end
 
                     STEP_COUNTER: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             step_counter <= received_data;
                             ack <= 1'b1;
                         end
@@ -263,7 +315,7 @@ begin
                     end
 
                     STEP_INCREMENT_MSB: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             frequency_step[63-:32] <= received_data;
                             ack <= 1'b1;
                         end
@@ -273,7 +325,7 @@ begin
                     end 
 
                     STEP_INCREMENT_LSB: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             frequency_step[31:0] <= received_data;
                             ack <= 1'b1;
                         end
@@ -283,7 +335,7 @@ begin
                     end 
 
                     WFM_AMPLITUDE: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             wfm_amplitude <= received_data [15:0];
                             ack <= 1'b1;
                         end
@@ -293,7 +345,7 @@ begin
                     end
 
                     DEM_DELAY: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             ack <= 1'b1;
                             dem_delay <= received_data[15:0];
                         end
@@ -303,7 +355,7 @@ begin
                     end
 
                     GAIN: begin
-                        if (with_data && !DAC_running) begin
+                        if (with_data) begin
                             ack <= 1'b1;
                             gain <= received_data[2:0];
                         end
@@ -313,9 +365,8 @@ begin
                     end               
 
                     SWEEP_MODE: begin
-                        if (!DAC_running && (&received_data || ~|received_data)) begin
+                        if ((&received_data || ~|received_data)) begin
                             ack <= 1'b1;
-                            mode_nCont_disc <= received_data[31];
                         end
                         else begin
                             err <= 1'b1;
@@ -353,13 +404,66 @@ begin
                     end
 
                     CLEAR_FIFO: begin
-                        if (!DAC_running) begin
-                            clr_fifo_cmd <= 1'b1;
+                        stop_dac_cmd <= 1'b1;
+                        clr_fifo_cmd <= 1'b1;
+                        ack <= 1'b1;
+                    end
+
+                    CLEAR_FIFO_2: begin
+                        stop_dac_cmd_2 <= 32'hFFFFFFFF;
+                        clr_fifo_cmd_2 <= 32'hFFFFFFFF;
+                        ack <= 1'b1;
+                    end
+
+                    ALPHA: begin
+                        alpha <= received_data[26:0];
+                        ack <= 1'b1;
+                    end
+
+                    FILTER_ORDER: begin                        
+                        filter_order <= &received_data;
+                        ack <= 1'b1;
+                    end
+                    
+                    LOAD_FIFO_2: begin //if the ADC is ready and the fifo to write to are not full
+                        if (ADC_ready && !(|(received_data & fifo_full_2))) begin 
+                            fifo_wr_2 <= received_data;
                             ack <= 1'b1;
                         end
                         else begin
                             err <= 1'b1;
                         end
+                    end
+
+                    MUX_CONFIG: begin //bit inversion for the active low enable
+                        mux_1 <= received_data[2:0];
+                        mux_2 <= received_data[18:16];
+                        ack <= 1'b1;
+                    end
+
+                    TTLC: begin //bit inversion for the active low enable
+                        TTL_control <= {received_data[17:16], received_data[1:0]};
+                        ack <= 1'b1;
+                    end
+            
+                    LOCKIN_CONFIG: begin
+                        lockin_config_unpacked[received_data[ 8 +: ($clog2(LOCKIN_NUMBER-1)) ]] <= received_data[7:0];
+                        ack <= 1'b1;
+                    end
+                    
+                    START_DAC_2: begin
+                        if (ADC_ready) begin 
+                            start_fifo_cmd_2 <= received_data;
+                            ack <= 1'b1;
+                        end
+                        else begin
+                            err <= 1'b1;
+                        end
+                    end
+
+                    STOP_DAC_2: begin
+                        stop_dac_cmd_2 <= received_data;
+                        ack <= 1'b1;
                     end
 
                     default: 
@@ -407,11 +511,13 @@ reg clr_fifo_cmd;
 reg fifo_wr;
 wire fifo_full;
 
+assign sweep_data = {16'd0, frequency_initial, frequency_final, frequency_step, step_counter, wfm_amplitude};
+
 
 sweep_fifo	sweep_fifo_0 (
 	.aclr ( clr_fifo_cmd ),
 
-	.data ({16'd0, frequency_initial, frequency_final, frequency_step, step_counter, wfm_amplitude}),
+	.data (sweep_data),
 	.wrclk ( clk ),
 	.wrreq ( fifo_wr ),
 	.wrfull ( fifo_full ),

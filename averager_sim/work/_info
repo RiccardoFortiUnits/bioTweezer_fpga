@@ -1,0 +1,131 @@
+m255
+K4
+z2
+!s11f MIXED_VERSIONS
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/modelsim
+vADC_data_moving_average
+Z0 !s110 1710847616
+!i10b 1
+!s100 FS_n1a;k=b:i@@D]KOIQ93
+Z1 !s11b Dg1SIo80bB@j0V0VzS_@n1
+I`BZKQ?nXQVX:3>_@c4;_Y0
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+Z3 dD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim
+w1710795953
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/adc_controller/adc_fast/ADC_data_moving_average.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/adc_controller/adc_fast/ADC_data_moving_average.v
+!i122 89
+L0 3 14
+Z4 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z5 !s108 1710847616.000000
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/adc_controller/adc_fast/ADC_data_moving_average.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/adc_controller/adc_fast/ADC_data_moving_average.v|
+!i113 1
+Z6 o-work work
+Z7 tCvgOpt 0
+n@a@d@c_data_moving_average
+vaverager
+R0
+!i10b 1
+!s100 >izQnjeGa@:_YL8^@Vg:Q2
+R1
+Ia]=nmPo9;QI@<g]J8a0ZL1
+R2
+R3
+w1710797711
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/averager.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/averager.v
+!i122 86
+L0 4 95
+R4
+r1
+!s85 0
+31
+R5
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/averager.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/averager.v|
+!i113 1
+R6
+R7
+vaverager_tb
+Z8 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
+R0
+!i10b 1
+!s100 ?PKmc>?o8_7ILXCb9=>CG0
+R1
+IU6zbOBi_BYGJgNcUOEXJh2
+R2
+S1
+R3
+Z9 w1710847610
+Z10 8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim/averager_tb.sv
+Z11 FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim/averager_tb.sv
+!i122 87
+L0 3 75
+R4
+r1
+!s85 0
+31
+R5
+Z12 !s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim/averager_tb.sv|
+Z13 !s90 -reportprogress|300|-work|work|-sv|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/averager_sim/averager_tb.sv|
+!i113 1
+Z14 o-work work -sv
+R7
+vlog2n
+R0
+!i10b 1
+!s100 MgFb5]]lVjCY`RTG_NG;o1
+R1
+I]YGJ3NNf;=7E<NK]blVj72
+R2
+R3
+w1654499795
+8D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/log2n.v
+FD:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/log2n.v
+!i122 88
+L0 2 30
+R4
+r1
+!s85 0
+31
+R5
+!s107 D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/log2n.v|
+!s90 -reportprogress|300|-work|work|-stats=none|D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/log2n.v|
+!i113 1
+R6
+R7
+vsinusoid_gen
+R8
+R0
+!i10b 1
+!s100 ]30mzY:`aEZ?Mc12^T>X90
+R1
+IUne;ImhY?m;WmT29RMnZ33
+R2
+S1
+R3
+R9
+R10
+R11
+!i122 87
+L0 79 28
+R4
+r1
+!s85 0
+31
+R5
+R12
+R13
+!i113 1
+R14
+R7

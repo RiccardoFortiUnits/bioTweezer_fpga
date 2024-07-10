@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<instance entity-name="altera_eth_tse" version="21.1" >
+<instance entity-name="altera_eth_tse" version="22.1" >
 <generic name="deviceFamilyName" value="Cyclone V" />
 <generic name="core_variation" value="MAC_PCS" />
 <generic name="ifGMII" value="MII_GMII" />

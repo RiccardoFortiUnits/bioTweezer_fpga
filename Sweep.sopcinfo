@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="Sweep" kind="Sweep" version="1.0" fabric="QSYS">
- <!-- Format version 23.1 993 (Future versions may contain additional information.) -->
- <!-- 2024.07.04.09:36:08 -->
+ <!-- Format version 22.1 922 (Future versions may contain additional information.) -->
+ <!-- 2024.06.03.17:01:34 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1720078568</value>
+  <value>1717426894</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -95,7 +95,7 @@
   <visible>true</visible>
   <valid>true</valid>
  </parameter>
- <module name="nco_ii_0" kind="altera_nco_ii" version="23.1" path="nco_ii_0">
+ <module name="nco_ii_0" kind="altera_nco_ii" version="22.1" path="nco_ii_0">
   <!-- Describes a single module. Module parameters are
 the requested settings for a module instance. -->
   <parameter name="design_env">
@@ -332,7 +332,7 @@ the requested settings for a module instance. -->
    <visible>true</visible>
    <valid>true</valid>
   </parameter>
-  <interface name="clk" kind="clock_sink" version="23.1">
+  <interface name="clk" kind="clock_sink" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -377,7 +377,7 @@ parameters are a RESULT of the module parameters. -->
     <role>clk</role>
    </port>
   </interface>
-  <interface name="rst" kind="reset_sink" version="23.1">
+  <interface name="rst" kind="reset_sink" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -422,7 +422,7 @@ parameters are a RESULT of the module parameters. -->
     <role>reset_n</role>
    </port>
   </interface>
-  <interface name="in" kind="conduit_end" version="23.1">
+  <interface name="in" kind="conduit_end" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -479,7 +479,7 @@ parameters are a RESULT of the module parameters. -->
     <role>freq_mod_i</role>
    </port>
   </interface>
-  <interface name="out" kind="conduit_end" version="23.1">
+  <interface name="out" kind="conduit_end" version="22.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -547,7 +547,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IModule</subtype>
   <displayName>NCO</displayName>
-  <version>23.1</version>
+  <version>22.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -555,7 +555,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Clock Input</displayName>
-  <version>23.1</version>
+  <version>22.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -563,7 +563,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Reset Input</displayName>
-  <version>23.1</version>
+  <version>22.1</version>
  </plugin>
  <plugin>
   <instanceCount>2</instanceCount>
@@ -571,8 +571,8 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Conduit</displayName>
-  <version>23.1</version>
+  <version>22.1</version>
  </plugin>
- <reportVersion>23.1 993</reportVersion>
+ <reportVersion>22.1 922</reportVersion>
  <uniqueIdentifier></uniqueIdentifier>
 </EnsembleReport>

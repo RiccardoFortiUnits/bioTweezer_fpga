@@ -118,7 +118,7 @@ begin
 			end
 			else
 			begin
-				data <= 8'b00001100;	//midscale short
+				data <= 8'b00001100;	//mixed frequency
 				//data <= 8'h09; //one/zero bit toggle
 				//data <= 8'h08; // user pattern single
 				//data <= 8'h48; // user pattern alternate
@@ -160,7 +160,20 @@ begin
 			address <= USR_PAT_2M;
 			data <= 8'b0111_0110; //
 			rw <= 1'b0;
+		end		
+
+		14: begin
+			address <= PWR_MODE;
+			data <= 8'h03;
+			rw <= 1'b0;
 		end
+
+		15: begin
+			address <= PWR_MODE;
+			data <= 8'h00 | ~pwr;
+			rw <= 1'b0;
+		end
+
 
 		default: begin
 			address <= SPI_CONF;

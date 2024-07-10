@@ -1,9 +1,9 @@
 module data_processor (
     input   	clk_adc,
+    input   	clk_adc_fast,
     input       clk_udp,
     input   	reset,
 
-    input       mode_nCont_disc,
     input       mode_nRaw_dem,
     input [2:0] gain,
     output reg  overflow,
@@ -13,6 +13,7 @@ module data_processor (
     input                   SW,
 
     input           ADC_acquire,
+    input           XY_acquire,
     input [79:0]    sweep_freq_wfm,
     output signed [15:0]   ADC_data_in_gain,
     output signed [15:0]   current_sin_DAC,
@@ -32,10 +33,11 @@ assign current_sin = $signed(sweep_freq_wfm[31-:16]);
 //wire signed [15:0] current_cos = $signed(sweep_freq_wfm[15-:16]);
 assign current_cos = $signed(sweep_freq_wfm[15-:16]);
 
-wire reset_average_end;
+wire reset_average_end, sample_initial_freq;
 sync_edge_det sync_edge_det_reset_acquire (
     .clk(clk_adc),
     .signal_in(ADC_acquire),
+    .rising(sample_initial_freq),
     .falling(reset_average_end)
 );
 
@@ -72,10 +74,10 @@ wire signed [15:0] reference_signal = SW? ADC_data_out_gain : current_sin_DAC;
 // actually if the averager is outputting a valid sample it's starting a new average so
 // the reset is not needed
 wire freq_change = mode_nRaw_dem? (current_freq_del != current_freq_del1) : (current_freq != current_freq_del); //while demodulating extra latency needed for the multiplication
-wire reset_averaging = mode_nCont_disc && freq_change && !average_valid && ((mode_nRaw_dem && ADC_acquire_del1)||(!mode_nRaw_dem && ADC_acquire_del));
+wire reset_averaging = freq_change && !average_valid && ((mode_nRaw_dem && ADC_acquire_del1)||(!mode_nRaw_dem && ADC_acquire_del));
 reg frequency_change_udp;
 always @(posedge clk_adc ) begin //flag to put in the FIFO to signal the frequency change
-    if(mode_nCont_disc && freq_change) begin
+    if(freq_change) begin
         frequency_change_udp <= 1'b1;
     end
     if(frequency_change_udp && average_valid) begin

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deploy
- date="2023.05.12.13:56:13"
- outputDirectory="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/">
+ date="2024.01.16.15:01:09"
+ outputDirectory="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/">
  <perimeter>
   <parameter
      name="AUTO_GENERATION_ID"
@@ -79,13 +79,13 @@
  </perimeter>
  <entity
    path=""
-   parameterizationKey="Sweep:1.0:AUTO_CLK_CLOCK_DOMAIN=-1,AUTO_CLK_CLOCK_RATE=-1,AUTO_CLK_RESET_DOMAIN=-1,AUTO_DEVICE=5CGXFC5C6F27C7,AUTO_DEVICE_FAMILY=Cyclone V,AUTO_DEVICE_SPEEDGRADE=7_H6,AUTO_GENERATION_ID=1683892572,AUTO_UNIQUE_ID=(altera_nco_ii:21.1:apr=32,aprf=32,apri=18,aprp=16,arch=small_rom,cordic_arch=parallel,cycles_per_output=1,design_env=NATIVE,dpri=6,fmod_pipe=1,freq_out=0.3,fsamp=50.0,hyper_opt=false,hyper_opt_select=false,mpr=16,numba=1,numch=1,phi_inc=25769804,pmod_pipe=1,real_freq_out=0.3,selected_device_family=Cyclone V,trig_cycles_per_output=1,use_dedicated_multipliers=true,want_dither=true,want_freq_mod=true,want_phase_mod=false,want_sin_and_cos=dual_output)"
+   parameterizationKey="Sweep:1.0:AUTO_CLK_CLOCK_DOMAIN=-1,AUTO_CLK_CLOCK_RATE=-1,AUTO_CLK_RESET_DOMAIN=-1,AUTO_DEVICE=5CGXFC5C6F27C7,AUTO_DEVICE_FAMILY=Cyclone V,AUTO_DEVICE_SPEEDGRADE=7_H6,AUTO_GENERATION_ID=1705413668,AUTO_UNIQUE_ID=(altera_nco_ii:22.1:apr=32,aprf=32,apri=18,aprp=16,arch=small_rom,cordic_arch=parallel,cycles_per_output=1,design_env=NATIVE,dpri=6,fmod_pipe=1,freq_out=0.3,fsamp=50.0,hyper_opt=false,hyper_opt_select=false,mpr=16,numba=1,numch=1,phi_inc=25769804,pmod_pipe=1,real_freq_out=0.3,selected_device_family=Cyclone V,trig_cycles_per_output=1,use_dedicated_multipliers=true,want_dither=true,want_freq_mod=true,want_phase_mod=false,want_sin_and_cos=dual_output)"
    instancePathKey="Sweep"
    kind="Sweep"
    version="1.0"
    name="Sweep">
   <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
-  <parameter name="AUTO_GENERATION_ID" value="1683892572" />
+  <parameter name="AUTO_GENERATION_ID" value="1705413668" />
   <parameter name="AUTO_DEVICE" value="5CGXFC5C6F27C7" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_CLK_RESET_DOMAIN" value="-1" />
@@ -94,95 +94,96 @@
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="7_H6" />
   <generatedFiles>
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/Sweep.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/Sweep.v"
        type="VERILOG" />
   </generatedFiles>
   <childGeneratedFiles>
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/sid_2c_1p.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/sid_2c_1p.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_fxx.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_fxx.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_gar.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_gar.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_apr_dxx.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_apr_dxx.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx_g.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx_g.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_as_m_cen.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_as_m_cen.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_mob_rw.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_mob_rw.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_isdr.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_isdr.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_arr_tdl.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_arr_tdl.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_sel.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_sel.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_xnqg.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_xnqg.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_sin.hex"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_sin.hex"
        type="HEX"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_cos.hex"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_cos.hex"
        type="HEX"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altq.ocp"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altq.ocp"
        type="OTHER"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcash.ocp"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcash.ocp"
        type="OTHER"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.ocp"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.ocp"
        type="OTHER"
        attributes="" />
   </childGeneratedFiles>
   <sourceFiles>
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep.qsys" />
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep.qsys" />
   </sourceFiles>
   <childSourceFiles>
    <file
-       path="D:/intelfpga/21.1/ip/altera/dsp/altera_nco_ii/altera_nco_ii_hw.tcl" />
-   <file path="D:/intelFPGA/21.1/ip/altera/dsp/altera_nco_ii/nco_helper.jar" />
+       path="D:/intelfpga/22.1std/ip/altera/dsp/altera_nco_ii/altera_nco_ii_hw.tcl" />
+   <file
+       path="D:/intelFPGA/22.1std/ip/altera/dsp/altera_nco_ii/nco_helper.jar" />
   </childSourceFiles>
   <messages>
    <message level="Debug" culprit="Sweep">queue size: 0 starting:Sweep "Sweep"</message>
@@ -205,10 +206,10 @@
  </entity>
  <entity
    path="submodules/"
-   parameterizationKey="altera_nco_ii:21.1:apr=32,aprf=32,apri=18,aprp=16,arch=small_rom,cordic_arch=parallel,cycles_per_output=1,design_env=NATIVE,dpri=6,fmod_pipe=1,freq_out=0.3,fsamp=50.0,hyper_opt=false,hyper_opt_select=false,mpr=16,numba=1,numch=1,phi_inc=25769804,pmod_pipe=1,real_freq_out=0.3,selected_device_family=Cyclone V,trig_cycles_per_output=1,use_dedicated_multipliers=true,want_dither=true,want_freq_mod=true,want_phase_mod=false,want_sin_and_cos=dual_output"
+   parameterizationKey="altera_nco_ii:22.1:apr=32,aprf=32,apri=18,aprp=16,arch=small_rom,cordic_arch=parallel,cycles_per_output=1,design_env=NATIVE,dpri=6,fmod_pipe=1,freq_out=0.3,fsamp=50.0,hyper_opt=false,hyper_opt_select=false,mpr=16,numba=1,numch=1,phi_inc=25769804,pmod_pipe=1,real_freq_out=0.3,selected_device_family=Cyclone V,trig_cycles_per_output=1,use_dedicated_multipliers=true,want_dither=true,want_freq_mod=true,want_phase_mod=false,want_sin_and_cos=dual_output"
    instancePathKey="Sweep:.:nco_ii_0"
    kind="altera_nco_ii"
-   version="21.1"
+   version="22.1"
    name="Sweep_nco_ii_0">
   <parameter name="aprp" value="16" />
   <parameter name="numba" value="1" />
@@ -239,87 +240,88 @@
   <parameter name="real_freq_out" value="0.3" />
   <generatedFiles>
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/sid_2c_1p.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/sid_2c_1p.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_fxx.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_fxx.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_gar.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_gar.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_apr_dxx.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_apr_dxx.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx_g.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx_g.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_as_m_cen.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_as_m_cen.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_mob_rw.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_mob_rw.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_isdr.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_nco_isdr.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_arr_tdl.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_arr_tdl.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_sel.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/segment_sel.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_dxx.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_xnqg.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_xnqg.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_sin.hex"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_sin.hex"
        type="HEX"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_cos.hex"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0_cos.hex"
        type="HEX"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0.v"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/Sweep_nco_ii_0.v"
        type="VERILOG"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altq.ocp"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altq.ocp"
        type="OTHER"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcash.ocp"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcash.ocp"
        type="OTHER"
        attributes="" />
    <file
-       path="D:/Leonardo/git_repos/H-Cube_quartus_test/FPGA/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.ocp"
+       path="D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/H-cube/Sweep/Sweep/synthesis/submodules/asj_altqmcpipe.ocp"
        type="OTHER"
        attributes="" />
   </generatedFiles>
   <childGeneratedFiles/>
   <sourceFiles>
    <file
-       path="D:/intelfpga/21.1/ip/altera/dsp/altera_nco_ii/altera_nco_ii_hw.tcl" />
-   <file path="D:/intelFPGA/21.1/ip/altera/dsp/altera_nco_ii/nco_helper.jar" />
+       path="D:/intelfpga/22.1std/ip/altera/dsp/altera_nco_ii/altera_nco_ii_hw.tcl" />
+   <file
+       path="D:/intelFPGA/22.1std/ip/altera/dsp/altera_nco_ii/nco_helper.jar" />
   </sourceFiles>
   <childSourceFiles/>
   <instantiator instantiator="Sweep" as="nco_ii_0" />

@@ -1,0 +1,202 @@
+D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_gar.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_gar.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx_g.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx_g.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv {1 {vlog -work work -sv -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lpf_tb.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module lpf_tb
+
+Top level modules:
+	lpf_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_dxx.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/cordic_tb.sv {1 {vlog -work work -sv -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/cordic_tb.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module cordic_tb
+
+Top level modules:
+	cordic_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package dspba_library_package
+-- Compiling entity dspba_delay
+-- Compiling architecture delay of dspba_delay
+-- Loading package NUMERIC_STD
+-- Compiling entity dspba_sync_reg
+-- Compiling architecture sync_reg of dspba_sync_reg
+-- Compiling entity dspba_pipe
+-- Compiling architecture rtl of dspba_pipe
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_mob_rw.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_mob_rw.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_fxx.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_fxx.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/rom.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/rom.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module rom
+
+Top level modules:
+	rom
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_xnqg.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_xnqg.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_altqmcash.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_altqmcash.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module tustin_lpf
+
+Top level modules:
+	tustin_lpf
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/sid_2c_1p.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/sid_2c_1p.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv {1 {vlog -work work -sv -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/demodulator_tb.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module demodulator_tb
+
+Top level modules:
+	demodulator_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_sel.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_sel.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv {1 {vlog -work work -sv -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/serializer_tb.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module serializer_tb
+
+Top level modules:
+	serializer_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/deserializer.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/deserializer.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module deserializer
+
+Top level modules:
+	deserializer
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0_tb.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_SIGNED
+-- Compiling entity NCO_multiple_nco_ii_0_tb
+-- Compiling architecture tb of NCO_multiple_nco_ii_0_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/data_process/lockin/lockin.v {1 {vlog -work work -stats=none {D:\Leonardo\git_repos\H-Cube_quartus_test\Test_lockin\verilog_code\data_process\lockin\lockin.v}
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module lockin
+
+Top level modules:
+	lockin
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/cordic_CORDIC_0.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/cordic_CORDIC_0.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package MATH_REAL
+-- Loading package dspba_library_package
+-- Loading package altera_mf_components
+-- Loading package altera_lnsim_components
+-- Loading package LPM_COMPONENTS
+-- Compiling entity cordic_CORDIC_0
+-- Compiling architecture normal of cordic_CORDIC_0
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/cordic.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/cordic.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module cordic
+
+Top level modules:
+	cordic
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_as_m_cen.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_as_m_cen.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_apr_dxx.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_apr_dxx.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_arr_tdl.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/segment_arr_tdl.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library_package.vhd {1 {vcom -work work -2002 -explicit -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/cordic/cordic/simulation/submodules/dspba_library_package.vhd
+Model Technology ModelSim - Intel FPGA Edition vcom 2020.1 Compiler 2020.02 Feb 28 2020
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling package dspba_library_package
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv {1 {vlog -work work -sv -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/lockin_tb.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module lockin_tb
+
+Top level modules:
+	lockin_tb
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf2.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/tustin_lpf2.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module tustin_lpf2
+
+Top level modules:
+	tustin_lpf2
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/serializer.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/verilog_code/lpf/serializer.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module serializer
+
+Top level modules:
+	serializer
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/NCO_multiple_nco_ii_0.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module NCO_multiple_nco_ii_0
+
+Top level modules:
+	NCO_multiple_nco_ii_0
+
+} {} {}} D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_isdr.v {1 {vlog -work work -stats=none D:/Leonardo/git_repos/H-Cube_quartus_test/Test_lockin/TEST_FILTER/verilog/NCO_sim/NCO_multiple/simulation/submodules/mentor/asj_nco_isdr.v
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+
+Top level modules:
+
+} {} {}}

@@ -6,6 +6,5 @@ adc_fifo_64	adc_fifo_64_inst (
 	.wrclk ( wrclk_sig ),
 	.wrreq ( wrreq_sig ),
 	.q ( q_sig ),
-	.rdempty ( rdempty_sig ),
-	.wrfull ( wrfull_sig )
+	.rdusedw ( rdusedw_sig )
 	);
