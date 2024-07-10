@@ -7,8 +7,8 @@ module sqrt_fixedPoint#(
 	input 								clk,
 	input [inputWidth-1:0]			radical,
 	output [outputWidth-1:0]		q,
-	output [outputWidth+1 -1:0]			remainder
-	//todo aggiungi datavalid
+	output [outputWidth+1 -1:0]	remainder,
+	output outData_valid
 );
 	localparam outputDecWidth = outputWidth - (inputWidth-inputDecWidth+1)/2;
 	localparam inputWholeWidth = inputWidth - inputDecWidth;
@@ -23,22 +23,25 @@ module sqrt_fixedPoint#(
 //	wire [outputWidth-1:0] 
 	
 //code copied from a compiled IP code
+localparam sqrtPipelineDelay = 2;
 altsqrt	 #(
-    .pipeline (2),
-    .q_port_width (outputWidth),
-    .r_port_width (outputWidth+1),
-    .width  (2*outputWidth)
+	.pipeline (sqrtPipelineDelay),
+	.q_port_width (outputWidth),
+	.r_port_width (outputWidth+1),
+	.width  (2*outputWidth)
 )ALTSQRT_component(
-				.aclr (aclr),
-				.clk (clk),
-				.radical (paddedRadical),
-				.q (q),
-				.remainder (remainder)
-				// synopsys translate_off
-				,
-				.ena ()
-				// synopsys translate_on
-				);
-
+	.aclr (aclr),
+	.clk (clk),
+	.radical (paddedRadical),
+	.q (q),
+	.remainder (remainder)
+	// synopsys translate_off
+	,
+	.ena ()
+	// synopsys translate_on
+);
+dataValidGenerator#(sqrtPipelineDelay)dvg(
+	clk, aclr, 1'b1, outData_valid
+);
 
 endmodule

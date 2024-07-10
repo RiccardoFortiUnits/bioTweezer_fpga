@@ -15,23 +15,29 @@ module fixedPointShifter#(
 generate
 //fractional part
 	if(outputFracSize <= inputFracSize)begin
-		assign out[outputFracSize-1:0] = in[inputFracSize -1-:outputFracSize];
+		if(outputFracSize > 0)begin
+			assign out[outputFracSize-1:0] = in[inputFracSize -1-:outputFracSize];
+		end
 	end else begin
-		assign out[outputFracSize -1-:inputFracSize] = in[inputFracSize -1:0];
+		if(inputFracSize > 0)begin
+			assign out[outputFracSize -1-:inputFracSize] = in[inputFracSize -1:0];
+		end
 		assign out[outputFracSize-inputFracSize -1:0] = 0;
 	end
-
 //whole part
 	if(outputWholeSize <= inputWholeSize)begin
-		assign out[outputBitSize -1:outputFracSize] = in[inputFracSize+outputWholeSize -1:inputFracSize];
+		if(outputWholeSize > 0)begin
+			assign out[outputBitSize -1:outputFracSize] = in[inputFracSize+outputWholeSize -1:inputFracSize];
+		end
 	end else begin
-		assign out[inputWholeSize+outputFracSize -1-:inputWholeSize] = in[inputBitSize -1:inputFracSize];
+		if(inputWholeSize > 0)begin
+			assign out[inputWholeSize+outputFracSize -1-:inputWholeSize] = in[inputBitSize -1:inputFracSize];
+		end
 		if(isSigned)begin
 			assign out[outputBitSize -1-:outputWholeSize-inputWholeSize] = {(outputWholeSize-inputWholeSize){in[inputBitSize -1]}};
 		end else begin
 			assign out[outputBitSize -1-:outputWholeSize-inputWholeSize] = {(outputWholeSize-inputWholeSize){1'b0}};
 		end
 	end
-
 endgenerate	
 endmodule

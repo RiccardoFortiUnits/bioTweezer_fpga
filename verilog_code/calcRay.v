@@ -10,7 +10,8 @@ module calcRay#
 	
 	input signed [inputWidth -1:0] x,
 	input signed [inputWidth -1:0] y,
-	output [outputWidth -1:0] r
+	output [outputWidth -1:0] r,
+	output outData_valid
 );
 localparam nOfInputs = 2;//3;
 
@@ -60,7 +61,8 @@ sqrt_fixedPoint#(
 	.clk(clk),
 	.radical(squareSum),
 	.q(sqrtOfSum),
-	.remainder()
+	.remainder(),
+	.outData_valid(outData_valid)
 );
 
 fixedPointShifter#(

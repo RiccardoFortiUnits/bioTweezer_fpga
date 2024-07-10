@@ -39,18 +39,20 @@ fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize)
 	
 //get distance of the bead
 wire [workingBitSize -1:0] r;
+wire r_valid;
 calcRay#
 (
-  .inputWidth        (workingBitSize),
-  .inputFracWidth    (workingFracSize),
-  .outputWidth       (workingBitSize),
-  .outputFracWidth   (workingFracSize)
+	.inputWidth        (workingBitSize),
+	.inputFracWidth    (workingFracSize),
+	.outputWidth       (workingBitSize),
+	.outputFracWidth   (workingFracSize)
 )get_r(
-  .clk		(clk),
-  .reset	(reset),
-  .x			(x),
-  .y			(y),
-  .r			(r)	
+	.clk		(clk),
+	.reset	(reset),
+	.x			(x),
+	.y			(y),
+	.r			(r),
+	.outData_valid(r_valid)	
 );
 
 //PI controller on the distance
@@ -69,9 +71,9 @@ pi_controller#(
 	.reset_pi					(PI_reset),
 	.enable_pi				(PI_enable),
 	.pi_limiting			(PI_freeze),
-	.pi_setpoint			(0),
+	.pi_setpoint			({workingBitSize{1'b0}}),
 	.pi_input					(r),
-	.pi_input_valid		(!reset),
+	.pi_input_valid		(r_valid),
 	.pi_kp_coefficient(PI_kp),
 	.pi_ti_coefficient(PI_ki),
 	.pi_output				(pi_out),
