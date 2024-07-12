@@ -19,6 +19,11 @@ module clock_synchronizer #(
     input   DAC_running_50,
     output  DAC_running_125,
     output  DAC_running_50_fb,
+     
+    input   DAC_stopped_50,
+    output  DAC_stopped_125,
+    output  DAC_stopped_50_fb,
+	 
     input   ADC_ready_50,
     output  ADC_ready_125
 );
@@ -90,5 +95,15 @@ sync_edge_det sync_edge_det_ADC_ready(
     .data_out(ADC_ready_125)
 );
 
+sync_edge_det sync_edge_det_DAC_stopped(
+    .clk(clk_125),
+    .signal_in(DAC_stopped_50),
+    .data_out(DAC_stopped_125)
+);
+sync_edge_det sync_edge_det_DAC_stopped_fb(
+    .clk(clk_50),
+    .signal_in(DAC_stopped_125),
+    .data_out(DAC_stopped_50_fb)
+);
 
 endmodule

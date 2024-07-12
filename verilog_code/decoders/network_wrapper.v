@@ -27,55 +27,23 @@ module network_wrapper #(
     output  rx_xcvr_clk,  //125 MHz clock output for synchronization with the ethernet wrapper
     
     // GENERAL PARAMETERS //
-    //INPUT MUX selection
-    output [2:0]    mux_1,
-    output [2:0]    mux_2,
-    //parameters
-    output [15:0]   dem_delay,
-    //for white noise
-    output [15:0]   wfm_amplitude,
-    //for ttl control
-    output [3:0]    TTL_control,
-
-    //  LEGACYMODE //
-    //mode selection
-    output          mode_nRaw_dem,
-    output [2:0]    gain,
-    //commands
-    output          start_fifo_cmd,
-    output          stop_dac_cmd,
-    //fifo parameters
-    input           fifo_rd_clk,
-    input           fifo_rd_ack,
-    output [195:0]  fifo_rd_data,
-    output          fifo_rd_empty,
-
-    // PML //
-    //lockin configuration
-    output [LOCKIN_NUMBER*8 - 1 : 0] lockin_config,
-    output [26:0]   alpha,
-    output          filter_order,
-    //acquisition mode commands
-    output [31:0]   start_fifo_cmd_2,
-    output [31:0]   stop_dac_cmd_2,
-    //NCOS FIFOs data
-    output [31:0]   clr_fifo_cmd_2,
-    output [191:0]  sweep_data,
-    output [31:0]   fifo_wr_2,
-    input [31:0]    fifo_full_2,   
+	 output pi_enable_cmd,
+    output pi_reset_cmd,
+	 
+    output [26:0] pi_kp_coefficient,
+    output        pi_kp_coefficient_update_cmd,
+    output [26:0] pi_ti_coefficient,
+    output        pi_ti_coefficient_update_cmd,
+    output [26:0] pi_setpoint,
+    output        pi_setpoint_update_cmd,
+    output [13:0] pi_limit_HI,
+    output [13:0] pi_limit_LO,
     
     // DACs and ADC status
     input  DAC_running,
-    input  ADC_ready,
+	 input DAC_stopped,
+    input  ADC_ready
 
-    // acq FIFO
-	output acq_rdreq_fifo_legacy,
-	input [107:0] acq_rddata_fifo_legacy,
-	input acq_rdempty_fifo_legacy,
-    
-	output acq_rdreq_fifo_PML,
-	input [107:0] acq_rddata_fifo_PML,
-	input acq_rdempty_fifo_PML
 );
 
 //////////// ETHERNET - UDP core ////////////////
@@ -183,7 +151,19 @@ sync_edge_det sync_edge_det_mac_configured(
 wire [47:0] client_mac; //MAC of the client
 wire [31:0] client_ip; //IP of the client
 
-dec_comm8_port1 #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) dec_comm8_1 
+wire [31:0] received_data;
+
+wire received_control_param_valid, received_pi_enable_cmd_valid, received_pi_reset_cmd_valid;
+
+wire control_param_written;
+
+wire control_param_ack, control_param_nak, control_param_err;
+wire pi_enable_cmd_ack, pi_enable_cmd_nak, pi_enable_cmd_err;
+wire pi_reset_cmd_ack,  pi_reset_cmd_nak,  pi_reset_cmd_err;
+
+assign pi_enable_cmd = received_pi_enable_cmd_valid;
+assign pi_reset_cmd = received_pi_reset_cmd_valid;
+new_dec_comm8_port1 dec_comm8_1 
 (
     .clk(rx_xcvr_clk),
     .reset(~mac_configured_125),
@@ -206,90 +186,103 @@ dec_comm8_port1 #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) dec_comm8_1
     .tx_fifo_data_full(tx_fifo_data_full0),
     .tx_fifo_status_full(tx_fifo_status_full0),
 
-    // GENERAL PARAMETERS //
-    //INPUT MUX selection
-    .mux_1(mux_1),
-    .mux_2(mux_2),
-    //parameters
-    .dem_delay(dem_delay),
-    //for white noise
-    .wfm_amplitude(wfm_amplitude),
-    //for TTL control
-    .TTL_control(TTL_control),
-
-    //  LEGACYMODE //
-    //mode selection
-    .mode_nRaw_dem(mode_nRaw_dem),
-    .gain(gain),
-    //commands
-    .start_fifo_cmd(start_fifo_cmd),
-    .stop_dac_cmd(stop_dac_cmd),
-    //fifo parameters
-    .fifo_rd_clk(fifo_rd_clk),
-    .fifo_rd_ack(fifo_rd_ack),
-    .fifo_rd_data(fifo_rd_data),
-    .fifo_rd_empty(fifo_rd_empty),
-
-    // PML //
-    //lockin configuration
-    .lockin_config(lockin_config),
-    .alpha(alpha),
-    .filter_order(filter_order),
-    //acquisition mode commands
-    .start_fifo_cmd_2(start_fifo_cmd_2),
-    .stop_dac_cmd_2(stop_dac_cmd_2),
-    //FIFO data
-    .clr_fifo_cmd_2(clr_fifo_cmd_2),
-    .sweep_data(sweep_data),
-    .fifo_wr_2(fifo_wr_2),
-    .fifo_full_2(fifo_full_2),
-
+	 // to/from parameter decoders
+     .received_data(received_data),
+     .received_control_param_valid(received_control_param_valid),
+     .received_pi_enable_comm_valid(received_pi_enable_cmd_valid),
+     .received_pi_reset_comm_valid(received_pi_reset_cmd_valid),
+     .wipe_settings(wipe_settings),
+     .control_param_written(control_param_written),
+     .control_param_ack(control_param_ack),
+     .control_param_nak(control_param_nak),
+     .control_param_err(control_param_err),
+     .pi_enable_comm_ack(pi_enable_cmd_ack),
+     .pi_enable_comm_nak(pi_enable_cmd_nak),
+     .pi_enable_comm_err(pi_enable_cmd_err),
+     .pi_reset_comm_ack(pi_reset_cmd_ack),
+     .pi_reset_comm_nak(pi_reset_cmd_nak),
+     .pi_reset_comm_err(pi_reset_cmd_err),
+	 
+	 // Connection status
+	 //.conn_timeout_n(...),
+	 
     // DACs and ADC status
     .DAC_running(DAC_running),
+    .DAC_stopped(DAC_stopped),
     .ADC_ready(ADC_ready)
+	 
 );
 
 
+
+control_param_decoder control_param_decoder (
+    .clk(rx_xcvr_clk),
+    .reset(!mac_configured_125),    
+    .DAC_stopped(DAC_stopped),
+
+    .received_data(received_data),
+    .received_control_param_valid(received_control_param_valid),
+
+    .wipe_settings(wipe_settings),
+
+    .control_data(control_data),
+
+    .ack(control_param_ack),
+    .nak(control_param_nak),
+    .err(control_param_err),
+
+    .pi_kp_coefficient(pi_kp_coefficient),
+    .pi_kp_coefficient_update_cmd(pi_kp_coefficient_update_cmd),
+    .pi_ti_coefficient(pi_ti_coefficient),
+    .pi_ti_coefficient_update_cmd(pi_ti_coefficient_update_cmd),
+    .pi_setpoint(pi_setpoint),
+    .pi_setpoint_update_cmd(pi_setpoint_update_cmd),
+    .pi_limit_HI(pi_limit_HI),
+    .pi_limit_LO(pi_limit_LO),
+
+    .control_param_written(control_param_written)
+);
+//
 /// DECODER 2 /// used to receive the waveform from the client and to sent the current in FAST mode
 wire wfm_written; //1 if the WFM has been written
 wire current_rdreq_fifo_dec2; //RDREQ for the current FIFO in fast mode
-dec_comm8_port2 dec_comm8_2 
-(
-    .clk(rx_xcvr_clk),
-    .reset(~mac_configured_125),
-
-    .source_mac(client_mac),
-    .source_ip(client_ip),
-
-    // rx fifo interface from 1gb eth
-    .rx_fifo_data(rx_fifo_data1),
-    .rx_fifo_data_read(rx_fifo_data_read1),
-    .rx_fifo_status(rx_fifo_status1),
-    .rx_fifo_status_empty(rx_fifo_status_empty1),
-    .rx_fifo_status_read(rx_fifo_status_read1),
-
-    // tx fifo interface to 1gb eth (for ack)
-    .tx_fifo_data(tx_fifo_data1),
-    .tx_fifo_status(tx_fifo_status1),
-    .tx_fifo_data_write(tx_fifo_data_write1),
-    .tx_fifo_status_write(tx_fifo_status_write1),
-    .tx_fifo_data_full(tx_fifo_data_full1),
-    .tx_fifo_status_full(tx_fifo_status_full1),
-
-    .destination_mac(client_mac),
-    .destination_ip(client_ip),
-
-    .mode_nCont_disc(1'b1),
-    .mode_nRaw_dem(mode_nRaw_dem),
-
-    // acquisition FIFOs
-	.acq_rdreq_fifo_legacy(acq_rdreq_fifo_legacy),
-	.acq_rddata_fifo_legacy(acq_rddata_fifo_legacy),
-	.acq_rdempty_fifo_legacy(acq_rdempty_fifo_legacy),
-
-	.acq_rdreq_fifo_PML(acq_rdreq_fifo_PML),
-	.acq_rddata_fifo_PML(acq_rddata_fifo_PML),
-	.acq_rdempty_fifo_PML(acq_rdempty_fifo_PML) 
-);
-    
+//dec_comm8_port2 dec_comm8_2 
+//(
+//    .clk(rx_xcvr_clk),
+//    .reset(~mac_configured_125),
+//
+//    .source_mac(client_mac),
+//    .source_ip(client_ip),
+//
+//    // rx fifo interface from 1gb eth
+//    .rx_fifo_data(rx_fifo_data1),
+//    .rx_fifo_data_read(rx_fifo_data_read1),
+//    .rx_fifo_status(rx_fifo_status1),
+//    .rx_fifo_status_empty(rx_fifo_status_empty1),
+//    .rx_fifo_status_read(rx_fifo_status_read1),
+//
+//    // tx fifo interface to 1gb eth (for ack)
+//    .tx_fifo_data(tx_fifo_data1),
+//    .tx_fifo_status(tx_fifo_status1),
+//    .tx_fifo_data_write(tx_fifo_data_write1),
+//    .tx_fifo_status_write(tx_fifo_status_write1),
+//    .tx_fifo_data_full(tx_fifo_data_full1),
+//    .tx_fifo_status_full(tx_fifo_status_full1),
+//
+//    .destination_mac(client_mac),
+//    .destination_ip(client_ip),
+//
+//    .mode_nCont_disc(1'b1),
+//    .mode_nRaw_dem(mode_nRaw_dem),
+//
+//    // acquisition FIFOs
+//	.acq_rdreq_fifo_legacy(acq_rdreq_fifo_legacy),
+//	.acq_rddata_fifo_legacy(acq_rddata_fifo_legacy),
+//	.acq_rdempty_fifo_legacy(acq_rdempty_fifo_legacy),
+//
+//	.acq_rdreq_fifo_PML(acq_rdreq_fifo_PML),
+//	.acq_rddata_fifo_PML(acq_rddata_fifo_PML),
+//	.acq_rdempty_fifo_PML(acq_rdempty_fifo_PML) 
+//);
+//    
 endmodule

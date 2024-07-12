@@ -22,10 +22,12 @@ module tweezerController#(
 	input PI_enable,
 	input PI_freeze,
 	input [coeffBitSize -1:0] PI_kp,
-	input [coeffBitSize -1:0] PI_ki
-	
+	input [coeffBitSize -1:0] PI_ki,
+	input PI_kp_update,
+	input PI_ki_update
 	//debug wires
-	, output [outputBitSize -1:0] ray
+	, output [outputBitSize -1:0] ray,
+	output [9:0] leds
 );
 
 //get x, y and z of the bead
@@ -55,6 +57,9 @@ calcRay#
 	.outData_valid(r_valid)	
 );
 
+reg [coeffBitSize -1:0] PI_kp_reg, PI_ki_reg;
+reg singlePiReset;// used to reset the integral part of the PI when we change the parameter ki
+
 //PI controller on the distance
 wire [workingBitSize -1:0] pi_out;
 pi_controller#(
@@ -66,22 +71,41 @@ pi_controller#(
 	.coeffFracSize		(coeffFracSize),
 	.productsFracSize	(workingBitSize)
 )PI(
-	.clk							(clk),
-	.reset						(reset),
-	.reset_pi					(PI_reset),
+	.clk						(clk),
+	.reset					(reset),
+	.reset_pi				(PI_reset | singlePiReset),
 	.enable_pi				(PI_enable),
 	.pi_limiting			(PI_freeze),
 	.pi_setpoint			({workingBitSize{1'b0}}),
-	.pi_input					(r),
+	.pi_input				(r),
 	.pi_input_valid		(r_valid),
-	.pi_kp_coefficient(PI_kp),
-	.pi_ti_coefficient(PI_ki),
+	.pi_kp_coefficient	(PI_kp_reg),
+	.pi_ti_coefficient	(PI_ki_reg),
 	.pi_output				(pi_out),
-	.pi_output_valid	(retroactionController_valid)
+	.pi_output_valid		(retroactionController_valid)
 );
 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	pi_out_to_retroactionController(pi_out, retroactionController);
+	
+//parameter updates
+always @(posedge clk)begin
+	if(reset)begin
+		PI_kp_reg <= 0;
+		PI_ki_reg <= 0;
+	end else begin
+		if(PI_kp_update)begin
+			PI_kp_reg <= PI_kp;
+		end
+		if(PI_kp_update)begin
+			PI_kp_reg <= PI_kp;
+			singlePiReset <= 1;
+		end else begin
+			singlePiReset <= 0;
+		end
+	end
+end
+	
 	
 	
 //debug wires
@@ -89,4 +113,9 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	r_to_ray(r, ray);
 
+assign leds[3:0] = PI_kp_reg[coeffBitSize -1-:4];
+assign leds[7:4] = PI_ki_reg[coeffBitSize -1-:4];
+assign leds[8] = PI_reset;
+assign leds[9] = PI_enable;
+	
 endmodule

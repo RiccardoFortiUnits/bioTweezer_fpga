@@ -16,7 +16,9 @@ stretcher stretcher_start(
 sync_edge_det sync_edge_det_start(
     .clk(clk_b),
     .signal_in(data_stretched_a),
-    .rising(data_out_b)
+    .rising(data_out_b),
+    .falling(),
+    .data_out()
 );
     
 endmodule

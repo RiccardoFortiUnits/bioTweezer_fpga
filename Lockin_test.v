@@ -83,12 +83,6 @@ assign aux_io[14] = 0;
 assign aux_io[12] = 0;
 assign aux_io[10] = 0;
 
-assign aux_io[9] = ttl2;
-assign aux_io[8] = ttl1;
-
-wire ttl1 = DAC_running_125? TTL_control[1] : TTL_control[0];
-wire ttl2 = DAC_running_125? TTL_control[3] : TTL_control[2];
-
 /////////// PLL initialization ////////////
 wire clock_100;
 wire pll_locked;
@@ -142,6 +136,27 @@ wire [107:0] acq_rddata_fifo_legacy;
 wire acq_rdreq_fifo_PML, acq_rdempty_fifo_PML;
 wire [107:0] acq_rddata_fifo_PML;
 
+wire [26:0] pi_kp_coefficient;
+wire [26:0] pi_ti_coefficient;
+wire [26:0] pi_setpoint;
+wire [13:0] pi_limit_HI;
+wire [13:0] pi_limit_LO;
+
+`define wire_doubleClock(inputClk, outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
+    wire wire_inputClk, wire_outputClk;                                                       \
+stretcher_edge_det stretchEdgeName (                                                          \
+    .clk_a(inputClk),                                                                         \
+    .clk_b(outputClk),                                                                        \
+    .data_in_a(wire_inputClk),                                                                \
+    .data_out_b(wire_outputClk)                                                               \
+);
+`wire_doubleClock(clock_125, clock_50, stretcher_pi_enable_cmd, pi_enable_cmd_125, pi_enable_cmd_50)
+`wire_doubleClock(clock_125, clock_50, stretcher_pi_reset_cmd, pi_reset_cmd_125, pi_reset_cmd_50)
+`wire_doubleClock(clock_125, clock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
+`wire_doubleClock(clock_125, clock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
+`wire_doubleClock(clock_125, clock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
+
+
 network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     .clock_100(clock_100),
     .ref_clk_125(REFCLK_125),
@@ -153,55 +168,22 @@ network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     .sfp_tx_0(sfp_tx_0),
 
     // GENERAL PARAMETERS //
-    //INPUT MUX selection
-    .mux_1(mux_1),
-    .mux_2(mux_2),
-    //parameters
-    .dem_delay(dem_delay),
-    //for white noise
-    .wfm_amplitude(wfm_amplitude),
-    //for TTL control
-    .TTL_control(TTL_control),
+    .pi_enable_cmd(pi_enable_cmd_125),
 
-    //  LEGACYMODE //
-    //mode selection
-    .mode_nRaw_dem(mode_nRaw_dem),
-    .gain(gain),
-    //commands
-    .start_fifo_cmd(start_fifo_cmd_125),
-    .stop_dac_cmd(stop_dac_cmd_125),
-    //fifo parameters
-    .fifo_rd_clk(ADC_outclock_50),
-    .fifo_rd_ack(fifo_rd_ack),
-    .fifo_rd_data(fifo_rd_data),
-    .fifo_rd_empty(fifo_rd_empty),  
+    .pi_reset_cmd(pi_reset_cmd_125),
 
-    // PML //
-    //lockin configuration
-    .lockin_config(lockin_config),
-    .alpha(alpha),
-    .filter_order(filter_order_125),
-    //acquisition mode commands
-    .start_fifo_cmd_2(start_fifo_cmd_2_125),
-    .stop_dac_cmd_2(stop_dac_cmd_2_125),
-    //NCOS FIFOs data
-    .clr_fifo_cmd_2(clr_fifo_cmd_2),
-    .sweep_data(sweep_data),
-    .fifo_wr_2(fifo_wr_2),
-    .fifo_full_2(fifo_full_2), 
-
+    .pi_kp_coefficient(pi_kp_coefficient),
+    .pi_kp_coefficient_update_cmd(pi_kp_coefficient_update_cmd_125),
+    .pi_ti_coefficient(pi_ti_coefficient),
+    .pi_ti_coefficient_update_cmd(pi_ti_coefficient_update_cmd_125),
+    .pi_setpoint(pi_setpoint),
+    .pi_setpoint_update_cmd(pi_setpoint_update_cmd_125),
+    .pi_limit_HI(pi_limit_HI),
+    .pi_limit_LO(pi_limit_LO),
     // DACs and ADC status
     .DAC_running(DAC_running_125),
-    .ADC_ready(ADC_ready_125),
-
-    // acquisition FIFOs
-	.acq_rdreq_fifo_legacy(acq_rdreq_fifo_legacy),
-	.acq_rddata_fifo_legacy(acq_rddata_fifo_legacy),
-	.acq_rdempty_fifo_legacy(acq_rdempty_fifo_legacy),
-
-	.acq_rdreq_fifo_PML(acq_rdreq_fifo_PML),
-	.acq_rddata_fifo_PML(acq_rddata_fifo_PML),
-	.acq_rdempty_fifo_PML(acq_rdempty_fifo_PML)
+    .DAC_stopped(DAC_stopped_125),
+    .ADC_ready(ADC_ready_125)
 );
 ////////// TEST NCO_8CH ///////////
 wire[8*64-1:0] output_wfm;
@@ -289,6 +271,9 @@ clock_synchronizer clock_synchronizer_inst(
     .DAC_running_50(DAC_running_50),
     .DAC_running_125(DAC_running_125),
     .DAC_running_50_fb(DAC_running_50_fb),//feedback for DAC_running_125
+    .DAC_stopped_50(DAC_stopped_50),
+    .DAC_stopped_125(DAC_stopped_125),
+    .DAC_stopped_50_fb(DAC_stopped_50_fb),//feedback for DAC_stopped_125
     .ADC_ready_50(ADC_ready_50),
     .ADC_ready_125(ADC_ready_125)
 );
@@ -315,15 +300,18 @@ tweezerController#(
 	.XDIFF											(input_A_data),
 	.YDIFF											(input_B_data),
 	.SUM												(0),
-	.retroactionController			(controllerOut),
-	.retroactionController_valid(controllerOut_valid),
-	.PI_reset										(SW[9]),
-	.PI_enable									(!SW[9]),
-	.PI_freeze									(SW[8]),
-	.PI_kp											(SW[7:4]),
-	.PI_ki											(SW[3:0])
+	.retroactionController						(controllerOut),
+	.retroactionController_valid				(controllerOut_valid),
+	.PI_reset										(pi_reset_cmd_50),
+	.PI_enable										(pi_enable_cmd_50),
+	.PI_freeze										(SW[8]),
+	.PI_kp											(pi_kp_coefficient),
+	.PI_ki											(pi_ti_coefficient),
+	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
+	.PI_ki_update									(pi_ti_coefficient_update_cmd_50)
 	,
-	.ray(ray)
+	.ray(ray),
+	.leds(LEDR)
 );
 
 
@@ -445,7 +433,7 @@ wire inputD_saturating = (input_D_data == 16'h7FFF) || (input_D_data == 16'h8000
 wire inputC_saturating = (input_C_data == 16'h7FFF) || (input_C_data == 16'h8000);
 wire inputB_saturating = (input_B_data == 16'h7FFF) || (input_B_data == 16'h8000);
 wire inputA_saturating = (input_A_data == 16'h7FFF) || (input_A_data == 16'h8000);
-assign LEDR = {{2{inputA_saturating}}, {2{inputB_saturating}}, {2{inputC_saturating}}, {2{inputD_saturating}}};
+//assign LEDR = {{2{inputA_saturating}}, {2{inputB_saturating}}, {2{inputC_saturating}}, {2{inputD_saturating}}};
 
 
 
