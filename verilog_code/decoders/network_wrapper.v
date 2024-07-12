@@ -161,8 +161,6 @@ wire control_param_ack, control_param_nak, control_param_err;
 wire pi_enable_cmd_ack, pi_enable_cmd_nak, pi_enable_cmd_err;
 wire pi_reset_cmd_ack,  pi_reset_cmd_nak,  pi_reset_cmd_err;
 
-assign pi_enable_cmd = received_pi_enable_cmd_valid;
-assign pi_reset_cmd = received_pi_reset_cmd_valid;
 new_dec_comm8_port1 dec_comm8_1 
 (
     .clk(rx_xcvr_clk),
@@ -213,7 +211,28 @@ new_dec_comm8_port1 dec_comm8_1
 	 
 );
 
-
+generic_param_decoder pi_enable_decoder(
+	.clk 	             (rx_xcvr_clk),
+	.reset             (~mac_configured_125),
+	.received_data     (received_data),
+	.data_valid        (received_pi_enable_cmd_valid),
+	.wipe_settings     (wipe_settings),
+	.param             (pi_enable_cmd),
+	.ack               (pi_enable_cmd_ack),
+	.nak               (pi_enable_cmd_nak),
+	.err               (pi_enable_cmd_err),
+);
+generic_param_decoder pi_reset_decoder(
+	.clk 	             (rx_xcvr_clk),
+	.reset             (~mac_configured_125),
+	.received_data     (received_data),
+	.data_valid        (received_pi_reset_cmd_valid),
+	.wipe_settings     (wipe_settings),
+	.param	          (pi_reset_cmd),
+	.ack               (pi_reset_cmd_ack),
+	.nak               (pi_reset_cmd_nak),
+	.err               (pi_reset_cmd_err),
+);
 
 control_param_decoder control_param_decoder (
     .clk(rx_xcvr_clk),

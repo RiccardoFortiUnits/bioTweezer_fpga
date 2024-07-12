@@ -1,7 +1,7 @@
 module control_param_decoder #(
         parameter signalBitSize = 16,
         parameter signalFracSize = signalBitSize - 1,
-        parameter coeffBitSize = 20,
+        parameter coeffBitSize = 26,
         parameter coeffFracSize = coeffBitSize - 1
         
 )(

@@ -26,8 +26,7 @@ module tweezerController#(
 	input PI_kp_update,
 	input PI_ki_update
 	//debug wires
-	, output [outputBitSize -1:0] ray,
-	output [9:0] leds
+	, output [outputBitSize -1:0] ray
 );
 
 //get x, y and z of the bead
@@ -89,16 +88,19 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 	pi_out_to_retroactionController(pi_out, retroactionController);
 	
 //parameter updates
+reg PI_kp_updateReceived;
 always @(posedge clk)begin
 	if(reset)begin
 		PI_kp_reg <= 0;
 		PI_ki_reg <= 0;
+			PI_kp_updateReceived <= 0;
 	end else begin
 		if(PI_kp_update)begin
 			PI_kp_reg <= PI_kp;
+			PI_kp_updateReceived <= 1;
 		end
-		if(PI_kp_update)begin
-			PI_kp_reg <= PI_kp;
+		if(PI_ki_update)begin
+			PI_ki_reg <= PI_ki;
 			singlePiReset <= 1;
 		end else begin
 			singlePiReset <= 0;
@@ -112,10 +114,5 @@ end
 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	r_to_ray(r, ray);
-
-assign leds[3:0] = PI_kp_reg[coeffBitSize -1-:4];
-assign leds[7:4] = PI_ki_reg[coeffBitSize -1-:4];
-assign leds[8] = PI_reset;
-assign leds[9] = PI_enable;
 	
 endmodule

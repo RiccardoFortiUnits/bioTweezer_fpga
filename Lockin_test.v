@@ -150,11 +150,11 @@ stretcher_edge_det stretchEdgeName (                                            
     .data_in_a(wire_inputClk),                                                                \
     .data_out_b(wire_outputClk)                                                               \
 );
-`wire_doubleClock(clock_125, clock_50, stretcher_pi_enable_cmd, pi_enable_cmd_125, pi_enable_cmd_50)
-`wire_doubleClock(clock_125, clock_50, stretcher_pi_reset_cmd, pi_reset_cmd_125, pi_reset_cmd_50)
-`wire_doubleClock(clock_125, clock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
-`wire_doubleClock(clock_125, clock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
-`wire_doubleClock(clock_125, clock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
+`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_enable_cmd, pi_enable_cmd_125, pi_enable_cmd_50)
+`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_reset_cmd, pi_reset_cmd_125, pi_reset_cmd_50)
+`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
+`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
+`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
 
 
 network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
@@ -181,8 +181,10 @@ network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     .pi_limit_HI(pi_limit_HI),
     .pi_limit_LO(pi_limit_LO),
     // DACs and ADC status
-    .DAC_running(DAC_running_125),
-    .DAC_stopped(DAC_stopped_125),
+//    .DAC_running(DAC_running_125),
+//    .DAC_stopped(DAC_stopped_125),
+    .DAC_running(1'b0),
+    .DAC_stopped(1'b1),
     .ADC_ready(ADC_ready_125)
 );
 ////////// TEST NCO_8CH ///////////
@@ -280,7 +282,8 @@ clock_synchronizer clock_synchronizer_inst(
 
 ///////////////// DACs /////////////////////////
 
-wire DAC_running_50, ADC_acquire, XY_acquire;
+wire DAC_running_50 = 1;
+wire ADC_acquire, XY_acquire;
 wire [79:0] sweep_freq_wfm;
 wire [15:0] controllerOut;
 wire [15:0] ray;
@@ -290,8 +293,8 @@ tweezerController#(
 	.inputFracSize		(15),
 	.outputBitSize		(16),
 	.outputFracSize		(15),
-	.coeffBitSize			(4),
-	.coeffFracSize		(3),
+	.coeffBitSize			(26),
+	.coeffFracSize		(25),
 	.workingBitSize		(24),	
 	.workingFracSize	(20)
 )tc(
@@ -310,8 +313,7 @@ tweezerController#(
 	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
 	.PI_ki_update									(pi_ti_coefficient_update_cmd_50)
 	,
-	.ray(ray),
-	.leds(LEDR)
+	.ray(ray)
 );
 
 
