@@ -5,7 +5,7 @@ module pi_controller#(
   parameter outputFracSize = 15,
   parameter coeffBitSize = 27,
   parameter coeffFracSize = 26,
-  parameter productsFracSize = 18
+  parameter productFracSize = 18
 )(
     input clk,
     input reset,
@@ -27,20 +27,20 @@ module pi_controller#(
 );
 
 localparam  inputWholeSize = inputBitSize - inputFracSize,
-        outputWholeSize = outputBitSize - outputFracSize,
-        coeffWholeSize = coeffBitSize - coeffFracSize,
-        errorBitSize = inputBitSize + 1,
-        errorWholeSize = inputWholeSize + 1,
-        errorFracSize = inputFracSize,
-        productsWholeSize = errorWholeSize + coeffWholeSize,
-        productBitSize = productsWholeSize + productsFracSize,
-        saturationStuffingBits = 2,// +1 would be enough...
-        saturationWholeSize = (outputWholeSize > productsWholeSize ? outputWholeSize : productsWholeSize)+ saturationStuffingBits,
-        saturationFracSize = productsFracSize,
-        saturationBitSize = productsFracSize + saturationFracSize,
-        saturatedWholeSize = saturationWholeSize - saturationStuffingBits,
-        saturatedFracSize = saturationFracSize,
-        saturatedBitSize = saturatedFracSize + saturatedWholeSize;
+            outputWholeSize = outputBitSize - outputFracSize,
+            coeffWholeSize = coeffBitSize - coeffFracSize,
+            errorBitSize = inputBitSize + 1,
+            errorWholeSize = inputWholeSize + 1,
+            errorFracSize = inputFracSize,
+            productWholeSize = errorWholeSize + coeffWholeSize,
+            productBitSize = productWholeSize + productFracSize,
+            saturationStuffingBits = 2,// +1 would be enough...
+            saturationWholeSize = (outputWholeSize > productWholeSize ? outputWholeSize : productWholeSize)+ saturationStuffingBits,
+            saturationFracSize = productFracSize,
+            saturationBitSize = productFracSize + saturationFracSize,
+            saturatedWholeSize = saturationWholeSize - saturationStuffingBits,
+            saturatedFracSize = saturationFracSize,
+            saturatedBitSize = saturatedFracSize + saturatedWholeSize;
 
 //delay clocks for each segment of the pipeline
 localparam ERROR_COMPUTATION_DELAY          = 1,
@@ -60,6 +60,7 @@ reg save_integral_component_pi;
 
 //----------------------------------------------------------------
 // reset and output validation
+
 always @(posedge clk) 
 begin
     if (reset || reset_pi)
@@ -116,9 +117,10 @@ end
 // pi ERROR COMPUTATION
 wire signed [errorBitSize-1:0] setpoint_extended;
 wire signed [errorBitSize-1:0] input_extended;
-
-assign setpoint_extended = {pi_setpoint[inputBitSize-1], pi_setpoint}; // Q3.25
-assign input_extended = {pi_input[inputBitSize-1], pi_input}; // Q3.25
+fixedPointShifter#(inputBitSize, inputFracSize, errorBitSize, errorFracSize) extendSetpoint
+    (pi_setpoint, setpoint_extended);
+fixedPointShifter#(inputBitSize, inputFracSize, errorBitSize, errorFracSize) extendInput
+    (pi_input, input_extended);
 
 wire signed [errorBitSize-1:0] error;       // Q3.25
 
@@ -147,7 +149,7 @@ clocked_FractionalMultiplier#(
   .OUTPUT_WIDTH     (productBitSize),
   .FRAC_BITS_A      (errorFracSize),
   .FRAC_BITS_B      (coeffFracSize),
-  .FRAC_BITS_OUT      (productsFracSize)
+  .FRAC_BITS_OUT      (productFracSize)
 ) error_kp_pi_mult_0_am (
   .clk(clk),    
   .reset(reset || reset_pi),
@@ -156,7 +158,6 @@ clocked_FractionalMultiplier#(
   .result(kpXerror)
 );
 
-//assign proportional_component_pi_trunc = kpXerror[52-:27]; // Q3.24
 //----------------------------------------------------------------
 
 //----------------------------------------------------------------
@@ -169,9 +170,9 @@ clocked_FractionalMultiplier#(
   .A_WIDTH          (productBitSize),
   .B_WIDTH          (coeffBitSize),
   .OUTPUT_WIDTH     (productBitSize),
-  .FRAC_BITS_A      (productsFracSize),
+  .FRAC_BITS_A      (productFracSize),
   .FRAC_BITS_B      (coeffFracSize),
-  .FRAC_BITS_OUT      (productsFracSize)
+  .FRAC_BITS_OUT      (productFracSize)
 ) error_ti_pi_mult_0_am (
   .clk(clk),    
   .reset(reset || reset_pi),
@@ -180,9 +181,8 @@ clocked_FractionalMultiplier#(
   .result(kiXkpXerror)
 );
 
-assign kiXkpXerror_extended = {
-{(saturationBitSize-productBitSize){kiXkpXerror[productBitSize-1]}},
- kiXkpXerror};
+fixedPointShifter#(productBitSize, productFracSize, saturationBitSize, saturationFracSize) extendkiXkpXerror
+    (kiXkpXerror, kiXkpXerror_extended);
 
 //----------------------------------------------------------------
 
@@ -240,10 +240,10 @@ saturator #(
 // pi I OUTPUT COMPUTATION
 wire signed [saturationBitSize-1:0] pi_output_sum; // Q5.50
 wire signed [saturationBitSize-1:0] proportionalPart;
-assign proportionalPart = {
-	{(saturationBitSize-productBitSize){kpXerror[productBitSize-1]}},
-	kpXerror[productBitSize-1:0]
-};
+
+fixedPointShifter#(productBitSize, productFracSize, saturationBitSize, saturationFracSize) extendkpXerror
+    (kpXerror, proportionalPart);
+
 // assign pi_output_sum = proportionalPart + integralPart
 adder#(
   .WIDTH      (saturationBitSize),
@@ -256,16 +256,10 @@ adder#(
   .result   (pi_output_sum)
 );
 
-wire signed [saturationBitSize-1:0] pi_output_saturated;
-saturator #(
-  .inputWidth     (saturationBitSize),
-  .outputMaxWidth (outputWholeSize + saturationFracSize)
-)outSaturation(
-  .input_data         (pi_output_sum),
-  .saturated_output   (pi_output_saturated),
-  .is_saturated       ()
-);
-assign pi_output = pi_output_saturated[outputWholeSize + saturationFracSize-1 -:outputBitSize]; // Q1.15
+
+fixedPointShifter#(saturationBitSize, saturationFracSize, outputBitSize, outputFracSize) saturateOutput
+    (pi_output_sum, pi_output);
+
 //----------------------------------------------------------------
 
 endmodule

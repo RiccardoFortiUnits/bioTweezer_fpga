@@ -110,10 +110,6 @@ assign reset = !reset_n;
 //////////// UDP core ////////////////
 wire rx_xcvr_clk; //125MHz clock used in the decoders
 
-//general parameters
-wire [2:0] mux_1, mux_2;
-wire [15:0] wfm_amplitude, dem_delay;
-wire [3:0] TTL_control;
 
 //legacymode
 wire mode_nRaw_dem;
@@ -185,7 +181,9 @@ network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
 //    .DAC_stopped(DAC_stopped_125),
     .DAC_running(1'b0),
     .DAC_stopped(1'b1),
-    .ADC_ready(ADC_ready_125)
+    .ADC_ready(ADC_ready_125),
+	 .SW(SW),
+	 .KEY(KEY)
 );
 ////////// TEST NCO_8CH ///////////
 wire[8*64-1:0] output_wfm;
@@ -305,15 +303,18 @@ tweezerController#(
 	.SUM												(0),
 	.retroactionController						(controllerOut),
 	.retroactionController_valid				(controllerOut_valid),
-	.PI_reset										(pi_reset_cmd_50),
-	.PI_enable										(pi_enable_cmd_50),
+	.PI_reset										(pi_reset_cmd_50 | SW[1]),
+	.PI_enable										(pi_enable_cmd_50 | SW[2]),
 	.PI_freeze										(SW[8]),
 	.PI_kp											(pi_kp_coefficient),
 	.PI_ki											(pi_ti_coefficient),
 	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
-	.PI_ki_update									(pi_ti_coefficient_update_cmd_50)
+	.PI_ki_update									(pi_ti_coefficient_update_cmd_50),
+	.PI_setpoint									(pi_setpoint)
 	,
-	.ray(ray)
+	.ray(ray),
+	.addFeedback(SW[0]),
+	.leds(LEDR[7:4])
 );
 
 
@@ -430,12 +431,11 @@ assign LEDG[2] = ~reset_DAC;
 assign LEDG[7] = DAC_running_50;
 
 
-//assign LEDR[9:8] = 2'b00;
 wire inputD_saturating = (input_D_data == 16'h7FFF) || (input_D_data == 16'h8000);
 wire inputC_saturating = (input_C_data == 16'h7FFF) || (input_C_data == 16'h8000);
 wire inputB_saturating = (input_B_data == 16'h7FFF) || (input_B_data == 16'h8000);
 wire inputA_saturating = (input_A_data == 16'h7FFF) || (input_A_data == 16'h8000);
-//assign LEDR = {{2{inputA_saturating}}, {2{inputB_saturating}}, {2{inputC_saturating}}, {2{inputD_saturating}}};
+assign LEDR[3:0] = {inputD_saturating, inputC_saturating, inputB_saturating, inputA_saturating};
 
 
 

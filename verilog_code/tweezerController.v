@@ -24,17 +24,21 @@ module tweezerController#(
 	input [coeffBitSize -1:0] PI_kp,
 	input [coeffBitSize -1:0] PI_ki,
 	input PI_kp_update,
-	input PI_ki_update
+	input PI_ki_update,
+	input [inputBitSize -1:0] PI_setpoint
 	//debug wires
-	, output [outputBitSize -1:0] ray
+	, output [outputBitSize -1:0] ray,
+	input addFeedback,
+	output [3:0] leds
 );
 
 //get x, y and z of the bead
 wire [workingBitSize -1:0] x,y;
 
 //for now, x=XDIFF, y=YDIFF
+wire [inputBitSize -1:0] xWithFeedback = addFeedback & retroactionController_valid ? XDIFF : XDIFF + retroactionController;
 fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
-	XDIFF_to_x(XDIFF, x);
+	XDIFF_to_x(xWithFeedback, x);
 fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
 	YDIFF_to_y(YDIFF, y);
 	
@@ -59,6 +63,10 @@ calcRay#
 reg [coeffBitSize -1:0] PI_kp_reg, PI_ki_reg;
 reg singlePiReset;// used to reset the integral part of the PI when we change the parameter ki
 
+wire [workingBitSize -1:0] setpoint_shifted;
+fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
+	shiftSetpoint(PI_setpoint, setpoint_shifted);
+	
 //PI controller on the distance
 wire [workingBitSize -1:0] pi_out;
 pi_controller#(
@@ -68,14 +76,14 @@ pi_controller#(
 	.outputFracSize		(workingFracSize),
 	.coeffBitSize			(coeffBitSize),
 	.coeffFracSize		(coeffFracSize),
-	.productsFracSize	(workingBitSize)
+	.productFracSize	(workingBitSize-2)
 )PI(
 	.clk						(clk),
 	.reset					(reset),
 	.reset_pi				(PI_reset | singlePiReset),
 	.enable_pi				(PI_enable),
 	.pi_limiting			(PI_freeze),
-	.pi_setpoint			({workingBitSize{1'b0}}),
+	.pi_setpoint			(setpoint_shifted),
 	.pi_input				(r),
 	.pi_input_valid		(r_valid),
 	.pi_kp_coefficient	(PI_kp_reg),
@@ -93,7 +101,8 @@ always @(posedge clk)begin
 	if(reset)begin
 		PI_kp_reg <= 0;
 		PI_ki_reg <= 0;
-			PI_kp_updateReceived <= 0;
+		PI_kp_updateReceived <= 0;
+		singlePiReset <= 0;
 	end else begin
 		if(PI_kp_update)begin
 			PI_kp_reg <= PI_kp;
@@ -101,7 +110,7 @@ always @(posedge clk)begin
 		end
 		if(PI_ki_update)begin
 			PI_ki_reg <= PI_ki;
-			singlePiReset <= 1;
+			singlePiReset <= !singlePiReset;
 		end else begin
 			singlePiReset <= 0;
 		end
@@ -114,5 +123,10 @@ end
 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	r_to_ray(r, ray);
+
 	
+assign leds[0] = retroactionController_valid;
+assign leds[1] = PI_reset;
+assign leds[2] = singlePiReset;
+assign leds[3] = PI_enable;
 endmodule

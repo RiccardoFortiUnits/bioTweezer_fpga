@@ -118,7 +118,7 @@ reg ack, nak, ver, err; // signals for the TX state machine
 
 reg    conn_timeout_restart, conn_timeout_enable;
 reg    wipe_from_command;
-wire   wipe_from_timeout; 
+wire   wipe_from_timeout = 0; 
 assign wipe_settings = wipe_from_timeout || wipe_from_command; // wipe from timeout or wipe from command
 
 always @(posedge clk)

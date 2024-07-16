@@ -41,7 +41,7 @@ altsqrt	 #(
 	// synopsys translate_on
 );
 dataValidGenerator#(sqrtPipelineDelay)dvg(
-	clk, aclr, 1'b1, outData_valid
+	clk, aclr, 3, outData_valid
 );
 
 endmodule

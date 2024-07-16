@@ -42,7 +42,10 @@ module network_wrapper #(
     // DACs and ADC status
     input  DAC_running,
 	 input DAC_stopped,
-    input  ADC_ready
+    input  ADC_ready,
+	 
+	 input [7:0] SW,
+	 input [3:0] KEY
 
 );
 
@@ -153,6 +156,7 @@ wire [31:0] client_ip; //IP of the client
 
 wire [31:0] received_data;
 
+wire wipe_settings;
 wire received_control_param_valid, received_pi_enable_cmd_valid, received_pi_reset_cmd_valid;
 
 wire control_param_written;
@@ -261,47 +265,41 @@ control_param_decoder control_param_decoder (
 
     .control_param_written(control_param_written)
 );
+
+wire pi_rdreq_output_fifo, pi_rdempty_output_fifo;
+wire ray_rdreq_fifo, ray_rdempty_fifo;
+wire [15:0] pi_rddata_output_fifo, ray_rddata_fifo;
+
+reg prevKey;
+always @(posedge(rx_xcvr_clk))begin
+	prevKey <= KEY[0];
+end
+assign pi_rdempty_output_fifo = KEY[0] & !prevKey;
+assign ray_rdempty_fifo = KEY[0] & !prevKey;
+assign pi_rddata_output_fifo = {8'h63,{2{~SW[3:0]}}};
+assign ray_rddata_fifo = {8'h21,{2{SW[7:4]}}};
+
 //
 /// DECODER 2 /// used to receive the waveform from the client and to sent the current in FAST mode
 wire wfm_written; //1 if the WFM has been written
 wire current_rdreq_fifo_dec2; //RDREQ for the current FIFO in fast mode
-//dec_comm8_port2 dec_comm8_2 
-//(
-//    .clk(rx_xcvr_clk),
-//    .reset(~mac_configured_125),
-//
-//    .source_mac(client_mac),
-//    .source_ip(client_ip),
-//
-//    // rx fifo interface from 1gb eth
-//    .rx_fifo_data(rx_fifo_data1),
-//    .rx_fifo_data_read(rx_fifo_data_read1),
-//    .rx_fifo_status(rx_fifo_status1),
-//    .rx_fifo_status_empty(rx_fifo_status_empty1),
-//    .rx_fifo_status_read(rx_fifo_status_read1),
-//
-//    // tx fifo interface to 1gb eth (for ack)
-//    .tx_fifo_data(tx_fifo_data1),
-//    .tx_fifo_status(tx_fifo_status1),
-//    .tx_fifo_data_write(tx_fifo_data_write1),
-//    .tx_fifo_status_write(tx_fifo_status_write1),
-//    .tx_fifo_data_full(tx_fifo_data_full1),
-//    .tx_fifo_status_full(tx_fifo_status_full1),
-//
-//    .destination_mac(client_mac),
-//    .destination_ip(client_ip),
-//
-//    .mode_nCont_disc(1'b1),
-//    .mode_nRaw_dem(mode_nRaw_dem),
-//
-//    // acquisition FIFOs
-//	.acq_rdreq_fifo_legacy(acq_rdreq_fifo_legacy),
-//	.acq_rddata_fifo_legacy(acq_rddata_fifo_legacy),
-//	.acq_rdempty_fifo_legacy(acq_rdempty_fifo_legacy),
-//
-//	.acq_rdreq_fifo_PML(acq_rdreq_fifo_PML),
-//	.acq_rddata_fifo_PML(acq_rddata_fifo_PML),
-//	.acq_rdempty_fifo_PML(acq_rdempty_fifo_PML) 
-//);
-//    
+new_dec_comm8_port2 dec_comm8_2(
+    .clk                      (rx_xcvr_clk),
+    .reset                    (~mac_configured_125),
+    .tx_fifo_data             (tx_fifo_data1),
+    .tx_fifo_status           (tx_fifo_status1),
+    .tx_fifo_data_write       (tx_fifo_data_write1),
+    .tx_fifo_status_write     (tx_fifo_status_write1),
+    .tx_fifo_data_full        (tx_fifo_data_full1),
+    .tx_fifo_status_full      (tx_fifo_status_full1),
+    .destination_mac          (client_mac),
+    .destination_ip           (client_ip),
+    .pi_rdreq_output_fifo     (pi_rdreq_output_fifo),
+    .pi_rddata_output_fifo    (pi_rddata_output_fifo),
+    .pi_rdempty_output_fifo   (pi_rdempty_output_fifo),
+    .ray_rdreq_fifo           (ray_rdreq_fifo),
+    .ray_rddata_fifo          (ray_rddata_fifo),
+    .ray_rdempty_fifo         (ray_rdempty_fifo) 
+);
+  
 endmodule
