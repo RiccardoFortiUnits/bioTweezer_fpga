@@ -153,6 +153,10 @@ stretcher_edge_det stretchEdgeName (                                            
 `wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
 
 
+wire pi_rdreq_output_fifo, ray_rdreq_fifo;
+wire [15:0] pi_rddata_output_fifo, ray_rddata_fifo;
+wire pi_rdempty_output_fifo, ray_rdempty_fifo;
+
 network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     .clock_100(clock_100),
     .ref_clk_125(REFCLK_125),
@@ -165,23 +169,33 @@ network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
 
     // GENERAL PARAMETERS //
     .pi_enable_cmd(pi_enable_cmd_125),
-
     .pi_reset_cmd(pi_reset_cmd_125),
 
     .pi_kp_coefficient(pi_kp_coefficient),
     .pi_kp_coefficient_update_cmd(pi_kp_coefficient_update_cmd_125),
     .pi_ti_coefficient(pi_ti_coefficient),
     .pi_ti_coefficient_update_cmd(pi_ti_coefficient_update_cmd_125),
+	 
     .pi_setpoint(pi_setpoint),
     .pi_setpoint_update_cmd(pi_setpoint_update_cmd_125),
+	 
     .pi_limit_HI(pi_limit_HI),
     .pi_limit_LO(pi_limit_LO),
     // DACs and ADC status
 //    .DAC_running(DAC_running_125),
 //    .DAC_stopped(DAC_stopped_125),
+	 
+    .pi_rdreq_output_fifo       (pi_rdreq_output_fifo),
+    .pi_rddata_output_fifo      (pi_rddata_output_fifo),
+    .pi_rdempty_output_fifo     (pi_rdempty_output_fifo),
+    .ray_rdreq_fifo             (ray_rdreq_fifo),
+    .ray_rddata_fifo            (ray_rddata_fifo),
+    .ray_rdempty_fifo           (ray_rdempty_fifo),
+	 
     .DAC_running(1'b0),
     .DAC_stopped(1'b1),
     .ADC_ready(ADC_ready_125),
+	 
 	 .SW(SW),
 	 .KEY(KEY)
 );
@@ -417,6 +431,46 @@ data_processor main_data_processor (
     .acq_rdreq_fifo_108(acq_rdreq_fifo_legacy)
 );
 
+localparam nOfDataPerTransmission = 'h10000;
+
+dataHandlerForTransmission #(
+    .dataBitSize                    (16),
+    .max_nOfDataPerTransmission     ('h10000),
+    .fifoSize                       (64)
+) piOutputHandler(
+    .dataClk                        (ADC_outclock_50),
+    .fifoReadClk                    (clock_100),
+    .reset                          (reset_50 | reset | KEY[0]),    
+    .nOfDataPerTransmission         (nOfDataPerTransmission),
+    .in                             (controllerOut),
+    .enableData                     (controllerOut_valid),
+    .readRequest                    (pi_rdreq_output_fifo),
+    .dataRead                       (pi_rddata_output_fifo),
+    .readEmpty                      (pi_rdempty_output_fifo)
+);
+
+dataHandlerForTransmission #(
+    .dataBitSize                    (16),
+    .max_nOfDataPerTransmission     ('h10000),
+    .fifoSize                       (64)
+) rayHandler(
+    .dataClk                        (ADC_outclock_50),
+    .fifoReadClk                    (clock_100),
+    .reset                          (reset_50 | reset | KEY[0]),    
+    .nOfDataPerTransmission         (nOfDataPerTransmission),
+    .in                             (ray),
+    .enableData                     (controllerOut_valid),
+    .readRequest                    (ray_rdreq_fifo),
+    .dataRead                       (ray_rddata_fifo),
+    .readEmpty                      (ray_rdempty_fifo)
+);
+
+
+
+
+
+
+
 ////////////////// STATUS //////////////
 
 assign HEX3 = 'h55;
@@ -436,6 +490,7 @@ wire inputC_saturating = (input_C_data == 16'h7FFF) || (input_C_data == 16'h8000
 wire inputB_saturating = (input_B_data == 16'h7FFF) || (input_B_data == 16'h8000);
 wire inputA_saturating = (input_A_data == 16'h7FFF) || (input_A_data == 16'h8000);
 assign LEDR[3:0] = {inputD_saturating, inputC_saturating, inputB_saturating, inputA_saturating};
+
 
 
 

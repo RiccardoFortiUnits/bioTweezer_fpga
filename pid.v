@@ -5,7 +5,7 @@ module pi_controller#(
   parameter outputFracSize = 15,
   parameter coeffBitSize = 27,
   parameter coeffFracSize = 26,
-  parameter productFracSize = 18
+  parameter productFracSize = 27
 )(
     input clk,
     input reset,

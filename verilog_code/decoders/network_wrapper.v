@@ -39,6 +39,15 @@ module network_wrapper #(
     output [13:0] pi_limit_HI,
     output [13:0] pi_limit_LO,
     
+    output        pi_rdreq_output_fifo,
+    input  [15:0] pi_rddata_output_fifo, 
+    input         pi_rdempty_output_fifo,
+	 
+    output        ray_rdreq_fifo,
+    input  [15:0] ray_rddata_fifo, 
+    input         ray_rdempty_fifo,
+	 
+	 
     // DACs and ADC status
     input  DAC_running,
 	 input DAC_stopped,
@@ -266,18 +275,15 @@ control_param_decoder control_param_decoder (
     .control_param_written(control_param_written)
 );
 
-wire pi_rdreq_output_fifo, pi_rdempty_output_fifo;
-wire ray_rdreq_fifo, ray_rdempty_fifo;
-wire [15:0] pi_rddata_output_fifo, ray_rddata_fifo;
-
-reg prevKey;
-always @(posedge(rx_xcvr_clk))begin
-	prevKey <= KEY[0];
-end
-assign pi_rdempty_output_fifo = KEY[0] & !prevKey;
-assign ray_rdempty_fifo = KEY[0] & !prevKey;
-assign pi_rddata_output_fifo = {8'h63,{2{~SW[3:0]}}};
-assign ray_rddata_fifo = {8'h21,{2{SW[7:4]}}};
+//
+//reg prevKey;
+//always @(posedge(rx_xcvr_clk))begin
+//	prevKey <= KEY[0];
+//end
+//assign pi_rdempty_output_fifo = KEY[0] & !prevKey;
+//assign ray_rdempty_fifo = KEY[0] & !prevKey;
+//assign pi_rddata_output_fifo = {8'h63,{2{~SW[3:0]}}};
+//assign ray_rddata_fifo = {8'h21,{2{SW[7:4]}}};
 
 //
 /// DECODER 2 /// used to receive the waveform from the client and to sent the current in FAST mode
