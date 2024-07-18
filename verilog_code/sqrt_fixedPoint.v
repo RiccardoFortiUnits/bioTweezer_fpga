@@ -40,8 +40,8 @@ altsqrt	 #(
 	.ena ()
 	// synopsys translate_on
 );
-dataValidGenerator#(sqrtPipelineDelay)dvg(
-	clk, aclr, 3, outData_valid
+dataValidGenerator#(sqrtPipelineDelay + 1)dvg(
+	clk, aclr, 1'b1, outData_valid
 );
 
 endmodule

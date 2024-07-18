@@ -1,19 +1,23 @@
 module calcRay#
 (
 	parameter inputWidth = 8,
-	parameter inputFracWidth = 4,
+	parameter inputFracWidth = 7,
 	parameter outputWidth = 8,
-	parameter outputFracWidth = 4
+	parameter outputFracWidth = 7
 )(
 	input clk,
 	input reset,
 	
 	input signed [inputWidth -1:0] x,
 	input signed [inputWidth -1:0] y,
+	input signed [inputWidth -1:0] z,
+	output [outputWidth -1:0] xSquare,
+	output [outputWidth -1:0] ySquare,
+	output [outputWidth -1:0] zSquare,
 	output [outputWidth -1:0] r,
 	output outData_valid
 );
-localparam nOfInputs = 2;//3;
+localparam nOfInputs = 3;
 
 localparam 	inputWholeWidth = inputWidth - inputFracWidth,
 				outputWholeWidth = outputWidth - outputFracWidth,
@@ -27,7 +31,8 @@ localparam 	inputWholeWidth = inputWidth - inputFracWidth,
 wire [inputWidth-1:0] inputs [nOfInputs-1:0];
 assign inputs[0] = x;
 assign inputs[1] = y;
-wire [squareBitWidth-1:0] inputs_squared[nOfInputs-1:0];
+assign inputs[2] = z;
+wire [squareBitWidth-1:0] inputs_square[nOfInputs-1:0];
 
 
 
@@ -46,12 +51,12 @@ genvar gi;
 		  .reset(reset),
 		  .a				(inputs[gi]),
 		  .b				(inputs[gi]),
-		  .result		(inputs_squared[gi])
+		  .result		(inputs_square[gi])
 		);
 	end	
 endgenerate
 
-wire [squareSumBitWidth -1:0] squareSum = inputs_squared[0]+inputs_squared[1];//+inputs_squared[2];
+wire [squareSumBitWidth -1:0] squareSum = inputs_square[0]+inputs_square[1]+inputs_square[2];
 wire [sqrtBitWidth -1:0] sqrtOfSum;
 sqrt_fixedPoint#(
 	.inputWidth			(squareSumBitWidth),
@@ -74,6 +79,36 @@ fixedPointShifter#(
 )shifOutput(
 	.in		(sqrtOfSum),
 	.out	(r)
+);
+fixedPointShifter#(
+	.inputBitSize	(squareBitWidth),
+	.inputFracSize	(squareFracWidth),
+	.outputBitSize	(outputWidth),
+	.outputFracSize(outputFracWidth),
+	.isSigned		(0)
+)shiftXsquare(
+	.in		(inputs_square[0]),
+	.out	(xSquare)
+);
+fixedPointShifter#(
+	.inputBitSize	(squareBitWidth),
+	.inputFracSize	(squareFracWidth),
+	.outputBitSize	(outputWidth),
+	.outputFracSize(outputFracWidth),
+	.isSigned		(0)
+)shiftYsquare(
+	.in		(inputs_square[1]),
+	.out	(ySquare)
+);
+fixedPointShifter#(
+	.inputBitSize	(squareBitWidth),
+	.inputFracSize	(squareFracWidth),
+	.outputBitSize	(outputWidth),
+	.outputFracSize(outputFracWidth),
+	.isSigned		(0)
+)shiftZsquare(
+	.in		(inputs_square[2]),
+	.out	(zSquare)
 );
 endmodule
 

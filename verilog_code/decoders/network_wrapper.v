@@ -30,22 +30,38 @@ module network_wrapper #(
 	 output pi_enable_cmd,
     output pi_reset_cmd,
 	 
-    output [26:0] pi_kp_coefficient,
+    output [25:0] pi_kp_coefficient,
     output        pi_kp_coefficient_update_cmd,
-    output [26:0] pi_ti_coefficient,
+    output [25:0] pi_ti_coefficient,
     output        pi_ti_coefficient_update_cmd,
-    output [26:0] pi_setpoint,
+    output [25:0] pi_setpoint,
     output        pi_setpoint_update_cmd,
-    output [13:0] pi_limit_HI,
-    output [13:0] pi_limit_LO,
+    output [16:0] pi_limit_HI,
+    output [16:0] pi_limit_LO,
     
     output        pi_rdreq_output_fifo,
     input  [15:0] pi_rddata_output_fifo, 
     input         pi_rdempty_output_fifo,
 	 
-    output        ray_rdreq_fifo,
-    input  [15:0] ray_rddata_fifo, 
-    input         ray_rdempty_fifo,
+    output        x_rdreq_fifo,
+    input  [15:0] x_rddata_fifo, 
+    input         x_rdempty_fifo,
+    output        y_rdreq_fifo,
+    input  [15:0] y_rddata_fifo, 
+    input         y_rdempty_fifo,
+    output        z_rdreq_fifo,
+    input  [15:0] z_rddata_fifo, 
+    input         z_rdempty_fifo,
+	 
+    output        xSquare_rdreq_fifo,
+    input  [15:0] xSquare_rddata_fifo, 
+    input         xSquare_rdempty_fifo,
+    output        ySquare_rdreq_fifo,
+    input  [15:0] ySquare_rddata_fifo, 
+    input         ySquare_rdempty_fifo,
+    output        zSquare_rdreq_fifo,
+    input  [15:0] zSquare_rddata_fifo, 
+    input         zSquare_rdempty_fifo,
 	 
 	 
     // DACs and ADC status
@@ -55,6 +71,8 @@ module network_wrapper #(
 	 
 	 input [7:0] SW,
 	 input [3:0] KEY
+	 
+	 ,output[3:0] led
 
 );
 
@@ -223,6 +241,10 @@ new_dec_comm8_port1 dec_comm8_1
     .ADC_ready(ADC_ready)
 	 
 );
+assign led[0] = pi_enable_cmd;
+assign led[1] = pi_enable_cmd_ack;
+assign led[2] = mac_configured;
+assign led[3] = (~mac_configured_125) | wipe_settings;
 
 generic_param_decoder pi_enable_decoder(
 	.clk 	             (rx_xcvr_clk),
@@ -233,7 +255,7 @@ generic_param_decoder pi_enable_decoder(
 	.param             (pi_enable_cmd),
 	.ack               (pi_enable_cmd_ack),
 	.nak               (pi_enable_cmd_nak),
-	.err               (pi_enable_cmd_err),
+	.err               (pi_enable_cmd_err)
 );
 generic_param_decoder pi_reset_decoder(
 	.clk 	             (rx_xcvr_clk),
@@ -244,10 +266,15 @@ generic_param_decoder pi_reset_decoder(
 	.param	          (pi_reset_cmd),
 	.ack               (pi_reset_cmd_ack),
 	.nak               (pi_reset_cmd_nak),
-	.err               (pi_reset_cmd_err),
+	.err               (pi_reset_cmd_err)
 );
 
-control_param_decoder control_param_decoder (
+control_param_decoder #(
+	.signalBitSize	(16),
+	.signalFracSize(15),
+	.coeffBitSize	(26),
+	.coeffFracSize	(25)
+)control_param_decoder (
     .clk(rx_xcvr_clk),
     .reset(!mac_configured_125),    
     .DAC_stopped(DAC_stopped),
@@ -289,7 +316,10 @@ control_param_decoder control_param_decoder (
 /// DECODER 2 /// used to receive the waveform from the client and to sent the current in FAST mode
 wire wfm_written; //1 if the WFM has been written
 wire current_rdreq_fifo_dec2; //RDREQ for the current FIFO in fast mode
-new_dec_comm8_port2 dec_comm8_2(
+new_dec_comm8_port2 #(
+    .FIFO_LENGTH(16),
+    .nOfFifos(7)
+)dec_comm8_2(
     .clk                      (rx_xcvr_clk),
     .reset                    (~mac_configured_125),
     .tx_fifo_data             (tx_fifo_data1),
@@ -300,12 +330,9 @@ new_dec_comm8_port2 dec_comm8_2(
     .tx_fifo_status_full      (tx_fifo_status_full1),
     .destination_mac          (client_mac),
     .destination_ip           (client_ip),
-    .pi_rdreq_output_fifo     (pi_rdreq_output_fifo),
-    .pi_rddata_output_fifo    (pi_rddata_output_fifo),
-    .pi_rdempty_output_fifo   (pi_rdempty_output_fifo),
-    .ray_rdreq_fifo           (ray_rdreq_fifo),
-    .ray_rddata_fifo          (ray_rddata_fifo),
-    .ray_rdempty_fifo         (ray_rdempty_fifo) 
+	 .rdreq_fifo({zSquare_rdreq_fifo, ySquare_rdreq_fifo, xSquare_rdreq_fifo, z_rdreq_fifo, y_rdreq_fifo, x_rdreq_fifo, pi_rdreq_output_fifo}),
+	 .rddata_fifo({zSquare_rddata_fifo, ySquare_rddata_fifo, xSquare_rddata_fifo, z_rddata_fifo, y_rddata_fifo, x_rddata_fifo, pi_rddata_output_fifo}),
+	 .rdempty_fifo({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo})
 );
   
 endmodule

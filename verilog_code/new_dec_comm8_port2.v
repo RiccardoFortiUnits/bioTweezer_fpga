@@ -3,7 +3,8 @@ module new_dec_comm8_port2 #(
               BYTE_SIZE   = 8,
               IP_SIZE     = 32,
               MAC_SIZE    = 48,
-              FIFO_LENGTH = 16
+              FIFO_LENGTH = 16,
+              nOfFifos = 4
 ) (
     input clk,   // clock 125 MHz (rx_xcvr_clk)
     input reset, // !mac_configured_125 from eth_1gb_wrapper.v
@@ -21,16 +22,11 @@ module new_dec_comm8_port2 #(
     input [IP_SIZE-1:0]  destination_ip,
     //----------------------------------------------------------------
 
-   
     //----------------------------------------------------------------
-    // DATA TO TRANSMIT (CONTROL) - if control_data == 1
-    output                  pi_rdreq_output_fifo,
-    input [FIFO_LENGTH-1:0] pi_rddata_output_fifo, 
-    input                   pi_rdempty_output_fifo,
-
-    output                  ray_rdreq_fifo,
-    input [FIFO_LENGTH-1:0] ray_rddata_fifo,
-    input                   ray_rdempty_fifo
+    // DATA TO TRANSMIT
+    output[nOfFifos -1:0]                   rdreq_fifo,
+    input [nOfFifos * FIFO_LENGTH -1:0]     rddata_fifo, 
+    input [nOfFifos -1:0]                   rdempty_fifo
 
     //----------------------------------------------------------------
 );
@@ -44,7 +40,7 @@ localparam TX_IDLE                 = 0,// wait for data in the fifos
            TRANSMIT                = 3,// transmit the packet
            WAIT                    = 4;// buffer state, to allow the fifos to reset
 
-localparam nOfFifos = 2;//pi_output and ray
+
 
 localparam BYTE_IN_FIFO = FIFO_LENGTH/BYTE_SIZE;
 reg [$clog2(BYTE_IN_FIFO)-1:0] byte_counter;
@@ -52,20 +48,32 @@ reg [$clog2(BYTE_IN_FIFO)-1:0] byte_counter;
 reg [2:0] TX_STATE;
 
 reg rdreq_all_fifos;
+// all the fifos are read at the same time
+assign rdreq_fifo = {(nOfFifos){rdreq_all_fifos}};
 reg [2:0] fifo_sel_counter;          // register to select the fifo to read
-reg [FIFO_LENGTH-1:0] fifo_sel_data; // temporary storage for the selected fifo
+wire [FIFO_LENGTH-1:0] fifo_sel_data; // temporary storage for the selected fifo
 
 wire [7:0] data_from_fifo_slice;     // fifo data slice
-
-// all the fifos are read at the same time
-assign {pi_rdreq_output_fifo, ray_rdreq_fifo} = {(nOfFifos){rdreq_all_fifos}};
 
 // logic to get the correct byte from the FIFO
 assign data_from_fifo_slice = fifo_sel_data[FIFO_LENGTH-1 - 8*byte_counter -:8];
 
 
+// Assign the input array to the unpacked array
+wire [FIFO_LENGTH -1:0] unpacked_rddata_fifo [nOfFifos -1:0];
+generate
+genvar i;
+  for (i = 0; i < nOfFifos; i = i + 1) begin: aaaa
+		assign unpacked_rddata_fifo[i] = rddata_fifo[FIFO_LENGTH * (i+1) - 1 : FIFO_LENGTH * i];
+  end
+endgenerate
+
+assign fifo_sel_data = unpacked_rddata_fifo[fifo_sel_counter];
+
 always @(posedge clk) 
 begin
+
+
     if (reset) 
     begin
         fifo_sel_counter <= 0;
@@ -91,8 +99,8 @@ begin
 
                 byte_counter <= 0;
 
-                if (!pi_rdempty_output_fifo)
-                begin // start when the pi output fifo is not empty (all the fifos are written at the same time)
+                if (!rdempty_fifo)
+                begin // start when the all the fifos are not empty (all the fifos are written at the same time anyway)
                     TX_STATE <= TX_HEADER_CTRL_MODE;                            
                 end
             end
@@ -112,7 +120,7 @@ begin
                     tx_fifo_data_write <= 0;
                 end else begin
                     tx_fifo_data_write <= 1;
-                    tx_fifo_data       <= data_from_fifo_slice;//send the current byte of the current fifo (the fifo is read in the next "always" statement)
+                    tx_fifo_data       <= data_from_fifo_slice;//send the current byte of the current fifo
                     if (byte_counter < BYTE_IN_FIFO-1) //current fifo not read completely? 
                     begin
                         byte_counter <= byte_counter + 1;//read the next byte
@@ -174,31 +182,6 @@ begin
         endcase
     end
 end
-//-------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------------------------
-// multiplexer to select the FIFO to read
-
-always @(*) 
-begin
-    case (fifo_sel_counter)
-        0:
-        begin
-            fifo_sel_data <= pi_rddata_output_fifo;
-        end
-
-        1:
-        begin
-            fifo_sel_data <= ray_rddata_fifo;
-        end
-
-        default:
-        begin
-            fifo_sel_data <= 0;
-        end
-    endcase
-end
-    
 //-------------------------------------------------------------------------------------------------------------------------------
 
 endmodule

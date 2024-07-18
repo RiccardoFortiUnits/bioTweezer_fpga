@@ -120,7 +120,7 @@ wire [191:0] fifo_rd_data;
 
 // PML mode
 wire [LOCKIN_NUMBER*8 - 1 : 0] lockin_config;
-wire [26:0] alpha;
+wire [25:0] alpha;
 wire [31:0] start_fifo_cmd_2_125, stop_dac_cmd_2_125;
 wire [31:0] clr_fifo_cmd_2, fifo_wr_2, fifo_full_2;
 wire [191:0] sweep_data;
@@ -132,13 +132,25 @@ wire [107:0] acq_rddata_fifo_legacy;
 wire acq_rdreq_fifo_PML, acq_rdempty_fifo_PML;
 wire [107:0] acq_rddata_fifo_PML;
 
-wire [26:0] pi_kp_coefficient;
-wire [26:0] pi_ti_coefficient;
-wire [26:0] pi_setpoint;
+wire [25:0] pi_kp_coefficient;
+wire [25:0] pi_ti_coefficient;
+wire [25:0] pi_setpoint;
 wire [13:0] pi_limit_HI;
 wire [13:0] pi_limit_LO;
 
-`define wire_doubleClock(inputClk, outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
+
+`define synchToNewClock(outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
+sync_edge_det stretchEdgeName(              \
+    .clk            (outputClk),            \
+    .signal_in      (wire_inputClk),        \
+    .data_out       (wire_outputClk),       \
+    .rising         (),                     \
+    .falling        ()                      \
+);
+`synchToNewClock(ADC_outclock_50, stretcher_pi_enable_cmd, pi_enable_cmd_125, pi_enable_cmd_50)
+`synchToNewClock(ADC_outclock_50, stretcher_pi_reset_cmd, pi_reset_cmd_125, pi_reset_cmd_50)
+
+`define syncPulseToNewClock(inputClk, outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
     wire wire_inputClk, wire_outputClk;                                                       \
 stretcher_edge_det stretchEdgeName (                                                          \
     .clk_a(inputClk),                                                                         \
@@ -146,16 +158,14 @@ stretcher_edge_det stretchEdgeName (                                            
     .data_in_a(wire_inputClk),                                                                \
     .data_out_b(wire_outputClk)                                                               \
 );
-`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_enable_cmd, pi_enable_cmd_125, pi_enable_cmd_50)
-`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_reset_cmd, pi_reset_cmd_125, pi_reset_cmd_50)
-`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
-`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
-`wire_doubleClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
 
 
-wire pi_rdreq_output_fifo, ray_rdreq_fifo;
-wire [15:0] pi_rddata_output_fifo, ray_rddata_fifo;
-wire pi_rdempty_output_fifo, ray_rdempty_fifo;
+wire pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdreq_fifo, ySquare_rdreq_fifo, zSquare_rdreq_fifo;
+wire [15:0] pi_rddata_output_fifo, x_rddata_fifo, y_rddata_fifo, z_rddata_fifo, xSquare_rddata_fifo, ySquare_rddata_fifo, zSquare_rddata_fifo;
+wire pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo;
 
 network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     .clock_100(clock_100),
@@ -188,16 +198,32 @@ network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     .pi_rdreq_output_fifo       (pi_rdreq_output_fifo),
     .pi_rddata_output_fifo      (pi_rddata_output_fifo),
     .pi_rdempty_output_fifo     (pi_rdempty_output_fifo),
-    .ray_rdreq_fifo             (ray_rdreq_fifo),
-    .ray_rddata_fifo            (ray_rddata_fifo),
-    .ray_rdempty_fifo           (ray_rdempty_fifo),
+    .x_rdreq_fifo               (x_rdreq_fifo),
+    .x_rddata_fifo              (x_rddata_fifo),
+    .x_rdempty_fifo             (x_rdempty_fifo),
+    .y_rdreq_fifo               (y_rdreq_fifo),
+    .y_rddata_fifo              (y_rddata_fifo),
+    .y_rdempty_fifo             (y_rdempty_fifo),
+    .z_rdreq_fifo               (z_rdreq_fifo),
+    .z_rddata_fifo              (z_rddata_fifo),
+    .z_rdempty_fifo             (z_rdempty_fifo),
+    .xSquare_rdreq_fifo         (xSquare_rdreq_fifo),
+    .xSquare_rddata_fifo        (xSquare_rddata_fifo),
+    .xSquare_rdempty_fifo       (xSquare_rdempty_fifo),
+    .ySquare_rdreq_fifo         (ySquare_rdreq_fifo),
+    .ySquare_rddata_fifo        (ySquare_rddata_fifo),
+    .ySquare_rdempty_fifo       (ySquare_rdempty_fifo),
+    .zSquare_rdreq_fifo         (zSquare_rdreq_fifo),
+    .zSquare_rddata_fifo        (zSquare_rddata_fifo),
+    .zSquare_rdempty_fifo       (zSquare_rdempty_fifo),
 	 
     .DAC_running(1'b0),
     .DAC_stopped(1'b1),
     .ADC_ready(ADC_ready_125),
 	 
 	 .SW(SW),
-	 .KEY(KEY)
+	 .KEY(KEY),
+	 .led(LEDR[3:0])
 );
 ////////// TEST NCO_8CH ///////////
 wire[8*64-1:0] output_wfm;
@@ -299,6 +325,7 @@ wire ADC_acquire, XY_acquire;
 wire [79:0] sweep_freq_wfm;
 wire [15:0] controllerOut;
 wire [15:0] ray;
+wire [15:0] x, y, z, xSquare, ySquare, zSquare;
 wire controllerOut_valid;
 tweezerController#(
 	.inputBitSize			(16),
@@ -307,8 +334,8 @@ tweezerController#(
 	.outputFracSize		(15),
 	.coeffBitSize			(26),
 	.coeffFracSize		(25),
-	.workingBitSize		(24),	
-	.workingFracSize	(20)
+	.workingBitSize		(28),	
+	.workingFracSize	(24)
 )tc(
 	.clk												(ADC_outclock_50),
 	.reset											(reset_50),
@@ -324,10 +351,16 @@ tweezerController#(
 	.PI_ki											(pi_ti_coefficient),
 	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
 	.PI_ki_update									(pi_ti_coefficient_update_cmd_50),
-	.PI_setpoint									(pi_setpoint)
-	,
+	.PI_setpoint									(pi_setpoint),
+   .x                   (x),
+   .y                   (y),
+   .z                   (z),
+   .xSquare            (xSquare),
+   .ySquare            (ySquare),
+   .zSquare            (zSquare),
 	.ray(ray),
 	.addFeedback(SW[0]),
+	.useSUM(SW[4]),
 	.leds(LEDR[7:4])
 );
 
@@ -431,40 +464,33 @@ data_processor main_data_processor (
     .acq_rdreq_fifo_108(acq_rdreq_fifo_legacy)
 );
 
-localparam nOfDataPerTransmission = 'h10000;
+localparam nOfDataPerTransmission = 'h40000;
 
-dataHandlerForTransmission #(
-    .dataBitSize                    (16),
-    .max_nOfDataPerTransmission     ('h10000),
-    .fifoSize                       (64)
-) piOutputHandler(
-    .dataClk                        (ADC_outclock_50),
-    .fifoReadClk                    (clock_100),
-    .reset                          (reset_50 | reset | KEY[0]),    
-    .nOfDataPerTransmission         (nOfDataPerTransmission),
-    .in                             (controllerOut),
-    .enableData                     (controllerOut_valid),
-    .readRequest                    (pi_rdreq_output_fifo),
-    .dataRead                       (pi_rddata_output_fifo),
-    .readEmpty                      (pi_rdempty_output_fifo)
+`define setDataHandler(_in, _enableData, _readRequest, _dataRead, _readEmpty, moduleName) \
+dataHandlerForTransmission #(                                                             \
+    .dataBitSize                    (16),                                                 \
+    .max_nOfDataPerTransmission     (nOfDataPerTransmission),                             \
+    .fifoSize                       (64)                                                  \
+) moduleName(                                                                             \
+    .dataClk                        (ADC_outclock_50),                                    \
+    .fifoReadClk                    (clock_100),                                          \
+    .reset                          (reset_50 | reset | KEY[0]),                          \
+    .nOfDataPerTransmission         (nOfDataPerTransmission),                             \
+    .in                             (_in),                                                \
+    .enableData                     (_enableData),                                        \
+    .readRequest                    (_readRequest),                                       \
+    .dataRead                       (_dataRead),                                          \
+    .readEmpty                      (_readEmpty)                                          \
 );
 
-dataHandlerForTransmission #(
-    .dataBitSize                    (16),
-    .max_nOfDataPerTransmission     ('h10000),
-    .fifoSize                       (64)
-) rayHandler(
-    .dataClk                        (ADC_outclock_50),
-    .fifoReadClk                    (clock_100),
-    .reset                          (reset_50 | reset | KEY[0]),    
-    .nOfDataPerTransmission         (nOfDataPerTransmission),
-    .in                             (ray),
-    .enableData                     (controllerOut_valid),
-    .readRequest                    (ray_rdreq_fifo),
-    .dataRead                       (ray_rddata_fifo),
-    .readEmpty                      (ray_rdempty_fifo)
-);
 
+`setDataHandler(controllerOut, controllerOut_valid, pi_rdreq_output_fifo, pi_rddata_output_fifo, pi_rdempty_output_fifo, handler_controllerOut)
+`setDataHandler(x, controllerOut_valid, x_rdreq_fifo, x_rddata_fifo, x_rdempty_fifo, handler_x)
+`setDataHandler(y, controllerOut_valid, y_rdreq_fifo, y_rddata_fifo, y_rdempty_fifo, handler_y)
+`setDataHandler(z, controllerOut_valid, z_rdreq_fifo, z_rddata_fifo, z_rdempty_fifo, handler_z)
+`setDataHandler(xSquare, controllerOut_valid, xSquare_rdreq_fifo, xSquare_rddata_fifo, xSquare_rdempty_fifo, handler_xSquare)
+`setDataHandler(ySquare, controllerOut_valid, ySquare_rdreq_fifo, ySquare_rddata_fifo, ySquare_rdempty_fifo, handler_ySquare)
+`setDataHandler(zSquare, controllerOut_valid, zSquare_rdreq_fifo, zSquare_rddata_fifo, zSquare_rdempty_fifo, handler_zSquare)
 
 
 
@@ -489,7 +515,7 @@ wire inputD_saturating = (input_D_data == 16'h7FFF) || (input_D_data == 16'h8000
 wire inputC_saturating = (input_C_data == 16'h7FFF) || (input_C_data == 16'h8000);
 wire inputB_saturating = (input_B_data == 16'h7FFF) || (input_B_data == 16'h8000);
 wire inputA_saturating = (input_A_data == 16'h7FFF) || (input_A_data == 16'h8000);
-assign LEDR[3:0] = {inputD_saturating, inputC_saturating, inputB_saturating, inputA_saturating};
+//assign LEDR[3:0] = {inputD_saturating, inputC_saturating, inputB_saturating, inputA_saturating};
 
 
 
