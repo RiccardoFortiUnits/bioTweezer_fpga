@@ -26,6 +26,9 @@ module tweezerController#(
     input PI_kp_update,
     input PI_ki_update,
     input [inputBitSize -1:0] PI_setpoint,
+	 input [outputBitSize -1:0] pi_limit_LO,
+	 input [outputBitSize -1:0] pi_limit_HI,
+	 
     output [outputBitSize -1:0] ray,
     output [outputBitSize -1:0] x,
     output [outputBitSize -1:0] y,
@@ -147,10 +150,16 @@ pi_controller#(
     .pi_output              (pi_out),
     .pi_output_valid        (retroactionController_valid)
 );
-
+wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
-    pi_out_to_retroactionController(pi_out, retroactionController);
-    
+    pi_out_to_unlimitedOut(pi_out, unlimitedOut);
+	 
+assign retroactionController = $signed(unlimitedOut) > $signed(pi_limit_HI) ?
+												pi_limit_HI :
+												$signed(unlimitedOut) < $signed(pi_limit_LO) ?
+													pi_limit_LO :
+													unlimitedOut;
+
 //parameter updates
 reg PI_kp_updateReceived;
 always @(posedge clk)begin

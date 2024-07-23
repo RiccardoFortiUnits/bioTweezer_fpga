@@ -134,9 +134,9 @@ wire [107:0] acq_rddata_fifo_PML;
 
 wire [25:0] pi_kp_coefficient;
 wire [25:0] pi_ti_coefficient;
-wire [25:0] pi_setpoint;
-wire [13:0] pi_limit_HI;
-wire [13:0] pi_limit_LO;
+wire [15:0] pi_setpoint;
+wire [15:0] pi_limit_HI;
+wire [15:0] pi_limit_LO;
 
 
 `define synchToNewClock(outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
@@ -161,13 +161,27 @@ stretcher_edge_det stretchEdgeName (                                            
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_limit_LO, pi_limit_LO_update_cmd_125, pi_limit_LO_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_limit_HI, pi_limit_HI_update_cmd_125, pi_limit_HI_update_cmd_50)
 
 
 wire pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdreq_fifo, ySquare_rdreq_fifo, zSquare_rdreq_fifo;
 wire [15:0] pi_rddata_output_fifo, x_rddata_fifo, y_rddata_fifo, z_rddata_fifo, xSquare_rddata_fifo, ySquare_rddata_fifo, zSquare_rddata_fifo;
 wire pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo;
 
-network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
+network_wrapper #(
+	.LOCKIN_NUMBER(LOCKIN_NUMBER),
+
+   .largeRegisterStartIdxs      ({32'd52, 32'd26, 32'd0}),
+   .nOflargeRegisters           (2),
+   .smallRegisterStartIdxs      ({32'd48, 32'd32, 32'd16, 32'd0}),
+   .nOfsmallRegisters           (3),
+   .maxTransmissionSize         (16),
+	
+   .FIFO_LENGTH(16),
+   .nOfFifos(7)
+	
+) network_wrapper_0 (
     .clock_100(clock_100),
     .ref_clk_125(REFCLK_125),
     .rx_xcvr_clk(rx_xcvr_clk),  //output
@@ -180,43 +194,19 @@ network_wrapper #(.LOCKIN_NUMBER(LOCKIN_NUMBER)) network_wrapper_0 (
     // GENERAL PARAMETERS //
     .pi_enable_cmd(pi_enable_cmd_125),
     .pi_reset_cmd(pi_reset_cmd_125),
-
-    .pi_kp_coefficient(pi_kp_coefficient),
-    .pi_kp_coefficient_update_cmd(pi_kp_coefficient_update_cmd_125),
-    .pi_ti_coefficient(pi_ti_coefficient),
-    .pi_ti_coefficient_update_cmd(pi_ti_coefficient_update_cmd_125),
 	 
-    .pi_setpoint(pi_setpoint),
-    .pi_setpoint_update_cmd(pi_setpoint_update_cmd_125),
-	 
-    .pi_limit_HI(pi_limit_HI),
-    .pi_limit_LO(pi_limit_LO),
+	 .largeRegisters             ({pi_ti_coefficient, pi_kp_coefficient}),
+	 .largeRegisters_update_cmd  ({pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125}),
+	 .smallRegisters             ({pi_limit_HI, pi_limit_LO, pi_setpoint}),
+	 .smallRegisters_update_cmd  ({pi_limit_HI_update_cmd_125, pi_limit_LO_update_cmd_125, pi_setpoint_update_cmd_125}),
     // DACs and ADC status
 //    .DAC_running(DAC_running_125),
 //    .DAC_stopped(DAC_stopped_125),
 	 
-    .pi_rdreq_output_fifo       (pi_rdreq_output_fifo),
-    .pi_rddata_output_fifo      (pi_rddata_output_fifo),
-    .pi_rdempty_output_fifo     (pi_rdempty_output_fifo),
-    .x_rdreq_fifo               (x_rdreq_fifo),
-    .x_rddata_fifo              (x_rddata_fifo),
-    .x_rdempty_fifo             (x_rdempty_fifo),
-    .y_rdreq_fifo               (y_rdreq_fifo),
-    .y_rddata_fifo              (y_rddata_fifo),
-    .y_rdempty_fifo             (y_rdempty_fifo),
-    .z_rdreq_fifo               (z_rdreq_fifo),
-    .z_rddata_fifo              (z_rddata_fifo),
-    .z_rdempty_fifo             (z_rdempty_fifo),
-    .xSquare_rdreq_fifo         (xSquare_rdreq_fifo),
-    .xSquare_rddata_fifo        (xSquare_rddata_fifo),
-    .xSquare_rdempty_fifo       (xSquare_rdempty_fifo),
-    .ySquare_rdreq_fifo         (ySquare_rdreq_fifo),
-    .ySquare_rddata_fifo        (ySquare_rddata_fifo),
-    .ySquare_rdempty_fifo       (ySquare_rdempty_fifo),
-    .zSquare_rdreq_fifo         (zSquare_rdreq_fifo),
-    .zSquare_rddata_fifo        (zSquare_rddata_fifo),
-    .zSquare_rdempty_fifo       (zSquare_rdempty_fifo),
-	 
+    .rdreq_fifo	({zSquare_rdreq_fifo,   ySquare_rdreq_fifo,   xSquare_rdreq_fifo,   z_rdreq_fifo,   y_rdreq_fifo,   x_rdreq_fifo,   pi_rdreq_output_fifo}),
+    .rddata_fifo	({zSquare_rddata_fifo,  ySquare_rddata_fifo,  xSquare_rddata_fifo,  z_rddata_fifo,  y_rddata_fifo,  x_rddata_fifo,  pi_rddata_output_fifo}),
+    .rdempty_fifo	({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo}),
+    	 
     .DAC_running(1'b0),
     .DAC_stopped(1'b1),
     .ADC_ready(ADC_ready_125),
@@ -352,6 +342,8 @@ tweezerController#(
 	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
 	.PI_ki_update									(pi_ti_coefficient_update_cmd_50),
 	.PI_setpoint									(pi_setpoint),
+	.pi_limit_HI									(pi_limit_HI),
+	.pi_limit_LO									(pi_limit_LO),
    .x                   (x),
    .y                   (y),
    .z                   (z),

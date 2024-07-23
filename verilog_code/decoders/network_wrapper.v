@@ -10,7 +10,17 @@ module network_wrapper #(
     IP_BOARD_1 = {8'd192, 8'd168, 8'd1, 8'd12},     //IP
     PORT_1 = 2047,
     PORT_2 = 2048,
-    LOCKIN_NUMBER = 32
+    LOCKIN_NUMBER = 32,
+	 
+	 
+    parameter largeRegisterStartIdxs = {64, 32, 0},
+    parameter nOflargeRegisters = 2,
+    parameter smallRegisterStartIdxs = {64, 48, 32, 16, 0},
+    parameter nOfsmallRegisters = 4,
+    parameter maxTransmissionSize = 16,
+	 
+    parameter FIFO_LENGTH = 16,
+    parameter nOfFifos = 7
 ) (
     input   clock_100,  //100 MHz clock input
     input   ref_clk_125,  //125 MHz clock input for ethernet
@@ -30,38 +40,15 @@ module network_wrapper #(
 	 output pi_enable_cmd,
     output pi_reset_cmd,
 	 
-    output [25:0] pi_kp_coefficient,
-    output        pi_kp_coefficient_update_cmd,
-    output [25:0] pi_ti_coefficient,
-    output        pi_ti_coefficient_update_cmd,
-    output [25:0] pi_setpoint,
-    output        pi_setpoint_update_cmd,
-    output [16:0] pi_limit_HI,
-    output [16:0] pi_limit_LO,
-    
-    output        pi_rdreq_output_fifo,
-    input  [15:0] pi_rddata_output_fifo, 
-    input         pi_rdempty_output_fifo,
+    output [`largeRegisterStart(nOflargeRegisters) -1:0] largeRegisters,
+    output [nOflargeRegisters -1:0] largeRegisters_update_cmd,
+    output [`smallRegisterStart(nOfsmallRegisters) -1:0] smallRegisters,
+    output [nOfsmallRegisters -1:0] smallRegisters_update_cmd,
+	     
 	 
-    output        x_rdreq_fifo,
-    input  [15:0] x_rddata_fifo, 
-    input         x_rdempty_fifo,
-    output        y_rdreq_fifo,
-    input  [15:0] y_rddata_fifo, 
-    input         y_rdempty_fifo,
-    output        z_rdreq_fifo,
-    input  [15:0] z_rddata_fifo, 
-    input         z_rdempty_fifo,
-	 
-    output        xSquare_rdreq_fifo,
-    input  [15:0] xSquare_rddata_fifo, 
-    input         xSquare_rdempty_fifo,
-    output        ySquare_rdreq_fifo,
-    input  [15:0] ySquare_rddata_fifo, 
-    input         ySquare_rdempty_fifo,
-    output        zSquare_rdreq_fifo,
-    input  [15:0] zSquare_rddata_fifo, 
-    input         zSquare_rdempty_fifo,
+    output[nOfFifos -1:0]                   rdreq_fifo,
+    input [nOfFifos * FIFO_LENGTH -1:0]     rddata_fifo, 
+    input [nOfFifos -1:0]                   rdempty_fifo,
 	 
 	 
     // DACs and ADC status
@@ -270,34 +257,28 @@ generic_param_decoder pi_reset_decoder(
 );
 
 control_param_decoder #(
-	.signalBitSize	(16),
-	.signalFracSize(15),
-	.coeffBitSize	(26),
-	.coeffFracSize	(25)
+     .largeRegisterStartIdxs     (largeRegisterStartIdxs),
+     .nOflargeRegisters          (nOflargeRegisters),
+     .smallRegisterStartIdxs     (smallRegisterStartIdxs),
+     .nOfsmallRegisters          (nOfsmallRegisters),
+     .maxTransmissionSize         (maxTransmissionSize)
 )control_param_decoder (
     .clk(rx_xcvr_clk),
-    .reset(!mac_configured_125),    
-    .DAC_stopped(DAC_stopped),
+    .reset(!mac_configured_125),   
 
     .received_data(received_data),
     .received_control_param_valid(received_control_param_valid),
 
     .wipe_settings(wipe_settings),
 
-    .control_data(control_data),
-
     .ack(control_param_ack),
     .nak(control_param_nak),
     .err(control_param_err),
 
-    .pi_kp_coefficient(pi_kp_coefficient),
-    .pi_kp_coefficient_update_cmd(pi_kp_coefficient_update_cmd),
-    .pi_ti_coefficient(pi_ti_coefficient),
-    .pi_ti_coefficient_update_cmd(pi_ti_coefficient_update_cmd),
-    .pi_setpoint(pi_setpoint),
-    .pi_setpoint_update_cmd(pi_setpoint_update_cmd),
-    .pi_limit_HI(pi_limit_HI),
-    .pi_limit_LO(pi_limit_LO),
+	 .largeRegisters                 (largeRegisters),
+	 .largeRegisters_update_cmd      (largeRegisters_update_cmd),
+	 .smallRegisters                 (smallRegisters),
+	 .smallRegisters_update_cmd      (smallRegisters_update_cmd),
 
     .control_param_written(control_param_written)
 );
@@ -317,8 +298,8 @@ control_param_decoder #(
 wire wfm_written; //1 if the WFM has been written
 wire current_rdreq_fifo_dec2; //RDREQ for the current FIFO in fast mode
 new_dec_comm8_port2 #(
-    .FIFO_LENGTH(16),
-    .nOfFifos(7)
+    .FIFO_LENGTH(FIFO_LENGTH),
+    .nOfFifos(nOfFifos)
 )dec_comm8_2(
     .clk                      (rx_xcvr_clk),
     .reset                    (~mac_configured_125),
@@ -330,9 +311,9 @@ new_dec_comm8_port2 #(
     .tx_fifo_status_full      (tx_fifo_status_full1),
     .destination_mac          (client_mac),
     .destination_ip           (client_ip),
-	 .rdreq_fifo({zSquare_rdreq_fifo, ySquare_rdreq_fifo, xSquare_rdreq_fifo, z_rdreq_fifo, y_rdreq_fifo, x_rdreq_fifo, pi_rdreq_output_fifo}),
-	 .rddata_fifo({zSquare_rddata_fifo, ySquare_rddata_fifo, xSquare_rddata_fifo, z_rddata_fifo, y_rddata_fifo, x_rddata_fifo, pi_rddata_output_fifo}),
-	 .rdempty_fifo({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo})
+    .rdreq_fifo(rdreq_fifo),
+    .rddata_fifo(rddata_fifo),
+    .rdempty_fifo(rdempty_fifo)
 );
   
 endmodule

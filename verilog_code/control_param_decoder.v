@@ -1,20 +1,24 @@
 module control_param_decoder #(
-        parameter signalBitSize = 16,
-        parameter signalFracSize = signalBitSize - 1,
-        parameter coeffBitSize = 26,
-        parameter coeffFracSize = coeffBitSize - 1
-        
+    //the codes for the registers are ordered in this manner:
+        //code 0 not used
+        //all large registers, MSB code 2*i +1, LSB code 2*i+1
+        //all small registers, code nOflargeRegisters*2+1+j
+        parameter largeRegisterStartIdxs = {64, 32, 0},
+        parameter nOflargeRegisters = 2,
+        parameter smallRegisterStartIdxs = {64, 48, 32, 16, 0},
+        parameter nOfsmallRegisters = 4,
+        parameter maxTransmissionSize = 16
+
+`define largeRegisterStart(registerIdx) largeRegisterStartIdxs[(registerIdx+1) * 32 -1-:32]
+`define smallRegisterStart(registerIdx) smallRegisterStartIdxs[(registerIdx+1) * 32 -1-:32]
 )(
     input clk,
     input reset,
-    input DAC_stopped,  
 
     input [31:0] received_data,
     input        received_control_param_valid,
 
-    input wipe_settings,//todo: questo comando resetta i valori, ma non avvisa i moduli successivi di aggiornare i valori, quindi non c'è alcun effetto
-
-    output reg control_data,
+    input wipe_settings,
 
     output reg ack,
     output reg nak,
@@ -22,80 +26,53 @@ module control_param_decoder #(
 
     //----------------------------------------------------------------
     // pi CONTROL PARAMETERS
-    output reg [coeffBitSize -1:0] pi_kp_coefficient,
-    output reg        pi_kp_coefficient_update_cmd,
-    output reg [coeffBitSize -1:0] pi_ti_coefficient,
-    output reg        pi_ti_coefficient_update_cmd,
-    output reg [coeffBitSize -1:0] pi_setpoint,
-    output reg        pi_setpoint_update_cmd,
-    output reg [signalBitSize -1:0] pi_limit_HI,
-    output reg [signalBitSize -1:0] pi_limit_LO,
+    output reg [`largeRegisterStart(nOflargeRegisters) -1:0] largeRegisters,
+    output reg [nOflargeRegisters -1:0] largeRegisters_update_cmd,
+    output reg [`smallRegisterStart(nOfsmallRegisters) -1:0] smallRegisters,
+    output reg [nOfsmallRegisters -1:0] smallRegisters_update_cmd,
 
     //----------------------------------------------------------------
-
     output control_param_written
 );
 
 //-------------------------------------------------------------------------------------------------------------------------------
 // CONTROL PARAMETERS LIST:
-localparam  pi_KP_COEFF_MSB = 8'h01,
-            pi_KP_COEFF_LSB = 8'h02,
-            pi_TI_COEFF_MSB = 8'h03,
-            pi_TI_COEFF_LSB = 8'h04,
-            pi_SETPOINT     = 8'h05,
-            pi_LIMIT_HI     = 8'h07,
-            pi_LIMIT_LO     = 8'h08;
+localparam  largeRegistersStartDataControl = 1,
+            smallRegistersStartDataControl = nOflargeRegisters * 2 + largeRegistersStartDataControl;
 //-------------------------------------------------------------------------------------------------------------------------------
 
 // STATE MACHINE
 localparam  IDLE = 0,
-            EVAL = 1;
+            EVAL = 1,
+            CHECK_NAK = 2;
 
 reg [1:0] STATE = IDLE;
 
-reg pi_kp_coefficient_MSB_written, pi_kp_coefficient_LSB_written, pi_ti_coefficient_MSB_written, pi_ti_coefficient_LSB_written;
-reg pi_setpoint_written, pi_limit_HI_written, pi_limit_LO_written;
+reg [nOflargeRegisters -1:0] largeRegister_LSB_written, largeRegister_MSB_written;
+reg [nOfsmallRegisters -1:0] smallRegister_written;
+
+assign control_param_written = (&largeRegister_LSB_written) & (&largeRegister_MSB_written) & (&smallRegister_written);
 
 
-
-
-reg pi_kp_coefficient_MSB_update_cmd, pi_kp_coefficient_LSB_update_cmd, pi_ti_coefficient_MSB_update_cmd, pi_ti_coefficient_LSB_update_cmd;
-reg pi_setpoint_MSB_update_cmd, pi_setpoint_LSB_update_cmd;
-
-
-
-assign control_param_written = pi_kp_coefficient_MSB_written & pi_kp_coefficient_LSB_written & pi_ti_coefficient_MSB_written & pi_ti_coefficient_LSB_written 
-                               & pi_setpoint_written & pi_limit_HI_written & pi_limit_LO_written;
+reg [nOflargeRegisters -1:0] largeRegister_LSB_updateCmd, largeRegister_MSB_updateCmd;
                               
 
 //-------------------------------------------------------------------------------------------------------------------------------
 // SWEEP F PARAMETERS DECODING AND RESET
-
+integer i,j;
 always @(posedge clk) 
 begin
     if (reset || wipe_settings) 
     begin        
-        pi_kp_coefficient  <= 27'd0;
-        pi_ti_coefficient  <= 27'd0;
-        pi_setpoint        <= 27'd0;
-        pi_limit_HI        <= 14'd0;
-        pi_limit_LO        <= 14'd0;
-        pi_kp_coefficient_MSB_written              <= 1'b0;
-        pi_kp_coefficient_LSB_written              <= 1'b0;
-        pi_ti_coefficient_MSB_written              <= 1'b0;
-        pi_ti_coefficient_LSB_written              <= 1'b0;
-        pi_setpoint_written                        <= 1'b0;
-        pi_limit_HI_written                        <= 1'b0;
-        pi_limit_LO_written                        <= 1'b0;
-        pi_kp_coefficient_update_cmd               <= 1'b0;
-        pi_kp_coefficient_MSB_update_cmd           <= 1'b0;
-        pi_kp_coefficient_LSB_update_cmd           <= 1'b0;
-        pi_ti_coefficient_update_cmd               <= 1'b0;
-        pi_ti_coefficient_MSB_update_cmd           <= 1'b0;
-        pi_ti_coefficient_LSB_update_cmd           <= 1'b0;
-        pi_setpoint_update_cmd                     <= 1'b0;
-        pi_setpoint_MSB_update_cmd                 <= 1'b0;
-        pi_setpoint_LSB_update_cmd                 <= 1'b0;
+        largeRegisters                 <= 0;
+        largeRegisters_update_cmd      <= 0;
+        largeRegister_LSB_updateCmd    <= 0;
+        largeRegister_MSB_updateCmd    <= 0;
+        smallRegisters                 <= 0;
+        smallRegisters_update_cmd      <= 0;
+        largeRegister_LSB_written      <= 0;
+        largeRegister_MSB_written      <= 0;
+        smallRegister_written          <= 0;
 
         STATE <= IDLE;  
     end
@@ -104,32 +81,10 @@ begin
         case (STATE)
             IDLE: 
             begin
-                pi_kp_coefficient_update_cmd           <= 1'b0;
-                pi_ti_coefficient_update_cmd           <= 1'b0;
-                pi_setpoint_update_cmd                 <= 1'b0;
-               
-
-                if (pi_kp_coefficient_MSB_update_cmd && pi_kp_coefficient_LSB_update_cmd)
-                begin
-                    pi_kp_coefficient_update_cmd     <= 1'b1;
-                    pi_kp_coefficient_MSB_update_cmd <= 1'b0;
-                    pi_kp_coefficient_LSB_update_cmd <= 1'b0;
-                end
-                else
-                begin
-                    pi_kp_coefficient_update_cmd     <= 1'b0;
-                end
-
-                if (pi_ti_coefficient_MSB_update_cmd && pi_ti_coefficient_LSB_update_cmd)
-                begin
-                    pi_ti_coefficient_update_cmd     <= 1'b1;
-                    pi_ti_coefficient_MSB_update_cmd <= 1'b0;
-                    pi_ti_coefficient_LSB_update_cmd <= 1'b0;
-                end
-                else
-                begin
-                    pi_ti_coefficient_update_cmd     <= 1'b0;
-                end
+                smallRegisters_update_cmd <= 0;
+                largeRegisters_update_cmd <= (largeRegister_LSB_updateCmd & largeRegister_MSB_updateCmd);
+                largeRegister_LSB_updateCmd <= largeRegister_LSB_updateCmd & (~largeRegister_MSB_updateCmd);
+                largeRegister_MSB_updateCmd <= largeRegister_MSB_updateCmd & (~largeRegister_LSB_updateCmd);
 
                 if (received_control_param_valid) 
                 begin
@@ -147,50 +102,49 @@ begin
 
             EVAL: 
             begin
-                STATE <= IDLE;
-                case (received_data[31-:8])
-`define updateGeneric(state, register, BitSize, offset, update_cmd, written)       \
-    state:                                                                                                              \
-    begin                                                                                                               \
-        register[BitSize -1:offset] <= received_data[BitSize-offset -1:0]; \
-        update_cmd <= 1'b1;                                                                                 \
-        written    <= 1'b1;                                                                                 \
-        ack <= 1'b1;                                                                                                \
-    end
-`define updateMSB(state, register, BitSize, MSB_update_cmd, MSB_written) `updateGeneric(state, register, BitSize, 16, MSB_update_cmd, MSB_written)
-`define updateLSB(state, register, LSB_update_cmd, LSB_written) `updateGeneric(state, register, 16, 0, LSB_update_cmd, LSB_written)
-`define update(state, register, BitSize, LSB_update_cmd, LSB_written) `updateGeneric(state, register, BitSize, 0, LSB_update_cmd, LSB_written)
-                        
-                    `updateMSB(pi_KP_COEFF_MSB, pi_kp_coefficient, coeffBitSize, pi_kp_coefficient_MSB_update_cmd, pi_kp_coefficient_MSB_written)
-                    `updateLSB(pi_KP_COEFF_LSB, pi_kp_coefficient, pi_kp_coefficient_LSB_update_cmd, pi_kp_coefficient_LSB_written)
+                STATE <= CHECK_NAK;
 
-                    `updateMSB(pi_TI_COEFF_MSB, pi_ti_coefficient, coeffBitSize, pi_ti_coefficient_MSB_update_cmd, pi_ti_coefficient_MSB_written)
-                    `updateLSB(pi_TI_COEFF_LSB, pi_ti_coefficient, pi_ti_coefficient_LSB_update_cmd, pi_ti_coefficient_LSB_written)
-                    `update(pi_SETPOINT, pi_setpoint, signalBitSize, pi_setpoint_update_cmd, pi_setpoint_written)
-
-`define update_checkDAC_stopped(state, register, BitSize, written)       \
-    state:															\
-    begin															\
-        if (DAC_stopped) 											\
-        begin														\
-            register[BitSize -1:0] <= received_data[BitSize -1:0];	\
-            written <= 1'b1;										\
-            ack <= 1'b1;											\
-        end															\
-        else														\
-            err <= 1'b1;											\
-    end
-                    `update_checkDAC_stopped(pi_LIMIT_HI, pi_limit_HI, signalBitSize, pi_limit_HI_written)
-                    `update_checkDAC_stopped(pi_LIMIT_LO, pi_limit_LO, signalBitSize, pi_limit_LO_written)
-
-                    default: 
-                    begin
-                        nak <= 1'b1;                        
+                for(i=0;i<nOflargeRegisters;i=i+1)begin
+                    //large registers MSB
+                    if(received_data[31-:8] == i*2+largeRegistersStartDataControl)begin
+                        for(j=maxTransmissionSize;j<`largeRegisterStart(i+1)-`largeRegisterStart(i);j=j+1)begin
+                            largeRegisters[`largeRegisterStart(i)+j] <= received_data[j-maxTransmissionSize];
+                        end
+                        largeRegister_MSB_updateCmd[i] <= 1'b1;
+                        largeRegister_MSB_written    <= 1'b1;
+                        ack <= 1'b1;
                     end
-                    
-                endcase
+                    //large registers LSB
+                    if(received_data[31-:8] == i*2+largeRegistersStartDataControl+1)begin
+                        for(j=0;j<maxTransmissionSize;j=j+1)begin
+                            largeRegisters[`largeRegisterStart(i)+j] <= received_data[j];
+                        end
+                        largeRegister_LSB_updateCmd[i] <= 1'b1;
+                        largeRegister_LSB_written    <= 1'b1;
+                        ack <= 1'b1;
+                    end
+                end
+                for (i=0;i<nOfsmallRegisters;i=i+1) begin                    
+                    //small registers
+                    if(received_data[31-:8] == i+smallRegistersStartDataControl)begin
+                        smallRegisters[`smallRegisterStart(i)+maxTransmissionSize -1-:maxTransmissionSize] <= received_data[maxTransmissionSize -1:0];
+                        for(j=0;j<`smallRegisterStart(i+1)-`smallRegisterStart(i);j=j+1)begin
+                            smallRegisters[`smallRegisterStart(i)+j] <= received_data[j];
+                        end
+                        smallRegisters_update_cmd[i] <= 1'b1;
+                        smallRegister_written    <= 1'b1;
+                        ack <= 1'b1;
+                    end
+                end
             end
-
+            CHECK_NAK:
+            begin
+                STATE <= IDLE;
+                if(!(ack | err))begin
+                    nak <= 1'b1;
+                end
+            end
+            
             default: 
             begin
                 STATE <= IDLE;                     
@@ -198,5 +152,20 @@ begin
         endcase
     end
 end
+
+// generate
+//     genvar gi, gj;
+//     for(gi=0;gi<nOflargeRegisters;gi=gi+1)begin
+//         for(gj=maxTransmissionSize;gj<`largeRegisterStart(gi+1)-`largeRegisterStart(gi);gj=gj+1)begin
+//             always @(posedge clk) begin
+//                 if(reset || STATE == IDLE) begin
+//                     largeRegisters[`largeRegisterStart(i)+gj] <= 0;
+//                 end else begin
+//                     largeRegisters[`largeRegisterStart(i)+gj] <=  received_data[31-:8] == gi*2+largeRegistersStartDataControl ? received_data[gj] : 0;
+//                 end
+//             end
+//         end
+//     end
+// endgenerate
 
 endmodule
