@@ -13,7 +13,8 @@ module dataHandlerForTransmission #(
 
     input readRequest,
     output [dataBitSize -1:0] dataRead,
-    output readEmpty
+    output readEmpty,
+	 output full
 );
 localparam averager_outBitSize = $clog2(max_nOfDataPerTransmission+1) + dataBitSize;
 wire averagedData_valid;
@@ -34,19 +35,22 @@ averager #(
     .data_valid             (averagedData_valid)
 );
 assign averagedData = averagedData_uncropped[dataBitSize -1:0];//since the averager has .shift=1, it already did the correct shift for us
+wire wrFull, rdFull;
 
 dcfifo #(
+	.clocks_are_synchronized("FALSE"),
+	.lpm_hint("RAM_BLOCK_TYPE=MLAB"),
     .intended_device_family("Cyclone V"),
     .lpm_numwords(fifoSize),
     .lpm_showahead("OFF"),
     .lpm_type("dcfifo"),
     .lpm_width(dataBitSize),
-    .lpm_widthu(6),
-    .overflow_checking("ON"),
+    .lpm_widthu($clog2(fifoSize)),
+    .overflow_checking("OFF"),
     .rdsync_delaypipe(5),
     .read_aclr_synch("OFF"),
-    .underflow_checking("ON"),
-    .use_eab("ON"),
+    .underflow_checking("OFF"),
+    .use_eab("OFF"),
     .write_aclr_synch("OFF"),
     .wrsync_delaypipe(5)
 ) dcfifo_component (
@@ -59,10 +63,10 @@ dcfifo #(
     .q (dataRead),
     .rdempty (readEmpty),
     .eccstatus (),
-    .rdfull (),
+    .rdfull (rdFull),
     .rdusedw (),
     .wrempty (),
-    .wrfull (),
+    .wrfull (wrFull),
     .wrusedw ()
 );
 

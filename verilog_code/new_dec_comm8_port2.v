@@ -37,8 +37,7 @@ module new_dec_comm8_port2 #(
 localparam TX_IDLE                 = 0,// wait for data in the fifos
            TX_HEADER_CTRL_MODE     = 1,// write header
            TX_WRITE_DATA_FROM_FIFO = 2,// write the data from all the fifos (we'll loop for every fifo until we've read them all)
-           TRANSMIT                = 3,// transmit the packet
-           WAIT                    = 4;// buffer state, to allow the fifos to reset
+           TRANSMIT                = 3;// transmit the packet
 
 
 
@@ -60,15 +59,9 @@ assign data_from_fifo_slice = fifo_sel_data[FIFO_LENGTH-1 - 8*byte_counter -:8];
 
 
 // Assign the input array to the unpacked array
-wire [FIFO_LENGTH -1:0] unpacked_rddata_fifo [nOfFifos -1:0];
-generate
-genvar i;
-  for (i = 0; i < nOfFifos; i = i + 1) begin: aaaa
-		assign unpacked_rddata_fifo[i] = rddata_fifo[FIFO_LENGTH * (i+1) - 1 : FIFO_LENGTH * i];
-  end
-endgenerate
+assign fifo_sel_data = rddata_fifo[FIFO_LENGTH * (fifo_sel_counter+1) -1-: FIFO_LENGTH];
 
-assign fifo_sel_data = unpacked_rddata_fifo[fifo_sel_counter];
+reg[7:0] packetNumber;
 
 always @(posedge clk) 
 begin
@@ -83,6 +76,7 @@ begin
         tx_fifo_status_write <= 0;
 
         byte_counter <= 0;
+		packetNumber <= 0;
 
         TX_STATE <= TX_IDLE;
     end
@@ -101,15 +95,18 @@ begin
 
                 if (!rdempty_fifo)
                 begin // start when the all the fifos are not empty (all the fifos are written at the same time anyway)
-                    TX_STATE <= TX_HEADER_CTRL_MODE;                            
+                    TX_STATE <= TX_HEADER_CTRL_MODE;  
+                    rdreq_all_fifos <= 1;//request the next bunch of data                          
                 end
             end
 
             TX_HEADER_CTRL_MODE:
             begin
                 tx_fifo_data_write <= 1;
-                tx_fifo_data       <= 8'hA5;//for now, no header is necessary, but let's write something anyway
-                
+                tx_fifo_data       <= packetNumber;//header contains a counter
+                packetNumber <= packetNumber + 1;
+                rdreq_all_fifos      <= 0;//for the next clock cycle, the new data should be ready
+
                 TX_STATE <= TX_WRITE_DATA_FROM_FIFO;
             end
 
@@ -149,22 +146,11 @@ begin
                 end else begin
                     tx_fifo_status <= {nOfFifos * BYTE_IN_FIFO + 1, destination_ip, destination_mac};//set the status (nOf bytes to transmit, IP and MAC address)
                     tx_fifo_status_write <= 1;//initiate the transmission
-                    rdreq_all_fifos <= 1;//prepare the request for the next bunch of data
 
-                    TX_STATE <= WAIT;
+                    TX_STATE <= TX_IDLE;
                 end
             end
 
-            WAIT: 
-            begin // wait state needed to get the rdempty_fifos back to one after tx_fifo_status_write <= 1;
-                    //todo: since I added the TRANSMIT case, maybe it's no longer necessary, and we can merge the TRANSMIT and WAIT cases
-                rdreq_all_fifos      <= 0;
-
-                tx_fifo_data_write   <= 0;
-                tx_fifo_status_write <= 0;
-
-                TX_STATE <= TX_IDLE;
-            end
             
             default: 
             begin

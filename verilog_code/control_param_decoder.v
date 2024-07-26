@@ -1,7 +1,7 @@
 module control_param_decoder #(
     //the codes for the registers are ordered in this manner:
         //code 0 not used
-        //all large registers, MSB code 2*i +1, LSB code 2*i+1
+        //all large registers, MSB code 2*i +1, LSB code 2*(i+1)
         //all small registers, code nOflargeRegisters*2+1+j
         parameter largeRegisterStartIdxs = {64, 32, 0},
         parameter nOflargeRegisters = 2,

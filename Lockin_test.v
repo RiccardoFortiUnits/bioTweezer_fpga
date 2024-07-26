@@ -169,6 +169,40 @@ wire pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdr
 wire [15:0] pi_rddata_output_fifo, x_rddata_fifo, y_rddata_fifo, z_rddata_fifo, xSquare_rddata_fifo, ySquare_rddata_fifo, zSquare_rddata_fifo;
 wire pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo;
 
+wire [15:0] controllerOut;
+wire [15:0] ray;
+wire [15:0] x, y, z, xSquare, ySquare, zSquare;
+
+/*how to add custom connections to the network module:
+	
+	reception: parameter setting
+		for setting a parameter from a network command, you need to give to the module a register that will contain the new value of the parameter and
+		a bit that will validate the next value
+		To avoid having to manually add for each parameter some new inputs and structures in the internal modules, the module network_wrapper 
+			takes as input a long register containing all the parameter registers and another containing all the validation bits. The size of these 
+			registers is specified through some parametric values of the module, so that the compiler will automatically create the internal structure 
+			to manage any number of parameters, with any size of the parameter registers.
+			
+			to handle large registers (i.e. with size > 16), which will require two transmissions to set the most significant bits and less significant bits,
+			a separate couple of long register and validation bits register is available. 
+			
+			So, to add a new register to the network_wrapper:
+				-if the register is longer than 16bits (and shorter than 32)
+					-increase the value nOflargeRegisters
+					-add to largeRegisterStartIdxs its previous last value plus the size of the new register (es: previously largeRegisterStartIdxs 
+						was {32'd52, 32'd26, 32'd0}, and the new register is 20bits, then the new value for largeRegisterStartIdxs 
+						is {32'd72, 32'd52, 32'd26, 32'd0} (72=52+20))
+					-add the register wire to the output largeRegisters
+					-add the validate wire to the output largeRegisters_update_cmd
+					
+				-if the register is shorter than 16bits, use the "small" registers instead (nOfsmallRegisters, smallRegisters_update_cmd...)
+				
+			After that, the module will update the values when receiving an UDP request with payload "CPAR" + <param idx> + 0x00 + <new_value>
+			the parameter idx (1 byte) is decided as follows:
+			first, all large registers, which will take 2 indexes each, one for the MSB and the other for the LSB
+			then, all small registers (one idx each)
+
+*/
 network_wrapper #(
 	.LOCKIN_NUMBER(LOCKIN_NUMBER),
 
@@ -202,18 +236,23 @@ network_wrapper #(
     // DACs and ADC status
 //    .DAC_running(DAC_running_125),
 //    .DAC_stopped(DAC_stopped_125),
-	 
+//	 
     .rdreq_fifo	({zSquare_rdreq_fifo,   ySquare_rdreq_fifo,   xSquare_rdreq_fifo,   z_rdreq_fifo,   y_rdreq_fifo,   x_rdreq_fifo,   pi_rdreq_output_fifo}),
     .rddata_fifo	({zSquare_rddata_fifo,  ySquare_rddata_fifo,  xSquare_rddata_fifo,  z_rddata_fifo,  y_rddata_fifo,  x_rddata_fifo,  pi_rddata_output_fifo}),
     .rdempty_fifo	({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo}),
-    	 
+//    	 
+
+//    .rdreq_fifo 	  ({xSquare_rdreq_fifo,   ySquare_rdreq_fifo,   y_rdreq_fifo,   x_rdreq_fifo}),
+//    .rddata_fifo    ({xSquare_rddata_fifo,  ySquare_rddata_fifo,  y_rddata_fifo,  x_rddata_fifo}),
+//    .rdempty_fifo   ({xSquare_rdempty_fifo, ySquare_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo}),
+         
     .DAC_running(1'b0),
     .DAC_stopped(1'b1),
     .ADC_ready(ADC_ready_125),
 	 
 	 .SW(SW),
 	 .KEY(KEY),
-	 .led(LEDR[3:0])
+//	 .led(LEDR[3:0])
 );
 ////////// TEST NCO_8CH ///////////
 wire[8*64-1:0] output_wfm;
@@ -313,9 +352,6 @@ clock_synchronizer clock_synchronizer_inst(
 wire DAC_running_50 = 1;
 wire ADC_acquire, XY_acquire;
 wire [79:0] sweep_freq_wfm;
-wire [15:0] controllerOut;
-wire [15:0] ray;
-wire [15:0] x, y, z, xSquare, ySquare, zSquare;
 wire controllerOut_valid;
 tweezerController#(
 	.inputBitSize			(16),
@@ -336,7 +372,7 @@ tweezerController#(
 	.retroactionController_valid				(controllerOut_valid),
 	.PI_reset										(pi_reset_cmd_50 | SW[1]),
 	.PI_enable										(pi_enable_cmd_50 | SW[2]),
-	.PI_freeze										(SW[8]),
+	.PI_freeze										(1'b1),
 	.PI_kp											(pi_kp_coefficient),
 	.PI_ki											(pi_ti_coefficient),
 	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
@@ -353,7 +389,7 @@ tweezerController#(
 	.ray(ray),
 	.addFeedback(SW[0]),
 	.useSUM(SW[4]),
-	.leds(LEDR[7:4])
+//	.leds(LEDR[7:4])
 );
 
 
@@ -458,43 +494,41 @@ data_processor main_data_processor (
 
 localparam nOfDataPerTransmission = 'h40000;
 
-`define setDataHandler(_in, _enableData, _readRequest, _dataRead, _readEmpty, moduleName) \
+`define setDataHandler(_in, _enableData, _readRequest, _dataRead, _readEmpty, moduleName,i) \
 dataHandlerForTransmission #(                                                             \
     .dataBitSize                    (16),                                                 \
     .max_nOfDataPerTransmission     (nOfDataPerTransmission),                             \
-    .fifoSize                       (64)                                                  \
+    .fifoSize                       (32)                                                  \
 ) moduleName(                                                                             \
     .dataClk                        (ADC_outclock_50),                                    \
-    .fifoReadClk                    (clock_100),                                          \
-    .reset                          (reset_50 | reset | KEY[0]),                          \
+    .fifoReadClk                    (rx_xcvr_clk),                                        \
+    .reset                          (reset_50 | reset | SW[9] | (!_enableData)),          \
     .nOfDataPerTransmission         (nOfDataPerTransmission),                             \
     .in                             (_in),                                                \
     .enableData                     (_enableData),                                        \
     .readRequest                    (_readRequest),                                       \
     .dataRead                       (_dataRead),                                          \
-    .readEmpty                      (_readEmpty)                                          \
+    .readEmpty                      (_readEmpty),                                         \
+	 .full									(HEX0[i])															\
 );
 
 
-`setDataHandler(controllerOut, controllerOut_valid, pi_rdreq_output_fifo, pi_rddata_output_fifo, pi_rdempty_output_fifo, handler_controllerOut)
-`setDataHandler(x, controllerOut_valid, x_rdreq_fifo, x_rddata_fifo, x_rdempty_fifo, handler_x)
-`setDataHandler(y, controllerOut_valid, y_rdreq_fifo, y_rddata_fifo, y_rdempty_fifo, handler_y)
-`setDataHandler(z, controllerOut_valid, z_rdreq_fifo, z_rddata_fifo, z_rdempty_fifo, handler_z)
-`setDataHandler(xSquare, controllerOut_valid, xSquare_rdreq_fifo, xSquare_rddata_fifo, xSquare_rdempty_fifo, handler_xSquare)
-`setDataHandler(ySquare, controllerOut_valid, ySquare_rdreq_fifo, ySquare_rddata_fifo, ySquare_rdempty_fifo, handler_ySquare)
-`setDataHandler(zSquare, controllerOut_valid, zSquare_rdreq_fifo, zSquare_rddata_fifo, zSquare_rdempty_fifo, handler_zSquare)
+`setDataHandler(controllerOut , controllerOut_valid, pi_rdreq_output_fifo  , pi_rddata_output_fifo  , pi_rdempty_output_fifo  , handler_controllerOut  , 0)
+`setDataHandler(x             , controllerOut_valid, x_rdreq_fifo          , x_rddata_fifo          , x_rdempty_fifo          , handler_x              , 1)
+`setDataHandler(y             , controllerOut_valid, y_rdreq_fifo          , y_rddata_fifo          , y_rdempty_fifo          , handler_y              , 2)
+`setDataHandler(z		         , controllerOut_valid, z_rdreq_fifo          , z_rddata_fifo          , z_rdempty_fifo          , handler_z              , 3)
+`setDataHandler(xSquare       , controllerOut_valid, xSquare_rdreq_fifo    , xSquare_rddata_fifo    , xSquare_rdempty_fifo    , handler_xSquare        , 4)
+`setDataHandler(ySquare       , controllerOut_valid, ySquare_rdreq_fifo    , ySquare_rddata_fifo    , ySquare_rdempty_fifo    , handler_ySquare        , 5)
+`setDataHandler(zSquare       , controllerOut_valid, zSquare_rdreq_fifo    , zSquare_rddata_fifo    , zSquare_rdempty_fifo    , handler_zSquare        , 6)
 
-
-
-
-
+assign HEX1[6:0] = {zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo};
 
 ////////////////// STATUS //////////////
 
-assign HEX3 = 'h55;
-assign HEX2 = 'hAA;
-assign HEX1 = 'h55;
-assign HEX0 = 'hAA;
+//assign HEX3 = 'h55;
+//assign HEX2 = 'hAA;
+//assign HEX1 = 'h55;
+//assign HEX0 = 'hAA;
 
 
 assign LEDG[0] = pll_locked;
