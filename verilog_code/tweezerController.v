@@ -21,10 +21,12 @@ module tweezerController#(
     input PI_reset,
     input PI_enable,
     input PI_freeze,
+    input [coeffBitSize -1:0] sum_multiplier,
     input [coeffBitSize -1:0] PI_kp,
     input [coeffBitSize -1:0] PI_ki,
     input PI_kp_update,
     input PI_ki_update,
+    input [outputBitSize -1:0] output_when_pi_disabled,
     input [inputBitSize -1:0] PI_setpoint,
 	 input [outputBitSize -1:0] pi_limit_LO,
 	 input [outputBitSize -1:0] pi_limit_HI,
@@ -52,36 +54,52 @@ fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize,
     YDIFF_directTo_y(YDIFF, y_direct);
 
 wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
+wire [workingBitSize -1:0] sum_normalized;
+
+clocked_FractionalMultiplier #(
+	.A_WIDTH			(inputBitSize),
+	.B_WIDTH			(coeffBitSize),
+	.OUTPUT_WIDTH	(workingBitSize),
+	.FRAC_BITS_A	(inputFracSize),
+	.FRAC_BITS_B	(coeffFracSize),
+	.FRAC_BITS_OUT	(workingFracSize)
+)fm(
+  .clk(clk),
+  .reset(reset),
+  .a				(SUM),
+  .b				(sum_multiplier),
+  .result		(sum_normalized)
+);//warning: the sum would always be one clock cycle later than the x and y differences. Is it worth to add a delay on XDIFF and YDIFF?
 
 divider#(
     .A_WIDTH            (inputBitSize),
-    .B_WIDTH            (inputBitSize),
+    .B_WIDTH            (workingBitSize),
     .OUTPUT_WIDTH       (workingBitSize),
     .FRAC_BITS_A        (inputFracSize),
-    .FRAC_BITS_B        (inputFracSize),
+    .FRAC_BITS_B        (workingFracSize),
     .FRAC_BITS_OUT      (workingFracSize),
     .areSignalsSigned   (1)
 )xdiff_dividedBy_sumTuned(
     .clk                (clk),
     .reset              (reset),
     .a                  (XDIFF_withFeedback),
-    .b                  (SUM),
+    .b                  (sum_normalized),
     .result             (x_normalized),
     .remain             ()
 );
 divider#(
     .A_WIDTH            (inputBitSize),
-    .B_WIDTH            (inputBitSize),
+    .B_WIDTH            (workingBitSize),
     .OUTPUT_WIDTH       (workingBitSize),
     .FRAC_BITS_A        (inputFracSize),
-    .FRAC_BITS_B        (inputFracSize),
+    .FRAC_BITS_B        (workingFracSize),
     .FRAC_BITS_OUT      (workingFracSize),
     .areSignalsSigned   (1)
 )ydiff_dividedBy_sumTuned(
     .clk                (clk),
     .reset              (reset),
     .a                  (YDIFF),
-    .b                  (SUM),
+    .b                  (sum_normalized),
     .result             (y_normalized),
     .remain             ()
 );
@@ -154,12 +172,17 @@ wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     pi_out_to_unlimitedOut(pi_out, unlimitedOut);
 	 
-assign retroactionController = $signed(unlimitedOut) > $signed(pi_limit_HI) ?
-												pi_limit_HI :
-												$signed(unlimitedOut) < $signed(pi_limit_LO) ?
-													pi_limit_LO :
-													unlimitedOut;
-
+assign retroactionController = 	PI_enable ? (
+												$signed(unlimitedOut) > $signed(pi_limit_HI) ?
+													pi_limit_HI :
+													$signed(unlimitedOut) < $signed(pi_limit_LO) ?
+														pi_limit_LO :
+														unlimitedOut
+											) : (
+												reset ?
+													0 :
+													output_when_pi_disabled
+											);
 //parameter updates
 reg PI_kp_updateReceived;
 always @(posedge clk)begin

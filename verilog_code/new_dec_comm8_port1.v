@@ -466,8 +466,8 @@ begin
 					tx_buffer[6] <= 8'h2E; // .
 					tx_buffer[5] <= 8'h30; // 0
 					tx_buffer[4] <= 8'h54; // T
-                    tx_buffer[3] <= 8'h57; // W
-					tx_buffer[2] <= 8'h4D; // M
+               tx_buffer[3] <= 8'h57; // W
+					tx_buffer[2] <= 8'h45; // E
 					tx_buffer[1] <= 8'd13; // \r
 					tx_buffer[0] <= 8'd10; // \n
 					TX_STATUS    <= TX_WRITE_DATA;

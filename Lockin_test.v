@@ -132,8 +132,10 @@ wire [107:0] acq_rddata_fifo_legacy;
 wire acq_rdreq_fifo_PML, acq_rdempty_fifo_PML;
 wire [107:0] acq_rddata_fifo_PML;
 
+wire [25:0] sum_multiplier;
 wire [25:0] pi_kp_coefficient;
 wire [25:0] pi_ti_coefficient;
+wire [15:0] output_when_pi_disabled;
 wire [15:0] pi_setpoint;
 wire [15:0] pi_limit_HI;
 wire [15:0] pi_limit_LO;
@@ -158,8 +160,10 @@ stretcher_edge_det stretchEdgeName (                                            
     .data_in_a(wire_inputClk),                                                                \
     .data_out_b(wire_outputClk)                                                               \
 );
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_sum_multiplier_update_cmd, sum_multiplier_update_cmd_125, sum_multiplier_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_kp_coefficient_update_cmd, pi_kp_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_ti_coefficient_update_cmd, pi_ti_coefficient_update_cmd_125, pi_ti_coefficient_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_output_when_pi_disabled_update_cmd, output_when_pi_disabled_update_cmd_125, output_when_pi_disabled_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_setpoint_update_cmd, pi_setpoint_update_cmd_125, pi_setpoint_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_limit_LO, pi_limit_LO_update_cmd_125, pi_limit_LO_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_pi_limit_HI, pi_limit_HI_update_cmd_125, pi_limit_HI_update_cmd_50)
@@ -206,10 +210,10 @@ wire [15:0] x, y, z, xSquare, ySquare, zSquare;
 network_wrapper #(
 	.LOCKIN_NUMBER(LOCKIN_NUMBER),
 
-   .largeRegisterStartIdxs      ({32'd52, 32'd26, 32'd0}),
-   .nOflargeRegisters           (2),
-   .smallRegisterStartIdxs      ({32'd48, 32'd32, 32'd16, 32'd0}),
-   .nOfsmallRegisters           (3),
+   .largeRegisterStartIdxs      ({32'd78, 32'd52, 32'd26, 32'd0}),
+   .nOflargeRegisters           (3),
+   .smallRegisterStartIdxs      ({32'd64, 32'd48, 32'd32, 32'd16, 32'd0}),
+   .nOfsmallRegisters           (4),
    .maxTransmissionSize         (16),
 	
    .FIFO_LENGTH(16),
@@ -229,10 +233,10 @@ network_wrapper #(
     .pi_enable_cmd(pi_enable_cmd_125),
     .pi_reset_cmd(pi_reset_cmd_125),
 	 
-	 .largeRegisters             ({pi_ti_coefficient, pi_kp_coefficient}),
-	 .largeRegisters_update_cmd  ({pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125}),
-	 .smallRegisters             ({pi_limit_HI, pi_limit_LO, pi_setpoint}),
-	 .smallRegisters_update_cmd  ({pi_limit_HI_update_cmd_125, pi_limit_LO_update_cmd_125, pi_setpoint_update_cmd_125}),
+	 .largeRegisters             ({sum_multiplier, pi_ti_coefficient, pi_kp_coefficient}),
+	 .largeRegisters_update_cmd  ({sum_multiplier_update_cmd_125, pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125}),
+	 .smallRegisters             ({pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled}),
+	 .smallRegisters_update_cmd  ({pi_limit_HI_update_cmd_125, pi_limit_LO_update_cmd_125, pi_setpoint_update_cmd_125, output_when_pi_disabled_update_cmd_125}),
     // DACs and ADC status
 //    .DAC_running(DAC_running_125),
 //    .DAC_stopped(DAC_stopped_125),
@@ -359,7 +363,7 @@ tweezerController#(
 	.outputBitSize		(16),
 	.outputFracSize		(15),
 	.coeffBitSize			(26),
-	.coeffFracSize		(25),
+	.coeffFracSize		(24),		//you can have values between -2 and 1.9999
 	.workingBitSize		(28),	
 	.workingFracSize	(24)
 )tc(
@@ -367,28 +371,30 @@ tweezerController#(
 	.reset											(reset_50),
 	.XDIFF											(input_A_data),
 	.YDIFF											(input_B_data),
-	.SUM												(0),
+	.SUM												(input_C_data),
 	.retroactionController						(controllerOut),
 	.retroactionController_valid				(controllerOut_valid),
 	.PI_reset										(pi_reset_cmd_50 | SW[1]),
 	.PI_enable										(pi_enable_cmd_50 | SW[2]),
 	.PI_freeze										(1'b1),
+	.sum_multiplier								(sum_multiplier),
 	.PI_kp											(pi_kp_coefficient),
 	.PI_ki											(pi_ti_coefficient),
 	.PI_kp_update									(pi_kp_coefficient_update_cmd_50),
 	.PI_ki_update									(pi_ti_coefficient_update_cmd_50),
+	.output_when_pi_disabled					(output_when_pi_disabled),
 	.PI_setpoint									(pi_setpoint),
 	.pi_limit_HI									(pi_limit_HI),
 	.pi_limit_LO									(pi_limit_LO),
    .x                   (x),
-   .y                   (y),
+   .y                   (y),_
    .z                   (z),
    .xSquare            (xSquare),
    .ySquare            (ySquare),
    .zSquare            (zSquare),
 	.ray(ray),
 	.addFeedback(SW[0]),
-	.useSUM(SW[4]),
+	.useSUM(SW[4]),]_
 //	.leds(LEDR[7:4])
 );
 
@@ -399,7 +405,7 @@ dacs_ad5541a dacs_ad5541a_0 (
 
     .dac1_datain(16'h8000),//setpoint per l'output shift
     .dac2_datain(controllerOut+16'h8000),
-    .dac3_datain(input_A_data+16'h8000),
+    .dac3_datain(x+16'h8000),
     .dac4_datain(ray+16'h8000),
     // .dac1_datain(16'h8000),
     // .dac2_datain(sweep_data+16'h8000),
