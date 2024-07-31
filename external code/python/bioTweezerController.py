@@ -11,16 +11,19 @@ import time as t
 def setupReception(ip, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((ip, port))
+    socket.setdefaulttimeout(1)
     return sock
 
-def transmitCommand(sock, ip, port, command, waitForResponse = False):
+def transmitCommand(sock, ip, port, command, waitForResponse = False, printTransmission = True):
     if(isinstance(command, str)):
         command = command.encode()
     sock.sendto(command, (ip, port))    
+    if(printTransmission):
+        print("sent to ", ip, ": ", command)
     if(waitForResponse):
         return receive(sock, port)        
 
-def receive(sock, port, printReception = False):
+def receive(sock, port, printReception = True):
     received, address = sock.recvfrom(port)
     if(printReception):
         print("Received from", address, ":", received)
@@ -31,6 +34,7 @@ class fpgaRegister:
         self.bitSize = bitSize
         self.norm = norm
         self.offset = offset
+        self.lastValue = 0
         if command is None:
             self.command = [-1] * ((bitSize + 15) // 16)
         else: 
@@ -38,6 +42,7 @@ class fpgaRegister:
         
     def floatToFixedPoint(self, floatValue):
         val = int((floatValue - self.offset) * self.norm)
+        self.lastValue = val
         if(np.abs(val) >= (1 << (self.bitSize-1))):
             print(f"warning: value too high! Max value = +-{(1 << (self.bitSize-1) - 1)/ self.norm + self.offset}" )
         if(len(self.command) > 1):
@@ -47,7 +52,8 @@ class fpgaRegister:
     def fixedPointToFloat(self, intValue):
         if(len(self.command) > 1):
             intValue = intValue[0] << 16 + intValue[1]
-        return intValue / self.norm + self.offset
+        self.lastValue = intValue / self.norm + self.offset
+        return self.lastValue
 
 class segmented_function:
     def __init__(self, x,y):
@@ -78,7 +84,7 @@ class fpgaHandler:
         self.setupFpgaCommandIndexes()        
     
     #UDP connection
-    self_ip = "192.168.1.100"
+    self_ip = "192.168.1.100"#"127.0.0.1"#
     fpga_ip = "192.168.1.12"
     parameterPort = 2047
     dataPort = 2048
@@ -150,31 +156,34 @@ class fpgaHandler:
         
 class bioTweezerController(fpgaHandler):
     def __init__(self, **kwargs):
-        
+        fpgaOutMultiplier = 2 ** 15 / (self._fpgaOutputToLaserPower(1) - self._fpgaOutputToLaserPower(0)) # W/[adimensional]
+        fpgaOutOffset = self._fpgaOutputToLaserPower(0)
         self.dataValuesFromFPGA = {
-            "pid out"          : fpgaRegister(16 , 2 ** 15 / (self._fpgaOutputToLaserPower(1) - self._fpgaOutputToLaserPower(0)), self._fpgaOutputToLaserPower(0)),    # W
+            "pid out"          : fpgaRegister(16 , fpgaOutMultiplier, fpgaOutOffset),    # W
             "x"                : fpgaRegister(16 , 2 ** 15 / self.range_x),    # m
-            "y"                : fpgaRegister(16 , 2 ** 15 / self.range_y),    # m
-            "z"                : fpgaRegister(16 , 2 ** 15 / self.range_y),    # m
+            "y"                : fpgaRegister(16 , 2 ** 15 / self.range_x),    # m
+            "z"                : fpgaRegister(16 , 2 ** 15 / self.range_x),    # m
             "x^2"              : fpgaRegister(16 , 2 ** 15 / (self.range_x ** 2)),    # m^2
-            "y^2"              : fpgaRegister(16 , 2 ** 15 / (self.range_y ** 2)),    # m^2
-            "z^2"              : fpgaRegister(16 , 2 ** 15 / (self.range_y ** 2)),    # m^2
+            "y^2"              : fpgaRegister(16 , 2 ** 15 / (self.range_x ** 2)),    # m^2
+            "z^2"              : fpgaRegister(16 , 2 ** 15 / (self.range_x ** 2)),    # m^2
         }
-        
-        self.ParametersForFPGA = {
+        self.ParametersForFPGA = {#follow the FPGA order
             #large parameters
             "kp"               : fpgaRegister(26 , 2 ** 24),    # [adimensional]
             "ki"               : fpgaRegister(26 , 2 ** 24),    # [adimensional]
             "sum_multiplier"   : fpgaRegister(26 , 2 ** 24),    # [adimensional]
+            "z_multiplier"     : fpgaRegister(26 , 2 ** 24 / (self.range_x * self.ADC_sumAttenuation)),    # m/V
             
             #small parameters
-            "outWhenPiDisabled": fpgaRegister(16 , 2 ** 15 / (self._fpgaOutputToLaserPower(1) - self._fpgaOutputToLaserPower(0)), self._fpgaOutputToLaserPower(0)),    # W
-            "setpoint"         : fpgaRegister(16 , 2 ** 15),    # m
-            "limitLow"         : fpgaRegister(16 , 2 ** 15 / (self._fpgaOutputToLaserPower(1) - self._fpgaOutputToLaserPower(0)), self._fpgaOutputToLaserPower(0)),    # W
-            "limitHigh"        : fpgaRegister(16 , 2 ** 15 / (self._fpgaOutputToLaserPower(1) - self._fpgaOutputToLaserPower(0)), self._fpgaOutputToLaserPower(0)),    # W
+            "outWhenPiDisabled": fpgaRegister(16 , fpgaOutMultiplier, fpgaOutOffset),    # W
+            "setpoint"         : fpgaRegister(16 , 2 ** 15 / self.range_x),    # m
+            "limitLow"         : fpgaRegister(16 , fpgaOutMultiplier, fpgaOutOffset),    # W
+            "limitHigh"        : fpgaRegister(16 , fpgaOutMultiplier, fpgaOutOffset),    # W
+            "z_offset"         : fpgaRegister(16 , 2 ** 15 / self.range_x),    # m * V/V
         }
         super(bioTweezerController, self).__init__(**kwargs)
         self.reset()
+        
         self.initiateTweezers()
         
     #gains of the ADC/DAC circuits
@@ -186,15 +195,22 @@ class bioTweezerController(fpgaHandler):
     
     #parameters of the current generator (how does the control input voltage get translated into a current)
     currentGenerator_inputVtoI = 2e-3 / 10e-3       # A/V
-    currentGenerator_baseCurrent = 100e-3           # A
+    currentGenerator_baseCurrent = 200e-3           # A
     
     #parameters of the laser
     laser_currentToLaserPower = 340e-3 / 730e-3     # W/A
+    laser_minPower = 50e-3
+    laser_maxPower = 110-3
     # = segmented_function([0,730e-3], [0,340e-3])  
     
-    #distance ranges
-    range_x = range_y = 10e-6                       # m
-    range_z = 10e-6                                 # m
+    #distance ranges (i.e. the values of x and y when their respective DIFF signals are == SUM)
+    range_x = range_y = 18e-6                       # m
+    #value of the SUM signal when the bead is at the center of the laser (z == 0)
+    SUM_at_z0 = 2                                   # V
+    #max value of SUM where the relationship between SUM and z is still linear
+    SUM_max = 4                                     # V
+    # value of z when SUM == SUM_max
+    z_max = 3e-6                                   # m
     
     #calibration parameters
     calibration_laserPower = 200e-3                 # W
@@ -204,6 +220,8 @@ class bioTweezerController(fpgaHandler):
     requestedRay = 3e-6                             # m
     #small ray at which the PID will get disabled (when we have small rays, it means that we haven't started the control, or that we lost the tethering)
     minRay = 1e-6                                   # m
+    
+    
     
     def _fpgaOutputToLaserPower(self, value):       # W/[adimensional]
         return ((value * self.DAC_fpgaOuputToVoltage * self.DAC_gain * self.currentGenerator_inputVtoI) + \
@@ -224,7 +242,20 @@ class bioTweezerController(fpgaHandler):
     
     
     def initiateTweezers(self):
-        self.setParameters(sum_multiplier = self.ADC_xyAttenuation / self.ADC_sumAttenuation)
+        self.setParameters(
+            #sum_multiplier: since the ADCs have different gains for the sum and the VER/HOR_DIFF signals, let's correct them with this multiplier
+            sum_multiplier = self.ADC_xyAttenuation / self.ADC_sumAttenuation,            
+            #z_multiplier and z_offset: we can get an appoximation of z ~ z_max * (SUM - SUM_at_z0) / (SUM_max - SUM_at_z0). Inside 
+                #the fpga, the signal for x will actually be equal to x / range_x, so we need to compensate for every gain and offset 
+                #to obtain z inside the fpga as z / range_x. This way, the fpga can handle values with the same range, and we'll 
+                #convert them back once we receive a response from the FPGA
+            z_multiplier = self.z_max / (self.SUM_max - self.SUM_at_z0),
+            z_offset = self.z_max / (self.SUM_max - self.SUM_at_z0) * self.SUM_at_z0,
+            outWhenPiDisabled = self._fpgaOutputToLaserPower(0),
+            limitLow = self.laser_minPower,
+            limitHigh = self.laser_maxPower,
+            )
+        
     def calibrateTweezers(self):
         #set a constant output (=> constant laser power)        
         self.setConstantOutput(self.calibration_laserPower)
@@ -248,14 +279,14 @@ class bioTweezerController(fpgaHandler):
         
     
 q = bioTweezerController()
-q.EnablePI(kp = 0.9, ki = 0.0, limitLow = -0.9, limitHigh = 0.1, setpoint = 0.0, outWhenPiDisabled = -0.2)
+q.EnablePI(kp = 0.9, ki = 0.0, setpoint = 5e-6)
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 # Example dictionary of vectors
 
-w = q.getDataStream(3)
+w = q.getDataStream(2)
 plt.figure()
 x=w["times"]
 w.pop("pid out")

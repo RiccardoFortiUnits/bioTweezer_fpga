@@ -28,9 +28,11 @@ module tweezerController#(
     input PI_ki_update,
     input [outputBitSize -1:0] output_when_pi_disabled,
     input [inputBitSize -1:0] PI_setpoint,
-	 input [outputBitSize -1:0] pi_limit_LO,
-	 input [outputBitSize -1:0] pi_limit_HI,
-	 
+     input [outputBitSize -1:0] pi_limit_LO,
+     input [outputBitSize -1:0] pi_limit_HI,
+     input [outputBitSize -1:0] z_offset,
+     input [coeffBitSize -1:0] z_multiplier,
+     
     output [outputBitSize -1:0] ray,
     output [outputBitSize -1:0] x,
     output [outputBitSize -1:0] y,
@@ -47,30 +49,35 @@ module tweezerController#(
 
 //get x, y and z of the bead
 wire [inputBitSize -1:0] XDIFF_withFeedback = addFeedback & retroactionController_valid ? XDIFF + retroactionController: XDIFF;
+
+//in case useSUM is set to 0
 wire [workingBitSize -1:0] x_direct, y_direct;
 fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
     XDIFF_directTo_x(XDIFF_withFeedback, x_direct);
 fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
     YDIFF_directTo_y(YDIFF, y_direct);
 
-wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
+//adjust SUM (the circuit has a different gain for SUM to respect to the gains of HOR/VER_DIFF, 
+    //since the DIFF signals will always be smaller, and thus they'll be amplified more)
 wire [workingBitSize -1:0] sum_normalized;
-
 clocked_FractionalMultiplier #(
-	.A_WIDTH			(inputBitSize),
-	.B_WIDTH			(coeffBitSize),
-	.OUTPUT_WIDTH	(workingBitSize),
-	.FRAC_BITS_A	(inputFracSize),
-	.FRAC_BITS_B	(coeffFracSize),
-	.FRAC_BITS_OUT	(workingFracSize)
+    .A_WIDTH            (inputBitSize),
+    .B_WIDTH            (coeffBitSize),
+    .OUTPUT_WIDTH   (workingBitSize),
+    .FRAC_BITS_A    (inputFracSize),
+    .FRAC_BITS_B    (coeffFracSize),
+    .FRAC_BITS_OUT  (workingFracSize)
 )fm(
   .clk(clk),
   .reset(reset),
-  .a				(SUM),
-  .b				(sum_multiplier),
-  .result		(sum_normalized)
+  .a                (SUM),
+  .b                (sum_multiplier),
+  .result       (sum_normalized)
 );//warning: the sum would always be one clock cycle later than the x and y differences. Is it worth to add a delay on XDIFF and YDIFF?
 
+
+//divide HOR/VER_DIFF by SUM, to get the x and y signals
+wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
 divider#(
     .A_WIDTH            (inputBitSize),
     .B_WIDTH            (workingBitSize),
@@ -105,13 +112,46 @@ divider#(
 );
  assign x_untrimmed = useSUM ? x_normalized : x_direct;
  assign y_untrimmed = useSUM ? y_normalized : y_direct;
- assign z_untrimmed = 0;
 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     shift_x(x_untrimmed, x);
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     shift_y(y_untrimmed, y);
-    
+     
+//get z. Near z==0, the sum is equal to m*SUM+q, where q=z_offset and m=z_multiplier (near z==0, we have a linear correlation between z and (SUM-z_offset) )
+wire [workingBitSize -1:0] z_without_offset;
+wire [workingBitSize -1:0] z_offset_extended;
+fixedPointShifter#(outputBitSize, outputFracSize, workingBitSize, workingFracSize, 1) 
+    extend_z_offset(z_offset, z_offset_extended);
+
+clocked_FractionalMultiplier #(
+    .A_WIDTH            (inputBitSize),
+    .B_WIDTH            (coeffBitSize),
+    .OUTPUT_WIDTH   (workingBitSize),
+    .FRAC_BITS_A    (inputFracSize),
+    .FRAC_BITS_B    (coeffFracSize),
+    .FRAC_BITS_OUT  (workingFracSize)
+)SUM_to_z(
+  .clk(clk),
+  .reset(reset),
+  .a                (SUM),
+  .b                (z_multiplier),
+  .result       (z_without_offset)
+);
+adder#(
+  .WIDTH      (workingBitSize),
+  .isSubtraction  (1)
+)z_subtract_offset(
+  .clk    (clk),
+  .reset    (reset),
+  .a      (z_without_offset),
+  .b      (z_offset_extended),
+  .result   (z_untrimmed)
+);
+
+fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
+    shift_z(z_untrimmed, z);
+
 //get distance of the bead
 wire [workingBitSize -1:0] r;
 wire r_valid;
@@ -127,12 +167,12 @@ calcRay#
     .reset  (reset),
     .x          (x_untrimmed),
     .y          (y_untrimmed),
-	 .z			(z_untrimmed),
-	 
-	 .xSquare  (xSquare_untrimmed),
-	 .ySquare  (ySquare_untrimmed),
-	 .zSquare  (zSquare_untrimmed),
-	 
+     .z         (z_untrimmed),
+     
+     .xSquare  (xSquare_untrimmed),
+     .ySquare  (ySquare_untrimmed),
+     .zSquare  (zSquare_untrimmed),
+     
     .r          (r),
     .outData_valid(r_valid) 
 );
@@ -171,30 +211,28 @@ pi_controller#(
 wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     pi_out_to_unlimitedOut(pi_out, unlimitedOut);
-	 
-assign retroactionController = 	PI_enable ? (
-												$signed(unlimitedOut) > $signed(pi_limit_HI) ?
-													pi_limit_HI :
-													$signed(unlimitedOut) < $signed(pi_limit_LO) ?
-														pi_limit_LO :
-														unlimitedOut
-											) : (
-												reset ?
-													0 :
-													output_when_pi_disabled
-											);
+     
+assign retroactionController =  PI_enable ? (
+                                                $signed(unlimitedOut) > $signed(pi_limit_HI) ?
+                                                    pi_limit_HI :
+                                                    $signed(unlimitedOut) < $signed(pi_limit_LO) ?
+                                                        pi_limit_LO :
+                                                        unlimitedOut
+                                            ) : (
+                                                reset ?
+                                                    0 :
+                                                    output_when_pi_disabled
+                                            );
 //parameter updates
 reg PI_kp_updateReceived;
 always @(posedge clk)begin
     if(reset)begin
         PI_kp_reg <= 0;
         PI_ki_reg <= 0;
-        PI_kp_updateReceived <= 0;
         singlePiReset <= 0;
     end else begin
         if(PI_kp_update)begin
             PI_kp_reg <= PI_kp;
-            PI_kp_updateReceived <= 1;
         end
         if(PI_ki_update)begin
             PI_ki_reg <= PI_ki;
@@ -211,7 +249,7 @@ end
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     r_to_ray(r, ray);
 
-	 
+     
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 
     shift_xSquare(xSquare_untrimmed, xSquare);
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 
