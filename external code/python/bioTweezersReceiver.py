@@ -17,6 +17,7 @@ dataSock = None
 def setupReception(selfIP, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((selfIP, port))
+    sock.setdefaulttimeout(1)
     return sock
 
 def setupParameterReception():

@@ -200,8 +200,8 @@ wire [15:0] x, y, z, xSquare, ySquare, zSquare;
 					-add to largeRegisterStartIdxs its previous last value plus the size of the new register (es: previously largeRegisterStartIdxs 
 						was {32'd52, 32'd26, 32'd0}, and the new register is 20bits, then the new value for largeRegisterStartIdxs 
 						is {32'd72, 32'd52, 32'd26, 32'd0} (72=52+20))
-					-add the register wire to the output largeRegisters
-					-add the validate wire to the output largeRegisters_update_cmd
+					-add the register wire to the output largeRegisters (add on the left)
+					-add the validate wire to the output largeRegisters_update_cmd (add on the left)
 					
 				-if the register is shorter than 16bits, use the "small" registers instead (nOfsmallRegisters, smallRegisters_update_cmd...)
 				
@@ -209,6 +209,16 @@ wire [15:0] x, y, z, xSquare, ySquare, zSquare;
 			the parameter idx (1 byte) is decided as follows:
 			first, all large registers, which will take 2 indexes each, one for the MSB and the other for the LSB
 			then, all small registers (one idx each)
+			
+	transmission: data stream
+		if enabled, there will be a constant stream of data. The structure of the data of every packet is:
+			-header byte: a simple counter that gets updated on every transmission, to check for missing or double packets
+			-data to stream, from a list of FIFOs. For now, every FIFO has to have the same bit size (FIFO_LENGTH). Transmission is done whenever 
+				all the FIFOs have some data ready (so, manage the filling speed of the FIFOs to change the transimssion rate)
+		to add a new FIFO
+			-increase nOfFifos
+			-add the relative wires to the rdreq_fifo, rddata_fifo and rdempty_fifo registers.
+			
 
 */
 network_wrapper #(
@@ -412,7 +422,7 @@ dacs_ad5541a dacs_ad5541a_0 (
     .dac1_datain(16'h8000),					//setpoint for the output shift
     .dac2_datain(controllerOut+16'h8000),	//PI output
     .dac3_datain(ray+16'h8000),				//calculated ray
-    .dac4_datain(z+16'h8000),				//unused (put any debug signal you like)
+    .dac4_datain(x+16'h8000),				//unused (put any debug signal you like)
     // .dac1_datain(16'h8000),
     // .dac2_datain(sweep_data+16'h8000),
     // .dac3_datain(sweep_data+16'h8000),
@@ -553,24 +563,7 @@ wire inputD_saturating = (input_D_data == 16'h7FFF) || (input_D_data == 16'h8000
 wire inputC_saturating = (input_C_data == 16'h7FFF) || (input_C_data == 16'h8000);
 wire inputB_saturating = (input_B_data == 16'h7FFF) || (input_B_data == 16'h8000);
 wire inputA_saturating = (input_A_data == 16'h7FFF) || (input_A_data == 16'h8000);
-//assign LEDR[3:0] = {inputD_saturating, inputC_saturating, inputB_saturating, inputA_saturating};
-
-divider#(
-    .A_WIDTH            (4),
-    .B_WIDTH            (4),
-    .OUTPUT_WIDTH       (10),
-    .FRAC_BITS_A        (3),
-    .FRAC_BITS_B        (3),
-    .FRAC_BITS_OUT      (6),
-    .areSignalsSigned   (1)
-)xdiff_dividedBy_sumTuned(
-    .clk                (ADC_outclock_50),
-    .reset              (reset_50),
-    .a                  (SW[8:5]),
-    .b                  (KEY),
-    .result             (LEDR[9:0]),
-    .remain             ()
-);
+assign LEDR[3:0] = {inputD_saturating, inputC_saturating, inputB_saturating, inputA_saturating};
 
 
 endmodule

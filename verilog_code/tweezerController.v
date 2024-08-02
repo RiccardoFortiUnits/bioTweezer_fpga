@@ -5,6 +5,8 @@ module tweezerController#(
     parameter outputFracSize = 15,
     parameter coeffBitSize = 10,
     parameter coeffFracSize = 9,
+	 parameter largeCoeffBitSize = coeffBitSize,
+	 parameter largeCoeffFracSize = coeffFracSize - 2,
     parameter workingBitSize = 24,//I'm too lazy to follow all the bit size conversions... let's just use a bigger register size for all the internal processes
     //todo usa meglio workingBitSize
     parameter workingFracSize = 20
@@ -30,8 +32,8 @@ module tweezerController#(
     input [inputBitSize -1:0] PI_setpoint,
      input [outputBitSize -1:0] pi_limit_LO,
      input [outputBitSize -1:0] pi_limit_HI,
-     input [outputBitSize -1:0] z_offset,
-     input [coeffBitSize -1:0] z_multiplier,
+     input [inputBitSize -1:0] z_offset,
+     input [largeCoeffBitSize -1:0] z_multiplier,//warning: it has a different FracSize
      
     output [outputBitSize -1:0] ray,
     output [outputBitSize -1:0] x,
@@ -119,34 +121,35 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
     shift_y(y_untrimmed, y);
      
 //get z. Near z==0, the sum is equal to m*SUM+q, where q=z_offset and m=z_multiplier (near z==0, we have a linear correlation between z and (SUM-z_offset) )
-wire [workingBitSize -1:0] z_without_offset;
-wire [workingBitSize -1:0] z_offset_extended;
-fixedPointShifter#(outputBitSize, outputFracSize, workingBitSize, workingFracSize, 1) 
-    extend_z_offset(z_offset, z_offset_extended);
+wire [inputBitSize+1 -1:0] SUM_withOffset;
+wire [workingBitSize -1:0] SUM_withOffset_extended;
 
-clocked_FractionalMultiplier #(
-    .A_WIDTH            (inputBitSize),
-    .B_WIDTH            (coeffBitSize),
-    .OUTPUT_WIDTH   (workingBitSize),
-    .FRAC_BITS_A    (inputFracSize),
-    .FRAC_BITS_B    (coeffFracSize),
-    .FRAC_BITS_OUT  (workingFracSize)
-)SUM_to_z(
-  .clk(clk),
-  .reset(reset),
-  .a                (SUM),
-  .b                (z_multiplier),
-  .result       (z_without_offset)
-);
 adder#(
-  .WIDTH      (workingBitSize),
+  .WIDTH      	(inputBitSize),
+  .addStuffingBit	(1),
   .isSubtraction  (1)
 )z_subtract_offset(
   .clk    (clk),
   .reset    (reset),
-  .a      (z_without_offset),
-  .b      (z_offset_extended),
-  .result   (z_untrimmed)
+  .a      (SUM),
+  .b      (z_offset),
+  .result   (SUM_withOffset)
+);
+fixedPointShifter#(inputBitSize+1, inputFracSize, workingBitSize, workingFracSize, 1) 
+    extend_z_offset(SUM_withOffset, SUM_withOffset_extended);
+clocked_FractionalMultiplier #(
+    .A_WIDTH            (workingBitSize),
+    .B_WIDTH            (largeCoeffBitSize),
+    .OUTPUT_WIDTH   (workingBitSize),
+    .FRAC_BITS_A    (workingFracSize),
+    .FRAC_BITS_B    (largeCoeffFracSize),
+    .FRAC_BITS_OUT  (workingFracSize)
+)SUM_to_z(
+  .clk(clk),
+  .reset(reset),
+  .a                (SUM_withOffset_extended),
+  .b                (z_multiplier),
+  .result       (z_untrimmed)
 );
 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
@@ -212,17 +215,20 @@ wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     pi_out_to_unlimitedOut(pi_out, unlimitedOut);
      
-assign retroactionController =  PI_enable ? (
-                                                $signed(unlimitedOut) > $signed(pi_limit_HI) ?
-                                                    pi_limit_HI :
-                                                    $signed(unlimitedOut) < $signed(pi_limit_LO) ?
-                                                        pi_limit_LO :
-                                                        unlimitedOut
-                                            ) : (
-                                                reset ?
-                                                    0 :
-                                                    output_when_pi_disabled
-                                            );
+     
+assign retroactionController =  reset || PI_reset ? (
+                                    0
+                                ) : (
+                                    PI_enable ? (
+                                        $signed(unlimitedOut) > $signed(pi_limit_HI) ?
+                                            pi_limit_HI :
+                                            $signed(unlimitedOut) < $signed(pi_limit_LO) ?
+                                                pi_limit_LO :
+                                                unlimitedOut
+                                    ) : (
+                                        output_when_pi_disabled
+												)
+                                );
 //parameter updates
 reg PI_kp_updateReceived;
 always @(posedge clk)begin

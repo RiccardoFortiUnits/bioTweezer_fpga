@@ -69,7 +69,7 @@ generate
     if(areSignalsSigned)begin
 		lpm_mult#(
 			.lpm_hint		("MAXIMIZE_SPEED=5"),
-			.lpm_pipeline		(1),
+			.lpm_pipeline		(2),
 			.lpm_representation		("SIGNED"),//only difference between the 2 modules
 			.lpm_type		("LPM_MULT"),
 			.lpm_widtha		(A_WIDTH),

@@ -56,7 +56,11 @@ genvar gi;
 	end	
 endgenerate
 
-wire [squareSumBitWidth -1:0] squareSum = inputs_square[0]+inputs_square[1]+inputs_square[2];
+reg [squareSumBitWidth -1:0] squareSum;
+always @(posedge clk)begin
+	squareSum <= inputs_square[0]+inputs_square[1]+inputs_square[2];
+end
+
 wire [sqrtBitWidth -1:0] sqrtOfSum;
 sqrt_fixedPoint#(
 	.inputWidth			(squareSumBitWidth),
