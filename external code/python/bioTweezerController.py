@@ -237,10 +237,10 @@ class bioTweezerController(fpgaHandler):
     DAC_fpgaOuputToVoltage = 2.5                                                                            # V
     
     #parameters of the current generator (how does the control input voltage get translated into a current)
-    currentGenerator_inputVtoI = 2e-3 / 10e-3                                                               # A/V
+    currentGenerator_inputVtoI = 1e-3 / 20e-3                                                               # A/V
     currentGenerator_baseCurrent = 200e-3                                                                   # A
-    currentGenerator_minCurrecnt = 50e-3                                                                   # A
-    currentGenerator_maxCurrecnt = 250e-3                                                                   # A
+    currentGenerator_minCurrecnt = -50e-3                                                                   # A
+    currentGenerator_maxCurrecnt = 300e-3                                                                   # A
     #parameters of the laser
     laser_currentToLaserPower = 340e-3 / 730e-3                                                             # W/A
     #= segmented_function([0,730e-3], [0,340e-3])  
@@ -252,7 +252,7 @@ class bioTweezerController(fpgaHandler):
     #max value of SUM where the relationship between SUM and z is still linear
     SUM_max = 4                                                                                             # V
     #value of z when SUM == SUM_max
-    z_max = 3e-6                                                                                            # m
+    z_max = 0e-6                                                                                            # m
     
     #calibration parameters
     calibration_laserPower = 90e-3                                                                          # W
@@ -317,13 +317,13 @@ class bioTweezerController(fpgaHandler):
         )
         if(self.DAC_gain > 0):
             self.setParameters(
-                limitLow = (self.currentGenerator_minCurrecnt, "generator_current"),
+                limitLow = (-0.2, "FPGA_floatValue"),
                 limitHigh = (self.currentGenerator_maxCurrecnt, "generator_current"),
             )
         else:
             self.setParameters(
                 #high and low limits are switched, because the DAC amplifier has a negative gain
-                limitLow = (self.currentGenerator_maxCurrecnt, "generator_current"),
+                limitLow = (-0.8, "FPGA_floatValue"),
                 limitHigh = (self.currentGenerator_minCurrecnt, "generator_current"),
             )
         
@@ -364,10 +364,10 @@ class bioTweezerController(fpgaHandler):
         
 
 q = bioTweezerController()
-q.EnablePI(kp = 0.05, ki = 0.00, setpoint = (0.5, "FPGA_floatValue"))
-# q.EnableConstantOutput((0.1, "generator_input"))
+q.EnablePI(kp = -0.3, ki = 0.00, setpoint = (0.1, "FPGA_floatValue"))
+# q.EnableConstantOutput((0.200, "generator_current"))
 # q.reset()
 
-q.plotReceivedData(3,elementsToRemove=["pid out"])
+q.plotReceivedData(3,elementsToShow=["pid out"])
 
 # Example dictionary of vectors
