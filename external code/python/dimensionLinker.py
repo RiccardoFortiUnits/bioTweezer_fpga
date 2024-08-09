@@ -8,12 +8,21 @@ Created on Wed Jul 31 17:06:54 2024
 import networkx as nx
 import numpy as np
 
-
 def graphFromCheckedGraph(checked, startingNode):
-    G=nx.DiGraph()
+    G=[]
+    sub_graphFromCheckedGraph(G, checked, startingNode, None)
+    return G
     
-    
+def sub_graphFromCheckedGraph(G, checked, currentNode, startingNode = None):
+    parents = checked[currentNode][1]
+    for p in parents:
+        sub_graphFromCheckedGraph(G, checked, p, currentNode)
+    if(startingNode is not None):
+        G.append((currentNode, startingNode))
+
 def shortestPath(G, startNodes, endNode):
+    if not isinstance(startNodes, list):
+        startNodes = [startNodes]
     queues = [[node] for node in startNodes]
     checked = {key: [1,[]]  for key in G.nodes}
     for node,data in G.nodes(data=True):
@@ -35,11 +44,11 @@ def shortestPath(G, startNodes, endNode):
                         checked[nn][1].append(n)
                         if checked[nn][0] == 0:
                             if nn == endNode:
-                                return checked
+                                return graphFromCheckedGraph(checked, endNode)
                             queues[i].append(nn)
         currentDistance += 1
         stillSomeNodes = any(len(q) > 0 for q in queues)
-
+    return []
 
 class dimensionLinker():
     def __init__(self):
@@ -49,7 +58,7 @@ class dimensionLinker():
         # if(isinstance(dimensionName, list)):
         #     self.g.add_nodes_from(dimensionName)
         # else:
-            self.g.add_node(dimensionName, unit = dimensionMeasurementUnit, isMultiNode = False, **attr)
+            self.g.add_node(dimensionName, unit = dimensionMeasurementUnit, mult = False, **attr)
         
     def addConnection(self, dimension0, dimension1, from0to1, from1to0 = None):
         if(from1to0 is None):
@@ -59,30 +68,48 @@ class dimensionLinker():
     def addMultiConnection(self, dimensions, conversionFunctions=None):#, functionGenerator = None):
         # if len(dimensions) == 2:
         #     addConnection(dimensions[0],dimensions[1],...)
-        dimensions.sort()
         l = len(dimensions)
-        self.g.add_node(dimensions, isMultiNode = True)
+        self.g.add_node(str(dimensions), mult = True)
         if(conversionFunctions is not None):
             for i in range(l):
-                self.g.add_edge(dimensions[i], dimensions, transferFun = conversionFunctions[i])
+                self.g.add_edge(dimensions[i], str(dimensions), transferFun = conversionFunctions[i])
+                self.g.add_edge(str(dimensions), dimensions[i], transferFun = lambda x: x)
         # elif(functionGenerator is not None):
         #     for i in range(l):
         #         self.g.add_edge(dimensions[i], dimensions, transferFun = functionGenerator(i))
     
     def convert(self, values, fromDimensions, toDimension):
-        allPaths = [[]]*len(values)
-        for i in range(len(values)):
-            allPaths[i] = nx.shortest_path(self.g, source = fromDimensions[i], target = toDimension)
+        if not isinstance(fromDimensions, list):
+            fromDimensions = [fromDimensions]
+            values = [values]
+        nodeList = shortestPath(self.g, fromDimensions, toDimension)
+        multiNodesInputs = {}
+        for (startNode, endNode) in nodeList:
+            if self.g.nodes(data= True)[startNode]["mult"]:
+                fromDimensions.append(startNode)
+                values.append(self.g[endNode][startNode]["transferFun"](**multiNodesInputs[startNode]))
+                
+            valueIdx = fromDimensions.index(startNode)
+            
+            if self.g.nodes(data= True)[endNode]["mult"]:
+                if endNode not in multiNodesInputs.keys():
+                    multiNodesInputs[endNode] = {}
+                multiNodesInputs[endNode][startNode] = values[valueIdx]
+            else:
+                fromDimensions[valueIdx] = endNode
+                values[valueIdx] = self.g[startNode][endNode]["transferFun"](values[valueIdx])
+                
+        return values[fromDimensions.index(toDimension)]
+        # for path in allPaths:
+        #     for node in path:
+        #         if node not in checkedMultiNodes and self.g.nodes[node].mult:
         
-        checkedMultiNodes = []
-        for path in allPaths:
-            for node in path:
-                if node not in checkedMultiNodes and self.g.nodes[node].isMultiNode:
-        
-           currentVal = value
-        for i in range(len(nodeList)-1):
-            currentVal = self.g[nodeList[i]][nodeList[i+1]]["transferFun"](currentVal)
-        return currentVal
+        #             currentVal = value
+        # for i in range(len(nodeList)-1):
+        #     currentVal = self.g[nodeList[i]][nodeList[i+1]]["transferFun"](currentVal)
+        # return currentVal
+    
+    
     def convert_old(self, value, fromDimension, toDimension):
         nodeList = nx.shortest_path(self.g, source = fromDimension, target = toDimension)
         currentVal = value
@@ -133,15 +160,43 @@ class dimensionLinker():
         def from1to0(val):
             return np.sqrt(val)
         return (from0to1, from1to0)
+    
+    @staticmethod
+    def monomialFunctions(list1, list2, constantGain = 1):
+        def fun1(**kwargs):
+            val = constantGain
+            for key, value in kwargs.items():
+                if key in list2:
+                    val *= value
+                elif key in list1:
+                    val /= value
+            return val
         
+        def fun2(**kwargs):
+            val = 1 / constantGain
+            for key, value in kwargs.items():
+                if key in list1:
+                    val *= value
+                elif key in list2:
+                    val /= value
+            return val
+        return [fun1]*len(list1) + [fun2]*len(list2)
         
+       
 # G = dimensionLinker()  # or DiGraph, MultiGraph, MultiDiGraph, etc
-# G.addDimension("I","A")
-# G.addDimension("P","W")
-# def ItoP(i):
-#     return i*0.3
-# def PtoI(p):
-#     return p/0.3
-# G.addConnection("I", "P", *dimensionLinker.gainFunctions(0.3))
+# G.addDimension("pix","[a]")
+# G.addDimension("x","m")
+# G.addDimension("v","m/s")
+# G.addDimension("t","s")
+# G.addDimension("a","m/s^2")
+# G.addDimension("m","kg")
+# G.addDimension("p","kg*m/s")
 
-# G.convert(1, "I", "P")
+
+
+# G.addConnection("pix", "x", dimensionLinker.gainFunctions(1/100))
+# G.addMultiConnection(["x","v","t"], dimensionLinker.monomialFunctions(["x"],["v","t"]))
+# G.addMultiConnection(["v","a","t"], dimensionLinker.monomialFunctions(["v"],["a","t"]))
+# G.addMultiConnection(["p","v","m"], dimensionLinker.monomialFunctions(["p"],["v","m"]))
+# q=G.convert([10, 0.3, 0.1], ["pix", "m", "t"], "p") 
+# print(q)

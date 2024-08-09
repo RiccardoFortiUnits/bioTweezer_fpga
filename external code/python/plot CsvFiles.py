@@ -41,7 +41,10 @@ else:
         # Load the .cdv file into a DataFrame, specifying the number of columns
         df = pd.read_csv(path, delimiter='\t', header=0, usecols=range(num_columns))
         df.columns = df.columns.str.strip()
-        df.drop(['AO1', 'AO2'], axis=1, inplace=True)
+        try:
+            df.drop(['AO1', 'AO2'], axis=1, inplace=True)
+        except:
+            df.drop(['AI5'], axis=1, inplace=True)
         df.columns = ["time", "piezo displacement", "SUM", "XDIFF", "YDIFF", "control signal"]
         df["x"] = df["XDIFF"] / df["SUM"]
         df["y"] = df["YDIFF"] / df["SUM"]
@@ -75,18 +78,27 @@ else:
             x = average_filter(x[:lim],average)
             y = average_filter(y[:lim],average)
             z = average_filter(z[:lim],average)
+            xm,ym,zm = x[0],y[0],z[0]
+            o = average_filter(list(df["control signal"])[:lim],average)
             ax.plot(x, y, z, label='3D Curve')
             point, = ax.plot([], [], [], 'ro')  # Point to animate
+            # vector = ax.quiver([], [], [], [], [], [], color='g')
             
-            frames = 500
+            frames = 50
+            time = 8.7
             multiplier = len(z) // frames
             def update(num):
                 num *= multiplier
                 point.set_data(x[num], y[num])
                 point.set_3d_properties(z[num])
+                # X,Y,Z = x[num]-xm, y[num]-ym, z[num]-zm
+                # [xn,yn,zn] = np.array([X,Y,Z]) / np.sqrt(X**2+Y**2+Z**2) * o[num]
+                # global vector
+                # vector.remove()
+                # vector = ax.quiver(xm,ym,zm, xn,yn,zn, color='g')
                 return point,
     
-            ani = FuncAnimation(fig, update, frames=frames, interval=20, blit=True, repeat = True)
+            ani = FuncAnimation(fig, update, frames=frames, interval=(time*1e3)//frames, blit=True, repeat = True, repeat_delay = 2e3)
             
             ax.set_xlabel('X')
             ax.set_ylabel('Y')

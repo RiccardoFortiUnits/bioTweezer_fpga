@@ -180,7 +180,7 @@ class fpgaHandler:
             return retData
         
     def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None):
-        data = q.getDataStream(2)
+        data = q.getDataStream(time)
         plt.figure()
         x=data["times"]
         if(elementsToShow is None):
@@ -201,27 +201,28 @@ class bioTweezerController(fpgaHandler):
         
         self.initializeDimensionLinker()
         self.dataValuesFromFPGA = {
-            "pid out"          : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-            "x"                : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-            "y"                : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-            "z"                : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-            "x^2"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
-            "y^2"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
-            "z^2"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
+            "pid out"               : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+            "x"                     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+            "y"                     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+            "z"                     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+            "x^2"                   : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
+            "y^2"                   : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
+            "z^2"                   : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
         }
         self.ParametersForFPGA = {#follow the FPGA order
             #large parameters
-            "kp"               : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
-            "ki"               : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
-            "sum_multiplier"   : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
-            "z_multiplier"     : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "z_multiplierDim"),
+            "kp"                    : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
+            "ki"                    : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
+            "SUM_multiplierFor_div"  : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
+            "SUM_multiplierFor_z"          : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
             
             #small parameters
-            "outWhenPiDisabled": fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-            "setpoint"         : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-            "limitLow"         : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-            "limitHigh"        : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-            "SUM_offsetFor_z"  : fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
+            "outWhenPiDisabled"     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+            "setpoint"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+            "limitLow"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+            "limitHigh"             : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+            "SUM_offsetFor_div"     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
+            "SUM_offsetFor_z"       : fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
         }
         super(bioTweezerController, self).__init__(**kwargs)
         self.reset()
@@ -239,8 +240,8 @@ class bioTweezerController(fpgaHandler):
     #parameters of the current generator (how does the control input voltage get translated into a current)
     currentGenerator_inputVtoI = 1e-3 / 20e-3                                                               # A/V
     currentGenerator_baseCurrent = 200e-3                                                                   # A
-    currentGenerator_minCurrecnt = -50e-3                                                                   # A
-    currentGenerator_maxCurrecnt = 300e-3                                                                   # A
+    currentGenerator_minCurrent = -1000e-3                                                                   # A
+    currentGenerator_maxCurrent = 1000e-3                                                                   # A
     #parameters of the laser
     laser_currentToLaserPower = 340e-3 / 730e-3                                                             # W/A
     #= segmented_function([0,730e-3], [0,340e-3])  
@@ -248,11 +249,15 @@ class bioTweezerController(fpgaHandler):
     #distance ranges (i.e. the values of x and y when their respective DIFF signals are == SUM)
     range_x = range_y = 18e-6                                                                               # m
     #value of the SUM signal when the bead is at the center of the laser (z == 0)
-    SUM_at_z0 = 2                                                                                           # V
+    SUM_at_z0 = 0.1                                                                                           # V
     #max value of SUM where the relationship between SUM and z is still linear
     SUM_max = 4                                                                                             # V
     #value of z when SUM == SUM_max
-    z_max = 0e-6                                                                                            # m
+    z_max = 1e-6                                                                                            # m
+    
+    SUM_backgroundVoltage = 0                                                                               # V
+    SUM_multiplierForDIFF_SUM = 2*range_x/range_x                                                             # [adimensional] (maybe?)
+    
     
     #calibration parameters
     calibration_laserPower = 90e-3                                                                          # W
@@ -263,7 +268,6 @@ class bioTweezerController(fpgaHandler):
         dimLink = dimensionLinker()
         dimLink.addDimension("bead_position", "m")
         dimLink.addDimension("bead_positionSquare", "m^2")
-        dimLink.addDimension("z_multiplierDim", "m/V")
         dimLink.addDimension("QPD_output", "V")
         dimLink.addDimension("xy_voltage", "V")
         dimLink.addDimension("sum_voltage", "V")
@@ -272,6 +276,7 @@ class bioTweezerController(fpgaHandler):
         dimLink.addDimension("FPGA_signalRegister", "bit", bitSize = 16)
         dimLink.addDimension("FPGA_SUMsignalRegister", "bit", bitSize = 16)
         dimLink.addDimension("FPGA_coeffRegister", "bit", bitSize = 26)
+        dimLink.addDimension("FPGA_largeCoeffRegister", "bit", bitSize = 26)
         dimLink.addDimension("control_voltage", "V")
         dimLink.addDimension("generator_input", "V")
         dimLink.addDimension("generator_current", "I")
@@ -287,6 +292,7 @@ class bioTweezerController(fpgaHandler):
         self.dimLink.addConnection("FPGA_floatValue", "FPGA_signalRegister", dimensionLinker.gainFunctions(2**15))
         self.dimLink.addConnection("FPGA_floatValue", "FPGA_SUMsignalRegister", dimensionLinker.gainFunctions(2**15))
         self.dimLink.addConnection("FPGA_floatValue", "FPGA_coeffRegister", dimensionLinker.gainFunctions(2**24))
+        self.dimLink.addConnection("FPGA_floatValue", "FPGA_largeCoeffRegister", dimensionLinker.gainFunctions(2**22))
         self.dimLink.addConnection("FPGA_floatValue", "control_voltage", dimensionLinker.gain_n_shiftFunctions(self.DAC_fpgaOuputToVoltage, self.DAC_offset))
         self.dimLink.addConnection("control_voltage", "generator_input", dimensionLinker.shift_n_gainFunctions(-self.DAC_offset, self.DAC_gain))
         self.dimLink.addConnection("generator_input", "generator_current", dimensionLinker.gain_n_shiftFunctions(self.currentGenerator_inputVtoI, self.currentGenerator_baseCurrent))
@@ -294,7 +300,6 @@ class bioTweezerController(fpgaHandler):
         
         self.dimLink.addConnection("FPGA_floatValue", "bead_position", dimensionLinker.gainFunctions(self.range_x))
         self.dimLink.addConnection("bead_position", "bead_positionSquare", dimensionLinker.squareFunctions())
-        self.dimLink.addConnection("FPGA_floatValue", "z_multiplierDim", dimensionLinker.gainFunctions(self.range_x * self.ADC_sumAttenuation))
         self.dimLink.checkForLoops()
     
     def _fpgaOutputToLaserPower(self, value):
@@ -303,28 +308,26 @@ class bioTweezerController(fpgaHandler):
     
     
     def initiateTweezers(self):
+        mz = self.z_max / (self.range_x * (self.SUM_max - self.SUM_at_z0) * self.ADC_sumAttenuation)
         self.setParameters(
-            #sum_multiplier: since the ADCs have different gains for the sum and the VER/HOR_DIFF signals, let's correct them with this multiplier
-            sum_multiplier = (self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),            
-            #z_multiplier and SUM_offsetFor_z: we can get an appoximation of z ~ z_max * (SUM - SUM_at_z0) / (SUM_max - SUM_at_z0). Inside 
-                #the fpga, the signal for x will actually be equal to x / range_x, so we need to compensate for every gain and offset 
-                #to obtain z inside the fpga as z / range_x. This way, the fpga can handle values with the same range, and we'll 
-                #convert them back once we receive a response from the FPGA
-            z_multiplier = (self.z_max / (self.SUM_max - self.SUM_at_z0), "z_multiplierDim"),
+            SUM_multiplierFor_z = (mz, "FPGA_floatValue"),
             SUM_offsetFor_z = (-self.SUM_at_z0, "QPD_output"),
-            #these values can be set static, knowing the limits of the laser source
+            
+            SUM_multiplierFor_div = (self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+            SUM_offsetFor_div = (self.SUM_backgroundVoltage * self.ADC_sumAttenuation * self.SUM_multiplierForDIFF_SUM, "QPD_output"),
+           
             outWhenPiDisabled = (0, "generator_input"),
         )
         if(self.DAC_gain > 0):
             self.setParameters(
-                limitLow = (-0.2, "FPGA_floatValue"),
-                limitHigh = (self.currentGenerator_maxCurrecnt, "generator_current"),
+                limitLow = (self.currentGenerator_minCurrent, "generator_current"),
+                limitHigh = (self.currentGenerator_maxCurrent, "generator_current"),
             )
         else:
             self.setParameters(
                 #high and low limits are switched, because the DAC amplifier has a negative gain
-                limitLow = (-0.8, "FPGA_floatValue"),
-                limitHigh = (self.currentGenerator_minCurrecnt, "generator_current"),
+                limitLow = (self.currentGenerator_maxCurrent, "generator_current"),
+                limitHigh = (self.currentGenerator_minCurrent, "generator_current"),
             )
         
     
@@ -364,10 +367,10 @@ class bioTweezerController(fpgaHandler):
         
 
 q = bioTweezerController()
-q.EnablePI(kp = -0.3, ki = 0.00, setpoint = (0.1, "FPGA_floatValue"))
-# q.EnableConstantOutput((0.200, "generator_current"))
+q.EnablePI(kp = 0.1, ki = 0.00, setpoint = (0, "FPGA_floatValue"))
+# q.EnableConstantOutput((0.200, "generator_input"))
 # q.reset()
 
-q.plotReceivedData(3,elementsToShow=["pid out"])
+q.plotReceivedData(3,elementsToRemove=["pid out"])
 
 # Example dictionary of vectors

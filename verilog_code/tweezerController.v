@@ -23,7 +23,6 @@ module tweezerController#(
     input PI_reset,
     input PI_enable,
     input PI_freeze,
-    input [coeffBitSize -1:0] sum_multiplier,
     input [coeffBitSize -1:0] PI_kp,
     input [coeffBitSize -1:0] PI_ki,
     input PI_kp_update,
@@ -32,8 +31,10 @@ module tweezerController#(
     input [inputBitSize -1:0] PI_setpoint,
      input [outputBitSize -1:0] pi_limit_LO,
      input [outputBitSize -1:0] pi_limit_HI,
+     input [inputBitSize -1:0] sumForDivision_offset,
+     input [largeCoeffBitSize -1:0] sumForDivision_multiplier,
      input [inputBitSize -1:0] z_offset,
-     input [largeCoeffBitSize -1:0] z_multiplier,//warning: it has a different FracSize
+     input [largeCoeffBitSize -1:0] z_multiplier,
      
     output [outputBitSize -1:0] ray,
     output [outputBitSize -1:0] x,
@@ -49,7 +50,6 @@ module tweezerController#(
     output [3:0] leds
 );
 
-//get x, y and z of the bead
 wire [inputBitSize -1:0] XDIFF_withFeedback = addFeedback & retroactionController_valid ? XDIFF + retroactionController: XDIFF;
 
 //in case useSUM is set to 0
@@ -58,28 +58,32 @@ fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize,
     XDIFF_directTo_x(XDIFF_withFeedback, x_direct);
 fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
     YDIFF_directTo_y(YDIFF, y_direct);
+	 
 
-//adjust SUM (the circuit has a different gain for SUM to respect to the gains of HOR/VER_DIFF, 
-    //since the DIFF signals will always be smaller, and thus they'll be amplified more)
-wire [workingBitSize -1:0] sum_normalized;
-clocked_FractionalMultiplier #(
-    .A_WIDTH            (inputBitSize),
-    .B_WIDTH            (coeffBitSize),
-    .OUTPUT_WIDTH   (workingBitSize),
-    .FRAC_BITS_A    (inputFracSize),
-    .FRAC_BITS_B    (coeffFracSize),
-    .FRAC_BITS_OUT  (workingFracSize)
-)fm(
-  .clk(clk),
-  .reset(reset),
-  .a                (SUM),
-  .b                (sum_multiplier),
-  .result       (sum_normalized)
-);//warning: the sum would always be one clock cycle later than the x and y differences. Is it worth to add a delay on XDIFF and YDIFF?
+wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
 
+wire [workingBitSize -1:0] sumForDivision;
+	 
+functionsOnSUM#(
+    .inputBitSize       (inputBitSize),
+    .inputFracSize      (inputFracSize),
+    .largeCoeffBitSize  (largeCoeffBitSize),
+    .largeCoeffFracSize (largeCoeffFracSize),
+    .workingBitSize     (workingBitSize),
+    .workingFracSize    (workingFracSize)
+)fos(
+    .clk                (clk),
+    .reset              (reset),
+    .SUM                (SUM),
+    .sumForDivision     (sumForDivision),
+    .z                  (z_untrimmed),
+    .div_offset         (sumForDivision_offset),
+    .div_multiplier     (sumForDivision_multiplier),
+    .z_offset           (z_offset),
+    .z_multiplier       (z_multiplier)
+);
 
 //divide HOR/VER_DIFF by SUM, to get the x and y signals
-wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
 divider#(
     .A_WIDTH            (inputBitSize),
     .B_WIDTH            (workingBitSize),
@@ -88,30 +92,15 @@ divider#(
     .FRAC_BITS_B        (workingFracSize),
     .FRAC_BITS_OUT      (workingFracSize),
     .areSignalsSigned   (1)
-)xdiff_dividedBy_sumTuned(
+)xdiff_dividedBy_sumTuned [1:0](
     .clk                (clk),
     .reset              (reset),
-    .a                  (XDIFF_withFeedback),
-    .b                  (sum_normalized),
-    .result             (x_normalized),
+    .a                  ({YDIFF, XDIFF_withFeedback}),
+    .b                  (sumForDivision),
+    .result             ({y_normalized, x_normalized}),
     .remain             ()
 );
-divider#(
-    .A_WIDTH            (inputBitSize),
-    .B_WIDTH            (workingBitSize),
-    .OUTPUT_WIDTH       (workingBitSize),
-    .FRAC_BITS_A        (inputFracSize),
-    .FRAC_BITS_B        (workingFracSize),
-    .FRAC_BITS_OUT      (workingFracSize),
-    .areSignalsSigned   (1)
-)ydiff_dividedBy_sumTuned(
-    .clk                (clk),
-    .reset              (reset),
-    .a                  (YDIFF),
-    .b                  (sum_normalized),
-    .result             (y_normalized),
-    .remain             ()
-);
+
  assign x_untrimmed = useSUM ? x_normalized : x_direct;
  assign y_untrimmed = useSUM ? y_normalized : y_direct;
 
@@ -120,38 +109,6 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     shift_y(y_untrimmed, y);
      
-//get z. Near z==0, the sum is equal to m*SUM+q, where q=z_offset and m=z_multiplier (near z==0, we have a linear correlation between z and (SUM-z_offset) )
-wire [inputBitSize+1 -1:0] SUM_withOffset;
-wire [workingBitSize -1:0] SUM_withOffset_extended;
-
-adder#(
-  .WIDTH      	(inputBitSize),
-  .addStuffingBit	(1),
-  .isSubtraction  (1)
-)z_subtract_offset(
-  .clk    (clk),
-  .reset    (reset),
-  .a      (SUM),
-  .b      (z_offset),
-  .result   (SUM_withOffset)
-);
-fixedPointShifter#(inputBitSize+1, inputFracSize, workingBitSize, workingFracSize, 1) 
-    extend_z_offset(SUM_withOffset, SUM_withOffset_extended);
-clocked_FractionalMultiplier #(
-    .A_WIDTH            (workingBitSize),
-    .B_WIDTH            (largeCoeffBitSize),
-    .OUTPUT_WIDTH   (workingBitSize),
-    .FRAC_BITS_A    (workingFracSize),
-    .FRAC_BITS_B    (largeCoeffFracSize),
-    .FRAC_BITS_OUT  (workingFracSize)
-)SUM_to_z(
-  .clk(clk),
-  .reset(reset),
-  .a                (SUM_withOffset_extended),
-  .b                (z_multiplier),
-  .result       (z_untrimmed)
-);
-
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     shift_z(z_untrimmed, z);
 
@@ -230,7 +187,6 @@ assign retroactionController =  reset || PI_reset ? (
 												)
                                 );
 //parameter updates
-reg PI_kp_updateReceived;
 always @(posedge clk)begin
     if(reset)begin
         PI_kp_reg <= 0;
