@@ -180,7 +180,7 @@ class fpgaHandler:
             return retData
         
     def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None):
-        data = q.getDataStream(time)
+        data = self.getDataStream(time)
         plt.figure()
         x=data["times"]
         if(elementsToShow is None):
@@ -221,7 +221,7 @@ class bioTweezerController(fpgaHandler):
             "setpoint"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
             "limitLow"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
             "limitHigh"             : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-            "SUM_offsetFor_div"     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
+            "SUM_offsetFor_div"     : fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
             "SUM_offsetFor_z"       : fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
         }
         super(bioTweezerController, self).__init__(**kwargs)
@@ -246,17 +246,17 @@ class bioTweezerController(fpgaHandler):
     laser_currentToLaserPower = 340e-3 / 730e-3                                                             # W/A
     #= segmented_function([0,730e-3], [0,340e-3])  
     
+    #conversion from bead position to qpd voltage output
+    sensitivity_x = sensitivity_y = 0.5e-3 / 1e-9                                                           # V/m
+    sensitivity_z = 1e-3 / 1e-9                                                                             # V/m
+    
     #distance ranges (i.e. the values of x and y when their respective DIFF signals are == SUM)
-    range_x = range_y = 18e-6                                                                               # m
+    range_x = range_y = 10 / sensitivity_x                                                                  # m
     #value of the SUM signal when the bead is at the center of the laser (z == 0)
     SUM_at_z0 = 0.1                                                                                           # V
-    #max value of SUM where the relationship between SUM and z is still linear
-    SUM_max = 4                                                                                             # V
-    #value of z when SUM == SUM_max
-    z_max = 1e-6                                                                                            # m
     
     SUM_backgroundVoltage = 0                                                                               # V
-    SUM_multiplierForDIFF_SUM = 2*range_x/range_x                                                             # [adimensional] (maybe?)
+    SUM_multiplierForDIFF_SUM = range_x/range_x                                                             # [adimensional] (maybe?)
     
     
     #calibration parameters
@@ -290,7 +290,7 @@ class bioTweezerController(fpgaHandler):
         self.dimLink.addConnection("xy_voltage", "FPGA_floatValue", dimensionLinker.gainFunctions(self.ADC_voltageToFpgaInput))
         self.dimLink.addConnection("sum_voltage", "FPGA_SUMfloatValue", dimensionLinker.gainFunctions(self.ADC_voltageToFpgaInput))
         self.dimLink.addConnection("FPGA_floatValue", "FPGA_signalRegister", dimensionLinker.gainFunctions(2**15))
-        self.dimLink.addConnection("FPGA_floatValue", "FPGA_SUMsignalRegister", dimensionLinker.gainFunctions(2**15))
+        self.dimLink.addConnection("FPGA_SUMfloatValue", "FPGA_SUMsignalRegister", dimensionLinker.gainFunctions(2**15))
         self.dimLink.addConnection("FPGA_floatValue", "FPGA_coeffRegister", dimensionLinker.gainFunctions(2**24))
         self.dimLink.addConnection("FPGA_floatValue", "FPGA_largeCoeffRegister", dimensionLinker.gainFunctions(2**22))
         self.dimLink.addConnection("FPGA_floatValue", "control_voltage", dimensionLinker.gain_n_shiftFunctions(self.DAC_fpgaOuputToVoltage, self.DAC_offset))
@@ -308,7 +308,8 @@ class bioTweezerController(fpgaHandler):
     
     
     def initiateTweezers(self):
-        mz = self.z_max / (self.range_x * (self.SUM_max - self.SUM_at_z0) * self.ADC_sumAttenuation)
+        self.set_zOffset()
+        mz = 1 / (self.range_x * self.sensitivity_z * self.ADC_sumAttenuation)
         self.setParameters(
             SUM_multiplierFor_z = (mz, "FPGA_floatValue"),
             SUM_offsetFor_z = (-self.SUM_at_z0, "QPD_output"),
@@ -349,7 +350,26 @@ class bioTweezerController(fpgaHandler):
         [kx, ky, kz] = self.calcStiffness(time=self.calibration_time, directions=["x","y","z"])
         self.laser_powerToStiffness_xy = (kx+ky)/2 / self.calibration_laserPower
         self.laser_powerToStiffness_z = kz / self.calibration_laserPower
+    
+    def _get_zOffset(self, time = 0.2):
+        self.EnablePI(
+            kp = 0,
+            ki = 0,
+            SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
+            SUM_offsetFor_z = (0, "QPD_output"),
+        )
+        z = - np.mean(self.getDataStream(time)["z"])
+        self.reset()
+        z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
+        z = self.dimLink.convert(z, "FPGA_SUMsignalRegister", "QPD_output")
+        return z
         
+    def set_SumBackgroundVoltage(self, time = 0.2):
+        self.SUM_backgroundVoltage = self._get_zOffset(time)
+        
+    def set_zOffset(self, time = 0.2):
+        self.SUM_at_z0 = self._get_zOffset(time)
+    
     def setReset(self, reset = 1):
         self.sendCommand([b"PICL\0\0\0"+reset.to_bytes(1, 'big')])
     def setPiEnable(self, enable = 1):

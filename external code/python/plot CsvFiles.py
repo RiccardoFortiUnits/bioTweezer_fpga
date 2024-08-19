@@ -19,7 +19,9 @@ def average_filter(signal, window_size):
 
 X = list()
 Y = list()
-folder_path = None# ['C:/Users/lastline/Downloads/canale_blue_risposta_su_e_x_div_sum_001.csv']
+sx=.5e-3/1e-9
+sz= 1e-3/1e-9
+folder_path = ["C:/Users/lastline/Documents/bioTweezers/8_8_24/biglia3um_vs_10um_015.csv"]#None# ['C:/Users/lastline/Downloads/canale_blue_risposta_su_e_x_div_sum_001.csv']
 if folder_path is None:
     root = tkinter.Tk()
     root.withdraw() # prevents an empty tkinter window from appearing
@@ -45,21 +47,29 @@ else:
             df.drop(['AO1', 'AO2'], axis=1, inplace=True)
         except:
             df.drop(['AI5'], axis=1, inplace=True)
-        df.columns = ["time", "piezo displacement", "SUM", "XDIFF", "YDIFF", "control signal"]
-        df["x"] = df["XDIFF"] / df["SUM"]
-        df["y"] = df["YDIFF"] / df["SUM"]
+        df.columns = ["time", "piezo displacement", "SUM", "XDIFF", "YDIFF", "feedback signal"]
         df["piezo displacement"] = df["piezo displacement"] - np.mean(df["piezo displacement"])
-        # Set the first column as the index (times)
+        
+        
+        # df["x"] = 1e9*(df["XDIFF"]) / df["SUM"] / sx
+        # # df["y"] = (df["YDIFF"] - np.mean(df["YDIFF"][:100])) / df["SUM"] / sx
+        # df["z"] = 1e9*(df["SUM"] - 1.4) / sz
+        # df["ray xz"] = np.sqrt(df["x"]**2 + df["z"]**2)
+        # df["feedback signal"] *= 1e9*2e-6*75/25
+        # # Set the first column as the index (times)
+        # df.drop(["piezo displacement", "SUM", "XDIFF", "YDIFF"], axis=1, inplace=True)
+        
+        
         df.set_index(df.columns[0], inplace=True)
         plt.figure()
         # Plot all the curves with custom labels
         plt.plot(df, label = df.columns)
-        # for column, label in zip(df.columns, ["piezo displacement", "SUM", "XDIFF", "YDIFF", "control signal"]):
+        # for column, label in zip(df.columns, ["piezo displacement", "SUM", "XDIFF", "YDIFF", "feedback signal"]):
         #     plt.plot(df.index, df[column], label=label)
         
         # Add labels and title
         plt.xlabel('Time (s)')
-        plt.ylabel('Values (V)')
+        plt.ylabel('Values (nm)')
         plt.title(name)
         plt.legend()
         
@@ -67,7 +77,7 @@ else:
         plt.show()
 
         # Create a 3D plot
-        do3D_plot = True
+        do3D_plot = False
         if do3D_plot:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -79,7 +89,7 @@ else:
             y = average_filter(y[:lim],average)
             z = average_filter(z[:lim],average)
             xm,ym,zm = x[0],y[0],z[0]
-            o = average_filter(list(df["control signal"])[:lim],average)
+            o = average_filter(list(df["feedback signal"])[:lim],average)
             ax.plot(x, y, z, label='3D Curve')
             point, = ax.plot([], [], [], 'ro')  # Point to animate
             # vector = ax.quiver([], [], [], [], [], [], color='g')
