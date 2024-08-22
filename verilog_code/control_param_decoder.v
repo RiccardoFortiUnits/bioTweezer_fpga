@@ -127,7 +127,6 @@ begin
                 for (i=0;i<nOfsmallRegisters;i=i+1) begin                    
                     //small registers
                     if(received_data[31-:8] == i+smallRegistersStartDataControl)begin
-                        smallRegisters[`smallRegisterStart(i)+maxTransmissionSize -1-:maxTransmissionSize] <= received_data[maxTransmissionSize -1:0];
                         for(j=0;j<`smallRegisterStart(i+1)-`smallRegisterStart(i);j=j+1)begin
                             smallRegisters[`smallRegisterStart(i)+j] <= received_data[j];
                         end

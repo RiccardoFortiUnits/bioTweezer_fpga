@@ -5,65 +5,65 @@ module tweezerController#(
     parameter outputFracSize = 15,
     parameter coeffBitSize = 10,
     parameter coeffFracSize = 9,
-	 parameter largeCoeffBitSize = coeffBitSize,
-	 parameter largeCoeffFracSize = coeffFracSize - 2,
+     parameter largeCoeffBitSize = coeffBitSize,
+     parameter largeCoeffFracSize = coeffFracSize - 2,
     parameter workingBitSize = 24,//I'm too lazy to follow all the bit size conversions... let's just use a bigger register size for all the internal processes
     //todo usa meglio workingBitSize
-    parameter workingFracSize = 20
+    parameter workingFracSize = 20,
+    parameter EnableToggleMaxTime = 28'h8000000
 )(
-    input clk,
-    input reset,    
-    
-    input [inputBitSize -1:0] XDIFF,
-    input [inputBitSize -1:0] YDIFF,
-    input [inputBitSize -1:0] SUM,
-    output [outputBitSize -1:0] retroactionController,
-    output retroactionController_valid,
-    
-    input PI_reset,
-    input PI_enable,
-    input PI_freeze,
-    input [coeffBitSize -1:0] PI_kp,
-    input [coeffBitSize -1:0] PI_ki,
-    input PI_kp_update,
-    input PI_ki_update,
-    input [outputBitSize -1:0] output_when_pi_disabled,
-    input [inputBitSize -1:0] PI_setpoint,
-     input [outputBitSize -1:0] pi_limit_LO,
-     input [outputBitSize -1:0] pi_limit_HI,
-     input [inputBitSize -1:0] sumForDivision_offset,
-     input [largeCoeffBitSize -1:0] sumForDivision_multiplier,
-     input [inputBitSize -1:0] z_offset,
-     input [largeCoeffBitSize -1:0] z_multiplier,
+    input                                        clk,
+    input                                        reset,    
+
+    input   [inputBitSize -1:0]                  XDIFF,
+    input   [inputBitSize -1:0]                  YDIFF,
+    input   [inputBitSize -1:0]                  SUM,
+    output  [outputBitSize -1:0]                 retroactionController,
+    output                                       retroactionController_valid,
+
+    input                                        PI_reset,
+    input                                        PI_enable,
+    input                                        PI_freeze,
+    input                                        useToggleEnable,
+    input   [$clog2(EnableToggleMaxTime+1) -1:0] enableToggleCycles,
+
+    input   [coeffBitSize -1:0]                  PI_kp,
+    input   [coeffBitSize -1:0]                  PI_ki,
+    input                                        PI_kp_update,
+    input                                        PI_ki_update,
+    input   [outputBitSize -1:0]                 output_when_pi_disabled,
+    input   [inputBitSize -1:0]                  PI_setpoint,
+    input   [outputBitSize -1:0]                 pi_limit_LO,
+    input   [outputBitSize -1:0]                 pi_limit_HI,
+    input   [inputBitSize -1:0]                  sumForDivision_offset,
+    input   [largeCoeffBitSize -1:0]             sumForDivision_multiplier,
+    input   [inputBitSize -1:0]                  z_offset,
+    input   [largeCoeffBitSize -1:0]             z_multiplier,
+
+    input   [inputBitSize -1:0]                  x_offset,
+    input   [inputBitSize -1:0]                  y_offset,
+
+    output  [outputBitSize -1:0]                 ray,
+    output  [outputBitSize -1:0]                 x,
+    output  [outputBitSize -1:0]                 y,
+    output  [outputBitSize -1:0]                 z,
+    output  [outputBitSize -1:0]                 xSquare,
+    output  [outputBitSize -1:0]                 ySquare,
+    output  [outputBitSize -1:0]                 zSquare,
      
-    output [outputBitSize -1:0] ray,
-    output [outputBitSize -1:0] x,
-    output [outputBitSize -1:0] y,
-    output [outputBitSize -1:0] z,
-    output [outputBitSize -1:0] xSquare,
-    output [outputBitSize -1:0] ySquare,
-    output [outputBitSize -1:0] zSquare,
+     
     
     //debug wires
     input addFeedback,
-    input useSUM,
     output [3:0] leds
 );
 
 wire [inputBitSize -1:0] XDIFF_withFeedback = addFeedback & retroactionController_valid ? XDIFF + retroactionController: XDIFF;
 
-//in case useSUM is set to 0
-wire [workingBitSize -1:0] x_direct, y_direct;
-fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
-    XDIFF_directTo_x(XDIFF_withFeedback, x_direct);
-fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
-    YDIFF_directTo_y(YDIFF, y_direct);
-	 
-
 wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
 
 wire [workingBitSize -1:0] sumForDivision;
-	 
+     
 functionsOnSUM#(
     .inputBitSize       (inputBitSize),
     .inputFracSize      (inputFracSize),
@@ -100,17 +100,31 @@ divider#(
     .result             ({y_normalized, x_normalized}),
     .remain             ()
 );
+wire [workingBitSize -1:0] x_offset_extended, y_offset_extended;
 
- assign x_untrimmed = useSUM ? x_normalized : x_direct;
- assign y_untrimmed = useSUM ? y_normalized : y_direct;
+fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
+    extend_xy_offsets[0:1](
+        {x_offset, y_offset}, 
+        {x_offset_extended, y_offset_extended}
+);
+
+adder#(
+    .WIDTH              (workingBitSize),
+    .addStuffingBit     (0),
+    .isSubtraction      (0)
+)add_xy_offset [0:1](
+    .clk                (clk),
+    .reset              (reset),
+    .a                  ({x_normalized,y_normalized}),
+    .b                  ({x_offset_extended, y_offset_extended}),
+    .result             ({x_untrimmed, y_untrimmed})
+);
 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
-    shift_x(x_untrimmed, x);
-fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
-    shift_y(y_untrimmed, y);
-     
-fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
-    shift_z(z_untrimmed, z);
+    shift_xyz[0:2](
+        {x_untrimmed, y_untrimmed, z_untrimmed}, 
+        {x, y, z}
+);
 
 //get distance of the bead
 wire [workingBitSize -1:0] r;
@@ -123,18 +137,18 @@ calcRay#
     .outputWidth       (workingBitSize),
     .outputFracWidth   (workingFracSize)
 )get_r(
-    .clk        (clk),
-    .reset  (reset),
-    .x          (x_untrimmed),
-    .y          (y_untrimmed),
-     .z         (z_untrimmed),
-     
-     .xSquare  (xSquare_untrimmed),
-     .ySquare  (ySquare_untrimmed),
-     .zSquare  (zSquare_untrimmed),
-     
-    .r          (r),
-    .outData_valid(r_valid) 
+    .clk                (clk),
+    .reset              (reset),
+    .x                  (x_untrimmed),
+    .y                  (y_untrimmed),
+    .z                  (z_untrimmed),
+
+    .xSquare            (xSquare_untrimmed),
+    .ySquare            (ySquare_untrimmed),
+    .zSquare            (zSquare_untrimmed),
+
+    .r                  (r),
+    .outData_valid      (r_valid) 
 );
 
 reg [coeffBitSize -1:0] PI_kp_reg, PI_ki_reg;
@@ -144,29 +158,32 @@ wire [workingBitSize -1:0] setpoint_shifted;
 fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize, 1) 
     shiftSetpoint(PI_setpoint, setpoint_shifted);
     
+wire toggleOutput;
+wire enableAfterToggle = useToggleEnable ? toggleOutput : PI_enable;
+
 //PI controller on the distance
 wire [workingBitSize -1:0] pi_out;
 pi_controller#(
-    .inputBitSize           (workingBitSize),
+    .inputBitSize       (workingBitSize),
     .inputFracSize      (workingFracSize),
     .outputBitSize      (workingBitSize),
     .outputFracSize     (workingFracSize),
-    .coeffBitSize           (coeffBitSize),
+    .coeffBitSize       (coeffBitSize),
     .coeffFracSize      (coeffFracSize),
     .productFracSize    (workingBitSize-2)
 )PI(
-    .clk                        (clk),
-    .reset                  (reset),
-    .reset_pi               (PI_reset | singlePiReset),
-    .enable_pi              (PI_enable),
-    .pi_limiting            (PI_freeze),
-    .pi_setpoint            (setpoint_shifted),
-    .pi_input               (r),
+    .clk                (clk),
+    .reset              (reset),
+    .reset_pi           (PI_reset | singlePiReset),
+    .enable_pi          (enableAfterToggle),
+    .pi_limiting        (PI_freeze),
+    .pi_setpoint        (setpoint_shifted),
+    .pi_input           (r),
     .pi_input_valid     (r_valid),
     .pi_kp_coefficient  (PI_kp_reg),
     .pi_ti_coefficient  (PI_ki_reg),
-    .pi_output              (pi_out),
-    .pi_output_valid        (retroactionController_valid)
+    .pi_output          (pi_out),
+    .pi_output_valid    (retroactionController_valid)
 );
 wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
@@ -203,8 +220,7 @@ always @(posedge clk)begin
             singlePiReset <= 0;
         end
     end
-end
-    
+end    
 
     
 
@@ -213,12 +229,22 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 
      
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 
-    shift_xSquare(xSquare_untrimmed, xSquare);
-fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 
-    shift_ySquare(ySquare_untrimmed, ySquare);
-fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 
-    shift_zSquare(zSquare_untrimmed, zSquare);
+    shift_xyzSquare[0:2](
+        {xSquare_untrimmed, ySquare_untrimmed, zSquare_untrimmed},
+        {xSquare, ySquare, zSquare}
+);
 
+timedSwitch #(
+    .maxTime(EnableToggleMaxTime)
+) ts (
+    .clk                       (clk),
+    .reset                     (reset),
+    .enable                    (PI_enable),
+    .cyclesBeforeSwitching     (enableToggleCycles),
+    .out                       (toggleOutput)
+);
+     
+     
     
 //debug wires
     

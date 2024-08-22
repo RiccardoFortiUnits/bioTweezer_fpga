@@ -35,9 +35,9 @@ localparam  inputWholeSize = inputBitSize - inputFracSize,
             productWholeSize = errorWholeSize + coeffWholeSize,
             productBitSize = productWholeSize + productFracSize,
             saturationStuffingBits = 2,// +1 would be enough...
-            saturationWholeSize = (outputWholeSize > productWholeSize ? outputWholeSize : productWholeSize)+ saturationStuffingBits,
+            saturationWholeSize = (outputWholeSize > productWholeSize ? outputWholeSize : productWholeSize) + saturationStuffingBits,
             saturationFracSize = productFracSize,
-            saturationBitSize = productFracSize + saturationFracSize,
+            saturationBitSize = saturationWholeSize + saturationFracSize,
             saturatedWholeSize = saturationWholeSize - saturationStuffingBits,
             saturatedFracSize = saturationFracSize,
             saturatedBitSize = saturatedFracSize + saturatedWholeSize;
@@ -130,7 +130,7 @@ adder#(
   .isSubtraction  (1)
 )errorSubtracter(
   .clk    (clk),
-  .reset    (reset || reset_pi),
+  .reset    (reset || reset_pi || !enable_pi),
   .a      (setpoint_extended),
   .b      (input_extended),
   .result   (error)
@@ -193,7 +193,7 @@ reg signed [saturationBitSize-1:0] integralSum_delayed;
 
 always @(posedge clk) 
 begin
-    if (reset || reset_pi)
+    if (reset || reset_pi || !enable_pi)
     begin
         integralSum_delayed <= 0;
     end

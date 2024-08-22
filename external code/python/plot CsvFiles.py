@@ -21,7 +21,7 @@ X = list()
 Y = list()
 sx=.5e-3/1e-9
 sz= 1e-3/1e-9
-folder_path = ["C:/Users/lastline/Documents/bioTweezers/8_8_24/biglia3um_vs_10um_015.csv"]#None# ['C:/Users/lastline/Downloads/canale_blue_risposta_su_e_x_div_sum_001.csv']
+folder_path = None# ["C:/Users/lastline/Documents/bioTweezers/8_8_24/biglia3um_vs_10um_015.csv"]#None# ['C:/Users/lastline/Downloads/canale_blue_risposta_su_e_x_div_sum_001.csv']
 if folder_path is None:
     root = tkinter.Tk()
     root.withdraw() # prevents an empty tkinter window from appearing
@@ -47,17 +47,17 @@ else:
             df.drop(['AO1', 'AO2'], axis=1, inplace=True)
         except:
             df.drop(['AI5'], axis=1, inplace=True)
-        df.columns = ["time", "piezo displacement", "SUM", "XDIFF", "YDIFF", "feedback signal"]
+        df.columns = ["time", "piezo displacement", "SUM", "XDIFF", "YDIFF", "feedback signal", "current signal"]
         df["piezo displacement"] = df["piezo displacement"] - np.mean(df["piezo displacement"])
         
         
-        # df["x"] = 1e9*(df["XDIFF"]) / df["SUM"] / sx
-        # # df["y"] = (df["YDIFF"] - np.mean(df["YDIFF"][:100])) / df["SUM"] / sx
-        # df["z"] = 1e9*(df["SUM"] - 1.4) / sz
-        # df["ray xz"] = np.sqrt(df["x"]**2 + df["z"]**2)
-        # df["feedback signal"] *= 1e9*2e-6*75/25
-        # # Set the first column as the index (times)
-        # df.drop(["piezo displacement", "SUM", "XDIFF", "YDIFF"], axis=1, inplace=True)
+        df["x"] = 1e9*(df["XDIFF"]) / df["SUM"] / sx
+        df["y"] = 1e9*(df["YDIFF"]) / df["SUM"] / sx
+        df["z"] = 1e9*(df["SUM"] - np.mean(df["SUM"][:100])) / sz
+        df["ray xz"] = np.sqrt(df["x"]**2 + df["z"]**2)
+        df["feedback signal"] *= 1e9*2e-6*75/25
+        # Set the first column as the index (times)
+        # df.drop(["piezo displacement", "SUM", "XDIFF", "YDIFF", "current signal"], axis=1, inplace=True)
         
         
         df.set_index(df.columns[0], inplace=True)
@@ -77,14 +77,14 @@ else:
         plt.show()
 
         # Create a 3D plot
-        do3D_plot = False
+        do3D_plot = True
         if do3D_plot:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             lim = len(df["x"])# 25000
             average = 101
             xmult = 0
-            x,y,z = list(df["x"]+xmult*df["piezo displacement"]), list(df["y"]), list(df["SUM"])
+            x,y,z = list(df["x"]), list(df["y"]), list(df["SUM"])
             x = average_filter(x[:lim],average)
             y = average_filter(y[:lim],average)
             z = average_filter(z[:lim],average)
