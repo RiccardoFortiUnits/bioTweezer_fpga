@@ -37,7 +37,7 @@ module network_wrapper #(
     output  rx_xcvr_clk,  //125 MHz clock output for synchronization with the ethernet wrapper
     
     // GENERAL PARAMETERS //
-	 output pi_enable_cmd,
+	 output [1:0] pi_enable_cmd,
     output pi_reset_cmd,
 	 
     output [`largeRegisterStart(nOflargeRegisters) -1:0] largeRegisters,
@@ -233,7 +233,9 @@ assign led[1] = pi_enable_cmd_ack;
 assign led[2] = mac_configured;
 assign led[3] = (~mac_configured_125) | wipe_settings;
 
-generic_param_decoder pi_enable_decoder(
+generic_param_decoder#(
+	.paramBitSize(2)
+) pi_enable_decoder(
 	.clk 	             (rx_xcvr_clk),
 	.reset             (~mac_configured_125),
 	.received_data     (received_data),

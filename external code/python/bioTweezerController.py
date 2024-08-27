@@ -267,9 +267,10 @@ class bioTweezerController(fpgaHandler):
             #large parameters
             "kp"                    : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
             "ki"                    : fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
-            "SUM_multiplierFor_div"  : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
-            "SUM_multiplierFor_z"          : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
-            "toggleEnableTime"          : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+            "SUM_multiplierFor_div" : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
+            "SUM_multiplierFor_z"   : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
+            "toggleEnableTime"      : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+            "binFeedback_activeFeedbackMaxCycles"      : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
             
             #small parameters
             "outWhenPiDisabled"     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
@@ -281,6 +282,9 @@ class bioTweezerController(fpgaHandler):
             "x_offset"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
             "y_offset"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
             "useToggleEnable"       : fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+            "binFeedback_actOnInGreaterThanThreshold"  : fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+            "binFeedback_threshold"                    : fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+            "binFeedback_valueWhenActive"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
         }
         super(bioTweezerController, self).__init__(**kwargs)
         self.reset()
@@ -410,15 +414,21 @@ class bioTweezerController(fpgaHandler):
     def setPiEnable(self, enable = 1):
         self.sendCommand([b"PIEN\0\0\0"+enable.to_bytes(1, 'big')])
     def reset(self):
-        self.sendCommand(["PICL0001", "PIEN0000"])
+        self.sendCommand(["PICL0001", "PIEN000\00"])
     def EnableConstantOutput(self, output):
         self.sendCommand(["PICL0001"])
         self.setParameters(outWhenPiDisabled = output, useToggleEnable = False)
-        self.sendCommand(["PICL0000", "PIEN0000"])
+        self.sendCommand(["PICL0000", "PIEN000\00"])
     def EnablePI(self, kp = 0.1, ki = 0.001, **kwargs):
         self.sendCommand(["PICL0001"])
         self.setParameters(kp=kp, ki=ki, useToggleEnable = False, **kwargs)
-        self.sendCommand(["PICL0000", "PIEN0001"])
+        self.sendCommand(["PICL0000", "PIEN000\01"])
+    def EnableBinaryFeedback(self, threshold = 0.5, actOn_In_HigherThanThreshold = True, valueWhenActive = 0.1, activeFeedbackDuration = 0.01, **kwargs):
+        self.sendCommand(["PICL0001"])
+        self.setParameters(binFeedback_threshold = threshold, binFeedback_actOnInGreaterThanThreshold = actOn_In_HigherThanThreshold, 
+                           binFeedback_valueWhenActive = valueWhenActive, binFeedback_activeFeedbackMaxCycles = activeFeedbackDuration, 
+                           useToggleEnable = False, **kwargs)
+        self.sendCommand(["PICL0000", b"PIEN000\02"])
     def setToggleOnEnable(self, enable = True, toggleTime = 0.1):
         self.setParameters(useToggleEnable = int(enable), toggleEnableTime = toggleTime)
     def toggleEnableDisable(self, toggleTime, totalDuration):
@@ -432,10 +442,10 @@ class bioTweezerController(fpgaHandler):
                 nextTime += toggleTime
                 if currentToggle:
                     transmitCommand(sock, self.fpga_ip, self.parameterPort, "PICL0000", True)
-                    transmitCommand(sock, self.fpga_ip, self.parameterPort, "PIEN0001", True)
+                    transmitCommand(sock, self.fpga_ip, self.parameterPort, "PIEN000\01", True)
                 else:
                     transmitCommand(sock, self.fpga_ip, self.parameterPort, "PICL0001", True)
-                    transmitCommand(sock, self.fpga_ip, self.parameterPort, "PIEN0000", True)
+                    transmitCommand(sock, self.fpga_ip, self.parameterPort, "PIEN000\00", True)
                 currentToggle = not currentToggle
                 currentTime = t.time()
                 if currentTime < nextTime:
@@ -455,7 +465,7 @@ class bioTweezerController(fpgaHandler):
 q = bioTweezerController()
 q.EnableConstantOutput((0.080, "generator_current"))
 q.EnablePI(kp = -0.01, ki = 0.000, setpoint = (0.2, "FPGA_floatValue"))
-q.setToggleOnEnable(True,0.0001)
+q.setToggleOnEnable(True,0.5)
 # q.reset()
 
 # q.toggleEnableDisable(0.001, 5)

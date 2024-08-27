@@ -145,6 +145,7 @@ wire [25:0] z_multiplier;
 
 
 `define synchToNewClock(outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
+wire wire_inputClk, wire_outputClk;			  \
 sync_edge_det stretchEdgeName(              \
     .clk            (outputClk),            \
     .signal_in      (wire_inputClk),        \
@@ -152,8 +153,16 @@ sync_edge_det stretchEdgeName(              \
     .rising         (),                     \
     .falling        ()                      \
 );
-`synchToNewClock(ADC_outclock_50, stretcher_pi_enable_cmd, pi_enable_cmd_125, pi_enable_cmd_50)
+//`synchToNewClock(ADC_outclock_50, stretcher_pi_enable_cmd[1:0], pi_enable_cmd_125[1:0], pi_enable_cmd_50[1:0])
 `synchToNewClock(ADC_outclock_50, stretcher_pi_reset_cmd, pi_reset_cmd_125, pi_reset_cmd_50)
+wire [1:0] wire_inputClk, wire_outputClk;
+sync_edge_det stretcher_pi_enable_cmd(
+    .clk            (ADC_outclock_50),
+    .signal_in      (pi_enable_cmd_125),
+    .data_out       (pi_enable_cmd_50),
+    .rising         (),
+    .falling        ()
+);
 
 `define syncPulseToNewClock(inputClk, outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
     wire wire_inputClk, wire_outputClk;                                                       \
@@ -177,6 +186,10 @@ stretcher_edge_det stretchEdgeName (                                            
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_y_offset, y_offset_update_cmd_125, y_offset_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_useToggleEnable, useToggleEnable_update_cmd_125, useToggleEnable_update_cmd_50)
 `syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_enableToggleCycles, enableToggleCycles_update_cmd_125, enableToggleCycles_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_binFeedback_threshold, binFeedback_threshold_update_cmd_125, binFeedback_threshold_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_binFeedback_actOnInGreaterThanThreshold, binFeedback_actOnInGreaterThanThreshold_update_cmd_125, binFeedback_actOnInGreaterThanThreshold_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_binFeedback_activeFeedbackMaxCycles, binFeedback_activeFeedbackMaxCycles_update_cmd_125, binFeedback_activeFeedbackMaxCycles_update_cmd_50)
+`syncPulseToNewClock(rx_xcvr_clk, ADC_outclock_50, stretcher_binFeedback_valueWhenActive, binFeedback_valueWhenActive_update_cmd_125, binFeedback_valueWhenActive_update_cmd_50)
 
 
 wire pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdreq_fifo, ySquare_rdreq_fifo, zSquare_rdreq_fifo;
@@ -186,8 +199,9 @@ wire pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSq
 wire [15:0] controllerOut;
 wire [15:0] ray;
 wire [15:0] x, y, z, xSquare, ySquare, zSquare;
-wire useToggleEnable;
-wire [27:0] enableToggleCycles;
+wire useToggleEnable, binfeedback_actOnInGreaterThanThreshold;
+wire [27:0] enableToggleCycles, binfeedback_activeFeedbackMaxCycles;
+wire [15:0] binFeedback_threshold, binfeedback_valueWhenActive;
 
 /*how to add custom connections to the network module:
 	
@@ -232,10 +246,10 @@ wire [27:0] enableToggleCycles;
 network_wrapper #(
 	.LOCKIN_NUMBER(LOCKIN_NUMBER),
 
-   .largeRegisterStartIdxs      ({32'd132, 32'd104, 32'd78, 32'd52, 32'd26, 32'd0}),
-   .nOflargeRegisters           (5),
-   .smallRegisterStartIdxs      ({32'h81, 32'h80, 32'h70, 32'h60, 32'h50, 32'h40, 32'h30, 32'h20, 32'h10, 32'h0}),
-   .nOfsmallRegisters           (9),
+   .largeRegisterStartIdxs      ({32'd160, 32'd132, 32'd104, 32'd78, 32'd52, 32'd26, 32'd0}),
+   .nOflargeRegisters           (6),
+   .smallRegisterStartIdxs      ({32'hA2, 32'h92, 32'h81, 32'h81, 32'h80, 32'h70, 32'h60, 32'h50, 32'h40, 32'h30, 32'h20, 32'h10, 32'h0}),
+   .nOfsmallRegisters           (12),
    .maxTransmissionSize         (16),
 	
    .FIFO_LENGTH(16),
@@ -255,10 +269,10 @@ network_wrapper #(
     .pi_enable_cmd(pi_enable_cmd_125),
     .pi_reset_cmd(pi_reset_cmd_125),
 	 
-     .largeRegisters             ({enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient}),
-     .largeRegisters_update_cmd  ({enableToggleCycles_update_cmd_125, z_multiplier_update_cmd_125, sumForDivision_multiplier_update_cmd_125, pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125}),
-     .smallRegisters             ({useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled}),
-     .smallRegisters_update_cmd  ({useToggleEnable_update_cmd_125, y_offset_update_cmd_125, x_offset_update_cmd_125, z_offset_update_cmd_125, sumForDivision_offset_update_cmd_125, pi_limit_HI_update_cmd_125, pi_limit_LO_update_cmd_125, pi_setpoint_update_cmd_125, output_when_pi_disabled_update_cmd_125}),
+     .largeRegisters             ({binFeedback_activeFeedbackMaxCycles, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient}),
+     .largeRegisters_update_cmd  ({binFeedback_activeFeedbackMaxCycles_update_cmd_125, enableToggleCycles_update_cmd_125, z_multiplier_update_cmd_125, sumForDivision_multiplier_update_cmd_125, pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125}),
+     .smallRegisters             ({binFeedback_valueWhenActive, binFeedback_threshold, binFeedback_actOnInGreaterThanThreshold, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled}),
+     .smallRegisters_update_cmd  ({binFeedback_valueWhenActive_update_cmd_125, binFeedback_threshold_update_cmd_125, binFeedback_actOnInGreaterThanThreshold_update_cmd_125, useToggleEnable_update_cmd_125, y_offset_update_cmd_125, x_offset_update_cmd_125, z_offset_update_cmd_125, sumForDivision_offset_update_cmd_125, pi_limit_HI_update_cmd_125, pi_limit_LO_update_cmd_125, pi_setpoint_update_cmd_125, output_when_pi_disabled_update_cmd_125}),
     // DACs and ADC status
 //    .DAC_running(DAC_running_125),
 //    .DAC_stopped(DAC_stopped_125),
@@ -397,7 +411,7 @@ tweezerController#(
 	.retroactionController						(controllerOut),
 	.retroactionController_valid				(controllerOut_valid),
 	.PI_reset										(pi_reset_cmd_50 | SW[1]),
-	.PI_enable										(pi_enable_cmd_50 | SW[2]),
+	.enable											(pi_enable_cmd_50 | SW[3:2]),
 	.PI_freeze										(1'b0),
 	.PI_kp											(pi_kp_coefficient),
 	.PI_ki											(pi_ti_coefficient),
@@ -422,6 +436,10 @@ tweezerController#(
    .zSquare            (zSquare),
 	.x_offset(x_offset),
 	.y_offset(y_offset),
+	.binFeedback_threshold                    (binFeedback_threshold),
+	.binFeedback_actOnInGreaterThanThreshold  (binFeedback_actOnInGreaterThanThreshold),
+	.binFeedback_activeFeedbackMaxCycles      (binFeedback_activeFeedbackMaxCycles),
+	.binFeedback_valueWhenActive              (binFeedback_valueWhenActive),
 	.ray(ray),
 	.addFeedback(0),
 //	.leds(LEDR[7:4])

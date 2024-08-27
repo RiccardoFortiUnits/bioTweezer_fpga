@@ -22,7 +22,7 @@ module tweezerController#(
     output                                       retroactionController_valid,
 
     input                                        PI_reset,
-    input                                        PI_enable,
+    input   [1:0]                                enable,
     input                                        PI_freeze,
     input                                        useToggleEnable,
     input   [$clog2(EnableToggleMaxTime+1) -1:0] enableToggleCycles,
@@ -42,6 +42,11 @@ module tweezerController#(
 
     input   [inputBitSize -1:0]                  x_offset,
     input   [inputBitSize -1:0]                  y_offset,
+	 
+	 input   [inputBitSize -1:0]                  binFeedback_threshold,
+	 input                                        binFeedback_actOnInGreaterThanThreshold,
+    input   [$clog2(EnableToggleMaxTime+1) -1:0] binFeedback_activeFeedbackMaxCycles,
+    input   [outputBitSize -1:0]                 binFeedback_valueWhenActive,
 
     output  [outputBitSize -1:0]                 ray,
     output  [outputBitSize -1:0]                 x,
@@ -57,6 +62,9 @@ module tweezerController#(
     input addFeedback,
     output [3:0] leds
 );
+
+wire PI_enable = enable[0];
+wire binFeedback_enable = enable[1];											
 
 wire [inputBitSize -1:0] XDIFF_withFeedback = addFeedback & retroactionController_valid ? XDIFF + retroactionController: XDIFF;
 
@@ -189,6 +197,24 @@ wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     pi_out_to_unlimitedOut(pi_out, unlimitedOut);
      
+	  
+wire [outputBitSize -1:0] binFeedback_out;
+timedBinaryFeedback #(
+    .inputBitSize               (16),
+    .outputBitSize              (16),
+    .isInputSigned              (1),
+    .maxActiveFeedbacCycles     ('h80000000)
+)tbf(
+    .clk                             (clk),
+    .reset                           (reset),    
+    .in                              (ray),
+    .threshold                       (binFeedback_threshold),
+    .actOnInGreaterThanThreshold     (binFeedback_actOnInGreaterThanThreshold),
+    .activeFeedbackMaxCycles         (binFeedback_activeFeedbackMaxCycles),
+    .valueWhenIdle                   (output_when_pi_disabled),
+    .valueWhenActive                 (binFeedback_valueWhenActive),
+    .out                             (binFeedback_out)
+);
      
 assign retroactionController =  reset || PI_reset ? (
                                     0
@@ -200,7 +226,9 @@ assign retroactionController =  reset || PI_reset ? (
                                                 pi_limit_LO :
                                                 unlimitedOut
                                     ) : (
-                                        output_when_pi_disabled
+                                        binFeedback_enable ? 
+													     binFeedback_out :
+                                            output_when_pi_disabled
 												)
                                 );
 //parameter updates
