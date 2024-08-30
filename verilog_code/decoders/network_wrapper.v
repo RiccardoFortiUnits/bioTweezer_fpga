@@ -235,7 +235,7 @@ assign led[3] = (~mac_configured_125) | wipe_settings;
 
 generic_param_decoder#(
 	.paramBitSize(2)
-) pi_enable_decoder(
+)pi_enable_decoder(
 	.clk 	             (rx_xcvr_clk),
 	.reset             (~mac_configured_125),
 	.received_data     (received_data),

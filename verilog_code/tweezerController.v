@@ -56,7 +56,8 @@ module tweezerController#(
     output  [outputBitSize -1:0]                 ySquare,
     output  [outputBitSize -1:0]                 zSquare,
      
-     
+    input disableY,
+    input disableZ,
     
     //debug wires
     input addFeedback,
@@ -148,8 +149,8 @@ calcRay#
     .clk                (clk),
     .reset              (reset),
     .x                  (x_untrimmed),
-    .y                  (y_untrimmed),
-    .z                  (z_untrimmed),
+    .y                  (disableY ? 24'h0 : y_untrimmed),
+    .z                  (disableZ ? 24'h0 : z_untrimmed),
 
     .xSquare            (xSquare_untrimmed),
     .ySquare            (ySquare_untrimmed),
@@ -168,7 +169,7 @@ fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize,
     
 wire toggleOutput;
 wire enableAfterToggle = useToggleEnable ? toggleOutput : PI_enable;
-
+wire pidValid;
 //PI controller on the distance
 wire [workingBitSize -1:0] pi_out;
 pi_controller#(
@@ -191,8 +192,10 @@ pi_controller#(
     .pi_kp_coefficient  (PI_kp_reg),
     .pi_ti_coefficient  (PI_ki_reg),
     .pi_output          (pi_out),
-    .pi_output_valid    (retroactionController_valid)
+    .pi_output_valid    (pidValid)
 );
+assign retroactionController_valid = pidValid | binFeedback_enable & !(reset || PI_reset);
+
 wire [outputBitSize -1:0] unlimitedOut;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
     pi_out_to_unlimitedOut(pi_out, unlimitedOut);
@@ -203,7 +206,7 @@ timedBinaryFeedback #(
     .inputBitSize               (16),
     .outputBitSize              (16),
     .isInputSigned              (1),
-    .maxActiveFeedbacCycles     ('h80000000)
+    .maxActiveFeedbacCycles     ('h8000000)
 )tbf(
     .clk                             (clk),
     .reset                           (reset),    
@@ -267,7 +270,7 @@ timedSwitch #(
 ) ts (
     .clk                       (clk),
     .reset                     (reset),
-    .enable                    (PI_enable),
+    .enable                    (PI_enable | binFeedback_enable),
     .cyclesBeforeSwitching     (enableToggleCycles),
     .out                       (toggleOutput)
 );
