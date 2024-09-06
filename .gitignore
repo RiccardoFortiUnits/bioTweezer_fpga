@@ -16,3 +16,5 @@ reconfig_mif/
 desktop.ini
 ddr3_altera_emif_arch_nf_191_vlww5eq_summary.csv
 ddr3_altera_emif_arch_nf_191_uc4qygi_summary.csv
+
+external code/python/__pycache__/

@@ -77,7 +77,7 @@ else:
         plt.show()
 
         # Create a 3D plot
-        do3D_plot = True
+        do3D_plot = False
         if do3D_plot:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')

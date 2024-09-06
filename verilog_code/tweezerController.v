@@ -40,12 +40,16 @@ module tweezerController#(
     input   [inputBitSize -1:0]                  z_offset,
     input   [largeCoeffBitSize -1:0]             z_multiplier,
 
+    input   [inputBitSize -1:0]                  xDiff_offset,
+    input   [inputBitSize -1:0]                  yDiff_offset,
     input   [inputBitSize -1:0]                  x_offset,
     input   [inputBitSize -1:0]                  y_offset,
 	 
 	 input   [inputBitSize -1:0]                  binFeedback_threshold,
 	 input                                        binFeedback_actOnInGreaterThanThreshold,
+    input   [$clog2(EnableToggleMaxTime+1) -1:0] binFeedback_cyclesForActivation,
     input   [$clog2(EnableToggleMaxTime+1) -1:0] binFeedback_activeFeedbackMaxCycles,
+    input   [$clog2(EnableToggleMaxTime+1) -1:0] binFeedback_idleWaitCycles,
     input   [outputBitSize -1:0]                 binFeedback_valueWhenActive,
 
     output  [outputBitSize -1:0]                 ray,
@@ -60,19 +64,30 @@ module tweezerController#(
     input disableZ,
     
     //debug wires
-    input addFeedback,
     output [3:0] leds
 );
 
 wire PI_enable = enable[0];
 wire binFeedback_enable = enable[1];											
 
-wire [inputBitSize -1:0] XDIFF_withFeedback = addFeedback & retroactionController_valid ? XDIFF + retroactionController: XDIFF;
-
 wire [workingBitSize -1:0] x_untrimmed, y_untrimmed, z_untrimmed, x_normalized, y_normalized;
 
 wire [workingBitSize -1:0] sumForDivision;
-     
+
+wire [inputBitSize+1 -1:0] xdiff_minusOffset, ydiff_minusOffset;
+
+adder#(
+    .WIDTH              (inputBitSize),
+    .addStuffingBit     (1),
+    .isSubtraction      (0)
+)remove_xydiff_offset [0:1](
+    .clk                (clk),
+    .reset              (reset),
+    .a                  ({XDIFF, YDIFF}),
+    .b                  ({xDiff_offset, yDiff_offset}),
+    .result             ({xdiff_minusOffset, ydiff_minusOffset})
+);
+
 functionsOnSUM#(
     .inputBitSize       (inputBitSize),
     .inputFracSize      (inputFracSize),
@@ -94,7 +109,7 @@ functionsOnSUM#(
 
 //divide HOR/VER_DIFF by SUM, to get the x and y signals
 divider#(
-    .A_WIDTH            (inputBitSize),
+    .A_WIDTH            (inputBitSize+1),
     .B_WIDTH            (workingBitSize),
     .OUTPUT_WIDTH       (workingBitSize),
     .FRAC_BITS_A        (inputFracSize),
@@ -104,7 +119,7 @@ divider#(
 )xdiff_dividedBy_sumTuned [1:0](
     .clk                (clk),
     .reset              (reset),
-    .a                  ({YDIFF, XDIFF_withFeedback}),
+    .a                  ({ydiff_minusOffset, xdiff_minusOffset}),
     .b                  (sumForDivision),
     .result             ({y_normalized, x_normalized}),
     .remain             ()
@@ -206,14 +221,19 @@ timedBinaryFeedback #(
     .inputBitSize               (16),
     .outputBitSize              (16),
     .isInputSigned              (1),
-    .maxActiveFeedbacCycles     ('h8000000)
+    .maxActiveFeedbacCycles     (EnableToggleMaxTime)
 )tbf(
     .clk                             (clk),
     .reset                           (reset),    
-    .in                              (ray),
+    
+	 .in                              (ray),
     .threshold                       (binFeedback_threshold),
     .actOnInGreaterThanThreshold     (binFeedback_actOnInGreaterThanThreshold),
+	 
+	 .cyclesForActivation             (binFeedback_cyclesForActivation),
     .activeFeedbackMaxCycles         (binFeedback_activeFeedbackMaxCycles),
+	 .idleWaitCycles                  (binFeedback_idleWaitCycles),
+	 
     .valueWhenIdle                   (output_when_pi_disabled),
     .valueWhenActive                 (binFeedback_valueWhenActive),
     .out                             (binFeedback_out)

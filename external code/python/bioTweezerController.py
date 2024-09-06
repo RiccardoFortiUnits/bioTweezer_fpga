@@ -16,6 +16,7 @@ import socket
 import time as t
 from dimensionLinker import dimensionLinker
 import matplotlib.pyplot as plt
+from scipy.optimize import  least_squares
 
 def setupReception(ip, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -270,7 +271,9 @@ class bioTweezerController(fpgaHandler):
             "SUM_multiplierFor_div" : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
             "SUM_multiplierFor_z"   : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
             "toggleEnableTime"      : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
-            "binFeedback_activeFeedbackMaxCycles"      : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+            "binFeedback_activeFeedbackMaxCycles" : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+            "binFeedback_idleWaitCycles"          : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+            "binFeedback_cyclesForActivation"     : fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
             
             #small parameters
             "outWhenPiDisabled"     : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
@@ -287,6 +290,8 @@ class bioTweezerController(fpgaHandler):
             "binFeedback_valueWhenActive"              : fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
             "disableY"              : fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
             "disableZ"              : fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+            "xDiff_offset"          : fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
+            "yDiff_offset"          : fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
         }
         super(bioTweezerController, self).__init__(**kwargs)
         self.reset()
@@ -315,8 +320,10 @@ class bioTweezerController(fpgaHandler):
     #value of the SUM signal when the bead is at the center of the laser (z == 0)
     SUM_at_z0 = 0.1                                                                                           # V
     
-    x_offset = 0
-    y_offset = 0
+    x_offset = 0                                                                                            # [adimensional]
+    y_offset = 0                                                                                            # [adimensional]
+    xDiff_offset = 0                                                                                        # [adimensional]
+    yDiff_offset = 0                                                                                        # [adimensional]
     
     SUM_backgroundVoltage = 0                                                                               # V
     SUM_multiplierForDIFF_SUM = range_x/range_x                                                             # [adimensional] (maybe?)
@@ -335,18 +342,19 @@ class bioTweezerController(fpgaHandler):
     
     def initiateTweezers(self):
         self.set_zOffset()
-        self.remove_xy_offset()
+        self.calibrateTweezer()
         mz = 1 / (self.range_x * self.sensitivity_z * self.ADC_sumAttenuation)
         self.setParameters(
             SUM_multiplierFor_z = (mz, "FPGA_floatValue"),
             SUM_offsetFor_z = (-self.SUM_at_z0, "QPD_output"),
             
             SUM_multiplierFor_div = (self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
-            SUM_offsetFor_div = (self.SUM_backgroundVoltage * self.ADC_sumAttenuation * self.SUM_multiplierForDIFF_SUM, "QPD_output"),
-           
-            x_offset = self.x_offset,
-            y_offset = self.y_offset, 
-           
+            
+            SUM_offsetFor_div = (self.SUM_offsetFor_div, "FPGA_floatValue"),
+            x_offset = (self.x_offset, "FPGA_floatValue"),
+            xDiff_offset = (self.xDiff_offset, "FPGA_floatValue"),
+            y_offset = (self.y_offset, "FPGA_floatValue"),
+            yDiff_offset = (self.yDiff_offset, "FPGA_floatValue"),
             outWhenPiDisabled = (0, "generator_input"),
         )
         if(self.DAC_gain > 0):
@@ -381,30 +389,92 @@ class bioTweezerController(fpgaHandler):
         self.laser_powerToStiffness_xy = (kx+ky)/2 / self.calibration_laserPower
         self.laser_powerToStiffness_z = kz / self.calibration_laserPower
     
-    def remove_xy_offset(self, time = 0.2):
-        self.EnablePI(
-            kp = 0,
-            ki = 0,
-            x_offset = (0, "FPGA_floatValue"),
-            y_offset = (0, "FPGA_floatValue"),
+    def remove_xy_offset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
+        self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, time / 10,
+            SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
+            SUM_offsetFor_z = (0, "QPD_output"),
         )
+        # self.EnablePI(
+        #     kp = 0,
+        #     ki = 0,
+        #     x_offset = (0, "FPGA_floatValue"),
+        #     y_offset = (0, "FPGA_floatValue"),
+        # )
         data = self.getDataStream(time)
         self.x_offset = - np.mean(data["x"])
         self.y_offset = - np.mean(data["y"])
         
-    def _get_zOffset(self, time = 0.2):
-        self.EnablePI(
-            kp = 0,
-            ki = 0,
+    def _get_zOffset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
+        
+        self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, time / 10,
             SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
             SUM_offsetFor_z = (0, "QPD_output"),
         )
+        # self.EnablePI(
+        #     kp = 0,
+        #     ki = 0,
+        #     SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
+        #     SUM_offsetFor_z = (0, "QPD_output"),
+        # )
         z = - np.mean(self.getDataStream(time)["z"])
         self.reset()
         z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
         z = self.dimLink.convert(z, "FPGA_SUMsignalRegister", "QPD_output")
         return z
         
+    
+    def calibrateTweezer(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)]):
+        #calculate the offsets for x and y
+        SUM = np.zeros(len(usedLaserPowers))
+        XDIFF = np.zeros(len(usedLaserPowers))
+        YDIFF = np.zeros(len(usedLaserPowers))
+        #reset every offset value, even for z, since we'll be using it to read the SUM signal
+        self.setParameters(
+            x_offset = (0, "FPGA_floatValue"),
+            y_offset = (0, "FPGA_floatValue"),
+            xDiff_offset = (0, "FPGA_floatValue"),
+            yDiff_offset = (0, "FPGA_floatValue"),                
+            SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
+            SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+            SUM_offsetFor_z = (0, "FPGA_floatValue"),
+            SUM_offsetFor_div = (0, "FPGA_floatValue"),
+        )        
+        #let's get some values for SUM, XDIFF and YDIFF
+        for i, intensity in enumerate(usedLaserPowers):
+            self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, singleCalibrationTime / 10)
+            
+            t.sleep(0.01)#wait for the system to stabilize
+            data = self.getDataStream(singleCalibrationTime)            
+            
+            SUM[i] = - np.mean(data["z"])
+            SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
+            XDIFF[i] = np.mean(data["x"])
+            XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#x = XDIFF / SUM => XDIFF = x * SUM
+            YDIFF[i] = np.mean(data["y"])
+            YDIFF[i] = self.dimLink.convert(YDIFF[i], self.dataValuesFromFPGA["y"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]
+
+        #now, assuming that the formula for calculating x from SUM and XDIFF is
+            #     x = (XDIFF-o_xdiff) / (SUM- o_sum ) - o_x
+            #and knowing that x ~ 0, let's estimate the 3 offsets by minimizing the error of the formula on the values we obtained
+            #(same thing for y)
+        def fx(o):
+            return (XDIFF - o[0]) - (SUM - o[1]) * o[2]# minimizing this formula is the same as minimizing ( (XDIFF - o[0]) / (SUM - o[1]) - o[2] ), but it is more stable since it doesn't have any variable in the denominator
+        def fy(o):
+            return (YDIFF - o[0]) - (SUM - o[1]) * o[2]
+        
+        x_solution = least_squares(fx, np.array([0,0,0]))
+        y_solution = least_squares(fy, np.array([0,0,0]))
+
+        self.xDiff_offset = x_solution.x[0]
+        self.SUM_offsetFor_div = -x_solution.x[1]#in theory, this offset should be the same for both x and y.
+        self.x_offset = x_solution.x[2]
+        self.yDiff_offset = y_solution.x[0]
+        #self.SUM_offsetFor_div = -y_solution.x[1]
+        self.y_offset = y_solution.x[2]
+            
+            
+    
+    
     def set_SumBackgroundVoltage(self, time = 0.2):
         self.SUM_backgroundVoltage = self._get_zOffset(time)
         
@@ -425,12 +495,16 @@ class bioTweezerController(fpgaHandler):
         self.sendCommand([b"PICL0001"])
         self.setParameters(kp=kp, ki=ki, useToggleEnable = False, **kwargs)
         self.sendCommand([b"PICL0000", b"PIEN0001"])
-    def EnableBinaryFeedback(self, threshold = 0.5, actOn_In_HigherThanThreshold = True, valueWhenActive = 0.1, activeFeedbackDuration = 0.01, **kwargs):
+        
+    def EnableBinaryFeedback(self, threshold = 0.5, actOn_In_HigherThanThreshold = True, valueWhenActive = 0.1, 
+                    activeFeedbackDuration = 0.01, idleDurationAfterFeedback = 0, timeBeforeActivation = 0, **kwargs):
         self.sendCommand([b"PICL0001"])
         self.setParameters(binFeedback_threshold = threshold, binFeedback_actOnInGreaterThanThreshold = actOn_In_HigherThanThreshold, 
                            binFeedback_valueWhenActive = valueWhenActive, binFeedback_activeFeedbackMaxCycles = activeFeedbackDuration, 
+                           binFeedback_idleWaitCycles = idleDurationAfterFeedback, binFeedback_cyclesForActivation = timeBeforeActivation,
                            useToggleEnable = False, **kwargs)
         self.sendCommand([b"PICL0000", b"PIEN0002"])
+        
     def setToggleOnEnable(self, enable = True, toggleTime = 0.1):
         self.setParameters(useToggleEnable = int(enable), toggleEnableTime = toggleTime)
     def toggleEnableDisable(self, toggleTime, totalDuration):
@@ -464,24 +538,24 @@ class bioTweezerController(fpgaHandler):
     currentGenerator_inputVtoI = 1e-3 / 20e-3                                                               # A/V
     currentGenerator_baseCurrent = 100e-3                                                                   # A
     currentGenerator_minCurrent = 0e-3                                                                   # A
-    currentGenerator_maxCurrent = 50e-3                                                                   # A
+    currentGenerator_maxCurrent = 250e-3                                                                   # A
         
 
 q = bioTweezerController()
 q.disable_yz_Dimensions(True, True)
-q.EnableConstantOutput((-0.0, "generator_input"))
-q.EnablePI(kp = -0.1, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
+q.EnableConstantOutput((0.0, "generator_input"))
+q.EnablePI(kp = -0.01, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
 # for i in np.linspace(0,1,10):
 #     print(i)
 #     q.EnableBinaryFeedback(i,True, (0.5, "FPGA_floatValue"), 0.1)
     # t.sleep(0.5)
-q.EnableBinaryFeedback((0xc00, "FPGA_signalRegister"),True, (0.2, "generator_input"), 0.003)
+q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
 # # q.setToggleOnEnable(True,0.2)
 # # q.reset()
 
 # # q.toggleEnableDisable(0.001, 5)
 
-q.plotReceivedData(3,elementsToRemove=["pid out"])
-q.plotReceivedData(3,elementsToShow=["pid out"])
+q.plotReceivedData(1,elementsToRemove=["pid out", "z"])
+# q.plotReceivedData(3,elementsToShow=["pid out"])
 
 # Example dictionary of vectors
