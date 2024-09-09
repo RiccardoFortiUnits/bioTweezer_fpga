@@ -19,12 +19,18 @@ import matplotlib.pyplot as plt
 from scipy.optimize import  least_squares
 
 def setupReception(ip, port):
+    #get a socket for UDP transmission
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((ip, port))
+    try:
+        sock.bind((ip, port))
+    except OSError as e:
+        raise Exception(f"check if the selected IP {ip} is the IP of your computer (you might have to manually change the IP)") from e
+        
     socket.setdefaulttimeout(1)
     return sock
 
 def transmitCommand(sock, ip, port, command, waitForResponse = False, printTransmission = False):
+    #transmit a string or bite stream to the selected ip/port. It can also wait for a response message
     if(isinstance(command, str)):
         command = command.encode()
     sock.sendto(command, (ip, port))    
@@ -34,12 +40,18 @@ def transmitCommand(sock, ip, port, command, waitForResponse = False, printTrans
         return receive(sock, port)        
 
 def receive(sock, port, printReception = False):
+    #receive a string or byte string  from the selected port. For now, the sender is not returned 
     received, address = sock.recvfrom(port)
     if(printReception):
         print("Received from", address, ":", received)
     return received
     
 class fpgaRegister:
+    #class that handles data conversion between physical values and the raw values used inside the FPGA controller.
+        #it has a base dimension (the raw bit values inside the FPGA) and a preferred physical dimension (i.e. the 
+        #dimension that the FPGA value represents). It uses a dimensionLinker to convert between dimensions, so you 
+        #can also change/read the value of this object by feeding it a value in a different dimension, as long as 
+        #it is connected to the base dimension
     def __init__(self, dimLinker, dimension, preferredConversionDimension, command = None):
         self.dimLinker = dimLinker
         self.dimension = dimension
@@ -62,6 +74,7 @@ class fpgaRegister:
         return int(value), startDimension
     
     def floatToFixedPoint(self, value, startDimension = None):
+        #convert from a physical dimension to the corresponding FPGA value
         val, startDimension = self.convertValue(value, startDimension)
         maxVal = (1 << (self.bitSize-1)) - 1 if self.isSigned else (1 << self.bitSize) - 1
         minVal = -(1 << (self.bitSize-1)) if self.isSigned else 0
@@ -79,30 +92,17 @@ class fpgaRegister:
         return [val]
     
     def fixedPointToFloat(self, intValue, toDimension = None):
+        #convert from a FPGA value to the corresponding value of the selected physical dimension
         if(len(self.command) > 1):
             intValue = intValue[0] << 16 + intValue[1]
         if(toDimension is None):
             toDimension = self.preferredConversionDimension
         return self.dimLinker.convert(intValue, self.dimension, toDimension)
-
-class segmented_function:
-    def __init__(self, x,y):
-        self.x = x
-        self.y = y
-    def valueAt(self, t):
-        if t <= self.x[0]:
-            return self.y[0]
-        elif t >= self.x[-1]:
-            return self.y[-1]
-        
-        for i in range(len(self.x) - 1):
-            if self.x[i] <= t <= self.x[i + 1]:
-                #Linear interpolation
-                slope = (self.y[i + 1] - self.y[i]) / (self.x[i + 1] - self.x[i])
-                return self.y[i] + slope * (t - self.x[i])
         
 class fpgaHandler:
-    
+    #handles transmission and data conversion from the FPGA controller
+        #this is an abstract class, you're supposed to create a child class that overrides the dimLink parameter and
+        #defines transmission and calibration functions
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -119,14 +119,26 @@ class fpgaHandler:
     parameterPort = 2047
     dataPort = 2048
     
+    #dimLink contains all the dimensions used in the system, and their relations between one another.
     dimLink = dimensionLinker()
+    #This is a dummy dimensionLinker containing just a few dimensions and a few connections
     dimLink.addDimension("small_FPGA_register", "bit", bitSize = 16)
-    dimLink.addDimension("large_FPGA_register", "bit", bitSize = 16)
+    dimLink.addDimension("large_FPGA_register", "bit", bitSize = 32)
+    #the following connection states that to convert a value from small_FPGA_register to large_FPGA_register, 
+        #you need to multiply it by 2**16, and viceversa to go backwards you need to divide by 2*16
+    dimLink.addConnection("small_FPGA_register", "large_FPGA_register", dimensionLinker.gainFunctions(2**16))
     
+    #the FPGA handles 2 groups of values, data sent on a stream (periodically sent to the computer), and data 
+        #received (mostly configuration values, sent only once)
+    
+    #these values are sent periodically by the FPGA (es: every 5ms), and they usually are the outputs of the control
     dataValuesFromFPGA = {
         "data read from the fpga stream"    : fpgaRegister(dimLink, "small_FPGA_register", "small_FPGA_register"),
     }
     
+    #these values are sent by the computer, and they are meant to be configuration values. If a value is stored 
+        #in more than 16 bits inside the FPGA (and less than 32), you should add it to the list in the first group 
+        #of elements. remember to follow the same order in which the values were inserted inside the FPGA firmware
     ParametersForFPGA = {
         #large parameters
         "parameter larger than 16 bits"     : fpgaRegister(dimLink, "large_FPGA_register", "large_FPGA_register"),
@@ -161,6 +173,7 @@ class fpgaHandler:
             
         
     def sendCommand(self, commands, waitForResponse = True):
+        #send one or multiple commands to the FPGA
         with setupReception(self.self_ip, self.parameterPort) as sock:
             if isinstance(commands, list):
                 responses = [None] * len(commands)
@@ -171,6 +184,9 @@ class fpgaHandler:
     
     
     def getDataStream(self, time = 1):
+        #receive the data stream from the FPGA for the specified time (in seconds). The returned value is a dictionary 
+            #where the keys are the names of the different values sent by the FPGA (specified in dataValuesFromFPGA), 
+            #and the values are the lists of values received during the reception time.
         with setupReception(self.self_ip, self.dataPort) as sock:
             retData = {}
             for name in self.dataValuesFromFPGA.keys():
@@ -192,6 +208,7 @@ class fpgaHandler:
             return retData
         
     def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None):
+        #receive a dataStream and print the values (or some of the values) received.
         data = self.getDataStream(time)
         plt.figure()
         x=data["times"]
@@ -299,50 +316,48 @@ class bioTweezerController(fpgaHandler):
         self.initiateTweezers()
         
     #gains of the ADC/DAC circuits
-    ADC_xyAttenuation = -1 / 7.8                                                                             # V/V
-    ADC_sumAttenuation = -1 / 11                                                                             # V/V
-    DAC_gain = 10                                                                                          # V/V
+    ADC_xyAttenuation = -1 / 7.8                                                                            # V/V
+    ADC_sumAttenuation = -1 / 11                                                                            # V/V
+    DAC_gain = 10                                                                                           # V/V
     DAC_offset = 2.5                                                                                        # V
     ADC_voltageToFpgaInput = 1                                                                              # 1/V
     DAC_fpgaOuputToVoltage = 2.5                                                                            # V
     
     #parameters of the current generator (how does the control input voltage get translated into a current)
+    currentGenerator_inputVtoI = 1e-3 / 20e-3                                                               # A/V
+    currentGenerator_baseCurrent = 100e-3                                                                   # A
+    currentGenerator_minCurrent = 0e-3                                                                   # A
+    currentGenerator_maxCurrent = 250e-3                                                                   # A
+        
     #parameters of the laser
     laser_currentToLaserPower = 340e-3 / 730e-3                                                             # W/A
-    #= segmented_function([0,730e-3], [0,340e-3])  
     
     #conversion from bead position to qpd voltage output
-    sensitivity_x = sensitivity_y = 0.5e-3 / 1e-9                                                           # V/m
+    sensitivity_x = sensitivity_y = 0.5e-3 / 1e-9                                                           # [adimensional]/m
     sensitivity_z = 1e-3 / 1e-9                                                                             # V/m
     
     #distance ranges (i.e. the values of x and y when their respective DIFF signals are == SUM)
     range_x = range_y = 10 / sensitivity_x                                                                  # m
     #value of the SUM signal when the bead is at the center of the laser (z == 0)
-    SUM_at_z0 = 0.1                                                                                           # V
+    SUM_at_z0 = 0.1                                                                                         # V
+    SUM_multiplierForDIFF_SUM = range_x/range_x                                                             # [adimensional]
     
+    #values found during calibration. Hence, let's keep them as adimensional values, 
+        #since we don't care about the actual value in the correct dimension
     x_offset = 0                                                                                            # [adimensional]
     y_offset = 0                                                                                            # [adimensional]
     xDiff_offset = 0                                                                                        # [adimensional]
     yDiff_offset = 0                                                                                        # [adimensional]
-    
-    SUM_backgroundVoltage = 0                                                                               # V
-    SUM_multiplierForDIFF_SUM = range_x/range_x                                                             # [adimensional] (maybe?)
-    
-    
-    #calibration parameters
-    calibration_laserPower = 90e-3                                                                          # W
-    calibration_time = 3                                                                                    # s
-    
-    fpga_controller_clock = 50e6
-    
-    def _fpgaOutputToLaserPower(self, value):
-        return ((value * self.DAC_fpgaOuputToVoltage * self.DAC_gain * self.currentGenerator_inputVtoI) + \
-                self.currentGenerator_baseCurrent) * self.laser_currentToLaserPower
-    
-    
+
+    #FPGA controller clock
+    fpga_controller_clock = 50e6                                                                            # Hz
+        
     def initiateTweezers(self):
+        #do some calibration measures
         self.set_zOffset()
         self.calibrateTweezer()
+        
+        #set a lot of parameters in the FPGA
         mz = 1 / (self.range_x * self.sensitivity_z * self.ADC_sumAttenuation)
         self.setParameters(
             SUM_multiplierFor_z = (mz, "FPGA_floatValue"),
@@ -371,6 +386,7 @@ class bioTweezerController(fpgaHandler):
         
     
     def calcStiffness(self, time = 3, temperature = 300, directions = ["x", "y"]):
+        # calculate the stiffness of the trap based on the variation on the bead position
         self.initiateFpga()
         dataFromFPGA = self.getDataStream(time)
         kBoltzman = 1.3806504e-23
@@ -382,40 +398,12 @@ class bioTweezerController(fpgaHandler):
             stiffnesses[i] = kBoltzman * self.temperature / variance
         return stiffnesses
     
-    def calibrateTweezers(self):
-        #set a constant output (=> constant laser power)        
-        self.setConstantOutput(self.calibration_laserPower)
-        [kx, ky, kz] = self.calcStiffness(time=self.calibration_time, directions=["x","y","z"])
-        self.laser_powerToStiffness_xy = (kx+ky)/2 / self.calibration_laserPower
-        self.laser_powerToStiffness_z = kz / self.calibration_laserPower
-    
-    def remove_xy_offset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
-        self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, time / 10,
-            SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
-            SUM_offsetFor_z = (0, "QPD_output"),
-        )
-        # self.EnablePI(
-        #     kp = 0,
-        #     ki = 0,
-        #     x_offset = (0, "FPGA_floatValue"),
-        #     y_offset = (0, "FPGA_floatValue"),
-        # )
-        data = self.getDataStream(time)
-        self.x_offset = - np.mean(data["x"])
-        self.y_offset = - np.mean(data["y"])
-        
     def _get_zOffset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
         
         self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, time / 10,
             SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
             SUM_offsetFor_z = (0, "QPD_output"),
         )
-        # self.EnablePI(
-        #     kp = 0,
-        #     ki = 0,
-        #     SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
-        #     SUM_offsetFor_z = (0, "QPD_output"),
-        # )
         z = - np.mean(self.getDataStream(time)["z"])
         self.reset()
         z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
@@ -439,26 +427,36 @@ class bioTweezerController(fpgaHandler):
             SUM_offsetFor_z = (0, "FPGA_floatValue"),
             SUM_offsetFor_div = (0, "FPGA_floatValue"),
         )        
-        #let's get some values for SUM, XDIFF and YDIFF
-        for i, intensity in enumerate(usedLaserPowers):
-            self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, singleCalibrationTime / 10)
-            
-            t.sleep(0.01)#wait for the system to stabilize
-            data = self.getDataStream(singleCalibrationTime)            
-            
-            SUM[i] = - np.mean(data["z"])
-            SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
-            XDIFF[i] = np.mean(data["x"])
-            XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#x = XDIFF / SUM => XDIFF = x * SUM
-            YDIFF[i] = np.mean(data["y"])
-            YDIFF[i] = self.dimLink.convert(YDIFF[i], self.dataValuesFromFPGA["y"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]
+        debug = False
+        if debug:
+            global xd, yd, sm
+            SUM = sm
+            XDIFF = xd
+            YDIFF = yd
+            print("using debug calibration")
+        else:
+            #let's get some values for SUM, XDIFF and YDIFF
+            for i, intensity in enumerate(usedLaserPowers):
+                self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, singleCalibrationTime / 10)
+                
+                t.sleep(0.01)#wait for the system to stabilize
+                data = self.getDataStream(singleCalibrationTime)            
+                
+                SUM[i] = - np.mean(data["z"])
+                SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
+                XDIFF[i] = np.mean(data["x"])
+                XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#x = XDIFF / SUM => XDIFF = x * SUM
+                YDIFF[i] = np.mean(data["y"])
+                YDIFF[i] = self.dimLink.convert(YDIFF[i], self.dataValuesFromFPGA["y"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]
 
         #now, assuming that the formula for calculating x from SUM and XDIFF is
             #     x = (XDIFF-o_xdiff) / (SUM- o_sum ) - o_x
             #and knowing that x ~ 0, let's estimate the 3 offsets by minimizing the error of the formula on the values we obtained
             #(same thing for y)
         def fx(o):
-            return (XDIFF - o[0]) - (SUM - o[1]) * o[2]# minimizing this formula is the same as minimizing ( (XDIFF - o[0]) / (SUM - o[1]) - o[2] ), but it is more stable since it doesn't have any variable in the denominator
+            return (XDIFF - o[0]) - (SUM - o[1]) * o[2]# minimizing this formula is the same as minimizing 
+                #( (XDIFF - o[0]) / (SUM - o[1]) - o[2] ), but it is more stable since it doesn't have any 
+                #variable in the denominator
         def fy(o):
             return (YDIFF - o[0]) - (SUM - o[1]) * o[2]
         
@@ -474,17 +472,13 @@ class bioTweezerController(fpgaHandler):
             
             
     
-    
-    def set_SumBackgroundVoltage(self, time = 0.2):
-        self.SUM_backgroundVoltage = self._get_zOffset(time)
-        
     def set_zOffset(self, time = 0.2):
         self.SUM_at_z0 = self._get_zOffset(time)
     
     def setReset(self, reset = 1):
-        self.sendCommand([b"PICL000000"+reset.to_bytes(1, 'big')])
+        self.sendCommand([b"PICL0000"+reset.to_bytes(1, 'big')])
     def setPiEnable(self, enable = 1):
-        self.sendCommand([b"PIEN000000"+enable.to_bytes(1, 'big')])
+        self.sendCommand([b"PIEN0000"+enable.to_bytes(1, 'big')])
     def reset(self):
         self.sendCommand([b"PICL0001", b"PIEN0000"])
     def EnableConstantOutput(self, output):
@@ -535,27 +529,15 @@ class bioTweezerController(fpgaHandler):
     def disable_yz_Dimensions(self, disableY, disableZ):
         self.setParameters(disableY = disableY, disableZ = disableZ)
     
-    currentGenerator_inputVtoI = 1e-3 / 20e-3                                                               # A/V
-    currentGenerator_baseCurrent = 100e-3                                                                   # A
-    currentGenerator_minCurrent = 0e-3                                                                   # A
-    currentGenerator_maxCurrent = 250e-3                                                                   # A
-        
 
 q = bioTweezerController()
-q.disable_yz_Dimensions(True, True)
-q.EnableConstantOutput((0.0, "generator_input"))
-q.EnablePI(kp = -0.01, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
-# for i in np.linspace(0,1,10):
-#     print(i)
-#     q.EnableBinaryFeedback(i,True, (0.5, "FPGA_floatValue"), 0.1)
-    # t.sleep(0.5)
-q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
-# # q.setToggleOnEnable(True,0.2)
-# # q.reset()
 
-# # q.toggleEnableDisable(0.001, 5)
+q.disable_yz_Dimensions(True, True)
+
+q.EnableConstantOutput((0.0, "generator_input"))
+
+q.EnablePI(kp = -0.01, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
+
+q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
 
 q.plotReceivedData(1,elementsToRemove=["pid out", "z"])
-# q.plotReceivedData(3,elementsToShow=["pid out"])
-
-# Example dictionary of vectors
