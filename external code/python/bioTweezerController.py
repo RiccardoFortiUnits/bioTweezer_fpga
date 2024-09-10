@@ -453,23 +453,26 @@ class bioTweezerController(fpgaHandler):
             #     x = (XDIFF-o_xdiff) / (SUM- o_sum ) - o_x
             #and knowing that x ~ 0, let's estimate the 3 offsets by minimizing the error of the formula on the values we obtained
             #(same thing for y)
-        def fx(o):
-            return (XDIFF - o[0]) - (SUM - o[1]) * o[2]# minimizing this formula is the same as minimizing 
+        xydiff = np.append(XDIFF, YDIFF)
+        sumsum = np.append(SUM, SUM)
+        def fxy(oo):
+            o = np.array([[oo[0]]*len(XDIFF) + [oo[1]]*len(YDIFF),
+                          [oo[2]]*len(xydiff),
+                          [oo[3]]*len(XDIFF) + [oo[4]]*len(YDIFF)])
+            return (xydiff - o[0]) - (sumsum - o[1]) * o[2]# minimizing this formula is the same as minimizing 
                 #( (XDIFF - o[0]) / (SUM - o[1]) - o[2] ), but it is more stable since it doesn't have any 
                 #variable in the denominator
-        def fy(o):
-            return (YDIFF - o[0]) - (SUM - o[1]) * o[2]
+        # def fy(o):
+        #     return (YDIFF - o[0]) - (SUM - o[1]) * o[2]
         
-        x_solution = least_squares(fx, np.array([0,0,0]))
-        y_solution = least_squares(fy, np.array([0,0,0]))
+        solution = least_squares(fxy, np.array([0,0,0,0,0]))
 
-        self.xDiff_offset = x_solution.x[0]
-        self.SUM_offsetFor_div = -x_solution.x[1]#in theory, this offset should be the same for both x and y.
-        self.x_offset = x_solution.x[2]
-        self.yDiff_offset = y_solution.x[0]
-        #self.SUM_offsetFor_div = -y_solution.x[1]
-        self.y_offset = y_solution.x[2]
-            
+        self.xDiff_offset = solution.x[0]
+        self.yDiff_offset = solution.x[1]
+        self.SUM_offsetFor_div = -solution.x[2]
+        self.x_offset = solution.x[3]
+        self.y_offset = solution.x[4]
+        print(solution)
             
     
     def set_zOffset(self, time = 0.2):

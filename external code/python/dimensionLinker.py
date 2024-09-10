@@ -51,38 +51,49 @@ def shortestPath(G, startNodes, endNode):
     return []
 
 class dimensionLinker():
+    #graph object that connects different physical dimensions (length, time, energy...) to fastly convert from one 
+        #to the other. Each node is a dimension, and each edge is a conversion between 2 (or more) dimensions.        
     def __init__(self):
         self.g = nx.DiGraph()
     
     def addDimension(self, dimensionName, dimensionMeasurementUnit = "[adimensional]", **attr):
-        # if(isinstance(dimensionName, list)):
-        #     self.g.add_nodes_from(dimensionName)
-        # else:
-            self.g.add_node(dimensionName, unit = dimensionMeasurementUnit, mult = False, **attr)
+        #you can add more attributes to the node, if you really have to...
+        self.g.add_node(dimensionName, unit = dimensionMeasurementUnit, mult = False, **attr)
         
     def addConnection(self, dimension0, dimension1, from0to1, from1to0 = None):
-        if(from1to0 is None):
+        #connects 2 functions together. from0to1 is a function that converts dimension 0 to dimension 1 
+            #(valueInDimension1 = from0to1(valueInDimension0)). Usually you can just use the static methods 
+            #gainFunctions, shift_n_gainFunctions ecc to automatically create the 2 functions. For conversions 
+            #that require more than 2 dimensions, use addMultiConnection.
+            #you can leave some functions as None, in that case the graph will know that it is not possible to con
+        if(from1to0 is None and isinstance(from0to1, tuple)):
             from0to1, from1to0 = from0to1
-        self.g.add_edge(dimension0, dimension1, transferFun = from0to1)
-        self.g.add_edge(dimension1, dimension0, transferFun = from1to0)
-    def addMultiConnection(self, dimensions, conversionFunctions=None):#, functionGenerator = None):
-        # if len(dimensions) == 2:
-        #     addConnection(dimensions[0],dimensions[1],...)
+        
+        if from0to1 is not None:
+            self.g.add_edge(dimension0, dimension1, transferFun = from0to1)    
+        if from1to0 is not None:
+            self.g.add_edge(dimension1, dimension0, transferFun = from1to0)
+        
+    def addMultiConnection(self, dimensions, conversionFunctions=None):
+        #connects more than 2 dimensions together (so, to obtain one you need a value for all the others). 
+        #conversionFunctions needs to contain len(dimensions) functions, all of which require (len(dimensions)-1) 
+        #input arguments.
         l = len(dimensions)
         self.g.add_node(str(dimensions), mult = True)
         if(conversionFunctions is not None):
             for i in range(l):
                 self.g.add_edge(dimensions[i], str(dimensions), transferFun = conversionFunctions[i])
                 self.g.add_edge(str(dimensions), dimensions[i], transferFun = lambda x: x)
-        # elif(functionGenerator is not None):
-        #     for i in range(l):
-        #         self.g.add_edge(dimensions[i], dimensions, transferFun = functionGenerator(i))
     
     def convert(self, values, fromDimensions, toDimension):
+        #convert a value (or more than one value if the conversion requires more inputs) to a new dimension. If 
+            #the dimensions are not connected, the function returns an error
         if not isinstance(fromDimensions, list):
             fromDimensions = [fromDimensions]
             values = [values]
         nodeList = shortestPath(self.g, fromDimensions, toDimension)
+        if len(nodeList) == 0 and (toDimension not in fromDimensions):
+            raise Exception("the source dimensions are not connected to the destination dimension.")
         multiNodesInputs = {}
         for (startNode, endNode) in nodeList:
             if self.g.nodes(data= True)[startNode]["mult"]:
@@ -183,20 +194,21 @@ class dimensionLinker():
         return [fun1]*len(list1) + [fun2]*len(list2)
         
        
-# G = dimensionLinker()  # or DiGraph, MultiGraph, MultiDiGraph, etc
-# G.addDimension("pix","[a]")
-# G.addDimension("x","m")
-# G.addDimension("v","m/s")
-# G.addDimension("t","s")
-# G.addDimension("a","m/s^2")
-# G.addDimension("m","kg")
-# G.addDimension("p","kg*m/s")
+#example use:
+'''
+G = dimensionLinker()
+G.addDimension("pix","[a]")
+G.addDimension("x","m")
+G.addDimension("v","m/s")
+G.addDimension("t","s")
+G.addDimension("a","m/s^2")
+G.addDimension("m","kg")
+G.addDimension("p","kg*m/s")
 
-
-
-# G.addConnection("pix", "x", dimensionLinker.gainFunctions(1/100))
-# G.addMultiConnection(["x","v","t"], dimensionLinker.monomialFunctions(["x"],["v","t"]))
-# G.addMultiConnection(["v","a","t"], dimensionLinker.monomialFunctions(["v"],["a","t"]))
-# G.addMultiConnection(["p","v","m"], dimensionLinker.monomialFunctions(["p"],["v","m"]))
-# q=G.convert([10, 0.3, 0.1], ["pix", "m", "t"], "p") 
-# print(q)
+G.addConnection("pix", "x", dimensionLinker.gainFunctions(1/100))
+G.addMultiConnection(["x","v","t"], dimensionLinker.monomialFunctions(["x"],["v","t"]))
+G.addMultiConnection(["v","a","t"], dimensionLinker.monomialFunctions(["v"],["a","t"]))
+G.addMultiConnection(["p","v","m"], dimensionLinker.monomialFunctions(["p"],["v","m"]))
+q=G.convert([10, 0.3, 0.1], ["pix", "m", "t"], "p") 
+print(q)
+'''
