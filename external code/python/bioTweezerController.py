@@ -11,12 +11,17 @@ Created on Fri Jul 26 11:09:04 2024
 
 @author: lastline
 """
+from tkinter import *
+from tkinter import ttk  
 import numpy as np
 import socket
 import time as t
 from dimensionLinker import dimensionLinker
 import matplotlib.pyplot as plt
 from scipy.optimize import  least_squares
+from functools import partial
+import pandas as pd
+from threading import Thread
 
 def setupReception(ip, port):
     #get a socket for UDP transmission
@@ -94,7 +99,12 @@ class fpgaRegister:
     def fixedPointToFloat(self, intValue, toDimension = None):
         #convert from a FPGA value to the corresponding value of the selected physical dimension
         if(len(self.command) > 1):
-            intValue = intValue[0] << 16 + intValue[1]
+            intValue = (intValue[0] << 16) + intValue[1]
+        if isinstance(intValue, list):
+            intValue = intValue[0]
+        intValue &= ((1<<self.bitSize) - 1)
+        if intValue > (1 << (self.bitSize - 1)):
+            intValue -= (1 << self.bitSize)
         if(toDimension is None):
             toDimension = self.preferredConversionDimension
         return self.dimLinker.convert(intValue, self.dimension, toDimension)
@@ -162,15 +172,31 @@ class fpgaHandler:
             register = self.ParametersForFPGA[parameters[i]]
             if(isinstance(values[i], tuple)):
                 paramVals = register.floatToFixedPoint(*values[i])
-                print(f"setting {parameters[i]} to {values[i][0]} ({values[i][1]}), fpga number: {paramVals}")
+                print(f"setting {parameters[i]} to {values[i][0]} ({values[i][1]}), fpga number: {[hex(pv) for pv in paramVals]}")
             else:
                 paramVals = register.floatToFixedPoint(values[i])
-                print(f"setting {parameters[i]} to {values[i]} ({register.preferredConversionDimension}), fpga number: {paramVals}")
+                print(f"setting {parameters[i]} to {values[i]} ({register.preferredConversionDimension}), fpga number: {[hex(pv) for pv in paramVals]}")
             for j in range(len(register.command)-1,-1,-1):    
                 commandList.append(b"CPAR"+register.command[j].to_bytes(1,'big')+b"\0"+\
                                    (paramVals[j]&0xffff).to_bytes(2,'big'))
         self.sendCommand(commandList)
             
+    def readBackParameter(self, *parameters):
+        values = [[]] * len(parameters)
+        for i,param in enumerate(parameters):
+            if isinstance(param, tuple):
+                param, dim = param
+            else:
+                dim = None
+            register = self.ParametersForFPGA[param]
+            values[i] = [0] * len(register.command)
+            for j in range(len(register.command)-1,-1,-1): 
+                readString = self.sendCommand(b"RPAR"+register.command[j].to_bytes(1,'big')+b"\0\0\0")
+                values[i][j] = int.from_bytes(readString[0:2], byteorder='big')
+            values[i] = register.fixedPointToFloat(values[i], dim)
+        if len(values) == 1:
+            values = values[0]
+        return values
         
     def sendCommand(self, commands, waitForResponse = True):
         #send one or multiple commands to the FPGA
@@ -206,6 +232,45 @@ class fpgaHandler:
                     retData[name].append(register.fixedPointToFloat(val))
                     byteIdx += 2
             return retData
+        
+    def startDataStream(self):
+        sock = setupReception(self.self_ip, self.dataPort)
+        self.dataStreamThread = Thread(target=self.dataStreamThreadRun, args=(sock,))
+        self.dataStreamRunning = True
+        self.dataStreamBuffer = {}
+        self.dataStreamThread.start()
+
+    def dataStreamThreadRun(self, sock):
+        for name in self.dataValuesFromFPGA.keys():
+            self.dataStreamBuffer[name] = []
+
+        self.dataStreamBuffer["times"] = []
+        startTime = t.time()
+        while self.dataStreamRunning:
+            received, address = sock.recvfrom(2048)
+            self.dataStreamBuffer["times"].append(t.time() - startTime)
+            byteIdx = 1
+            for name, register in self.dataValuesFromFPGA.items():
+                val = int(received[byteIdx] << 8) + int(received[byteIdx+1])
+                if(val >= 0x8000):
+                    val = -0x10000 + val
+                    
+                self.dataStreamBuffer[name].append(register.fixedPointToFloat(val))
+                byteIdx += 2
+        sock.close()
+
+        print('Exiting from dataStreamThread')
+
+
+    def stopDataStream(self):
+        if hasattr(self, "dataStreamThread") and self.dataStreamThread is not None:
+            self.dataStreamRunning = False
+            self.dataStreamThread.join()
+            self.dataStreamThread = None
+            return self.dataStreamBuffer
+        print("start the stream first!")
+        return {}
+
         
     def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None):
         #receive a dataStream and print the values (or some of the values) received.
@@ -313,7 +378,7 @@ class bioTweezerController(fpgaHandler):
         super(bioTweezerController, self).__init__(**kwargs)
         self.reset()
         self.updateDimensionLinker()
-        self.initiateTweezers()
+        # self.initiateTweezers()
         
     #gains of the ADC/DAC circuits
     ADC_xyAttenuation = -1 / 7.8                                                                            # V/V
@@ -354,7 +419,6 @@ class bioTweezerController(fpgaHandler):
         
     def initiateTweezers(self):
         #do some calibration measures
-        self.set_zOffset()
         self.calibrateTweezer()
         
         #set a lot of parameters in the FPGA
@@ -399,11 +463,7 @@ class bioTweezerController(fpgaHandler):
         return stiffnesses
     
     def _get_zOffset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
-        
-        self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, time / 10,
-            SUM_multiplierFor_z = (-1, "FPGA_floatValue"),
-            SUM_offsetFor_z = (0, "QPD_output"),
-        )
+        self.EnableConstantOutput(intensity)
         z = - np.mean(self.getDataStream(time)["z"])
         self.reset()
         z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
@@ -412,6 +472,7 @@ class bioTweezerController(fpgaHandler):
         
     
     def calibrateTweezer(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)]):
+        self.set_zOffset()
         #calculate the offsets for x and y
         SUM = np.zeros(len(usedLaserPowers))
         XDIFF = np.zeros(len(usedLaserPowers))
@@ -437,7 +498,7 @@ class bioTweezerController(fpgaHandler):
         else:
             #let's get some values for SUM, XDIFF and YDIFF
             for i, intensity in enumerate(usedLaserPowers):
-                self.EnableBinaryFeedback((-1,"FPGA_floatValue"), True, intensity, singleCalibrationTime / 10)
+                self.EnableConstantOutput(intensity)
                 
                 t.sleep(0.01)#wait for the system to stabilize
                 data = self.getDataStream(singleCalibrationTime)            
@@ -484,9 +545,12 @@ class bioTweezerController(fpgaHandler):
         self.sendCommand([b"PIEN0000"+enable.to_bytes(1, 'big')])
     def reset(self):
         self.sendCommand([b"PICL0001", b"PIEN0000"])
-    def EnableConstantOutput(self, output):
+    def EnableConstantOutput(self, output = None):
         self.sendCommand([b"PICL0001"])
-        self.setParameters(outWhenPiDisabled = output, useToggleEnable = False)
+        if output is None:
+            self.setParameters(useToggleEnable = False)
+        else:
+            self.setParameters(outWhenPiDisabled = output, useToggleEnable = False)
         self.sendCommand([b"PICL0000", b"PIEN0000"])
     def EnablePI(self, kp = 0.1, ki = 0.001, **kwargs):
         self.sendCommand([b"PICL0001"])
@@ -532,15 +596,77 @@ class bioTweezerController(fpgaHandler):
     def disable_yz_Dimensions(self, disableY, disableZ):
         self.setParameters(disableY = disableY, disableZ = disableZ)
     
+    def updateGeneratorBaseCurrent(self, newCurrent_Ampere):
+        self.currentGenerator_baseCurrent = float(newCurrent_Ampere)
+        self.updateDimensionLinker()
+    
+    def _bio_controller_update_entry_callback(self, var = None, name = None, event=None):
+              sp = var.get()
+              print(f'Setting setpoint {sp} to bio controller!')
+              self.setParameters(**{name:sp})
 
-q = bioTweezerController()
+    def _addToFrame(self, frame, parametersList, firstRow = 0, maxCol = 2):
+        row = firstRow
+        col = 0
+        for el in parametersList:
+               if isinstance(el, tuple):
+                   el, function = el
+               else:
+                   function = self._bio_controller_update_entry_callback
+               label = Label(frame, text=f"{el}:")
+               label.grid(row=row, column=col*2, sticky='w')
+               var = DoubleVar()
+               entry = Entry(frame, textvariable=var)
+               entry.bind('<Return>', partial(function, var, el))
+               entry.grid(row=row, column=col*2+1, sticky='ew')
+               
+               setattr(frame, f"bio_{el}_var", var)
+               setattr(frame, f"bio_{el}_label", label)
+               setattr(frame, f"bio_{el}_entry", entry)
+               col += 1
+               if col >= maxCol:
+                    col = 0
+                    row += 1
+        return row+1
+    def _addButtons(self, frame, button_and_function, firstRow = 0, maxCol = 2):
+        row = firstRow
+        col = 0
+        for name, function in button_and_function:
+               button = Button(frame, text=name, command=function)
+               button.grid(row=row, column=col*2+1, sticky='w')               
+               setattr(frame, f"bio_{name}_button", button)
+               col += 1
+               if col >= maxCol:
+                    col = 0
+                    row += 1
 
-q.disable_yz_Dimensions(True, True)
+    def getUI(self, root):      
+        bio_notebook = ttk.Notebook(root)
+        bio_notebook.frame_general = ttk.Frame(bio_notebook)
+        bio_notebook.frame_general.pack(expand=True, fill='both')
+        bio_notebook.add(bio_notebook.frame_general, text='general parameters')
+        nextRow = self._addToFrame(bio_notebook.frame_general, ["outWhenPiDisabled", "disableY", "disableZ", "xDiff_offset", "yDiff_offset", "x_offset", "y_offset", "SUM_offsetFor_div", "SUM_offsetFor_z"])
+        self._addButtons(bio_notebook.frame_general, [("disable", self.reset), ("calibrate", self.initiateTweezers)], nextRow)
+        
+        bio_notebook.frame_PI = ttk.Frame(bio_notebook)
+        bio_notebook.frame_PI.pack(expand=True, fill='both')
+        bio_notebook.add(bio_notebook.frame_PI, text='PI parameters')
+        self._addToFrame(bio_notebook.frame_PI, ["setpoint", "kp", "ki", "limitLow", "limitHigh"])
+        nextRow = self._addButtons(bio_notebook.frame_general, [("enable PI", self.EnablePI)], nextRow)
+        return bio_notebook
+    
 
-q.EnableConstantOutput((0.0, "generator_input"))
-
-q.EnablePI(kp = -0.01, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
-
-q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
-
-q.plotReceivedData(1,elementsToRemove=["pid out", "z"])
+if __name__ == "__main__":
+    q = bioTweezerController()  
+    # q.initiateTweezers()
+    print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
+    
+    # q.disable_yz_Dimensions(True, True)
+    
+    # q.EnableConstantOutput((0.0, "generator_input"))
+    
+    # q.EnablePI(kp = -0.01, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
+    
+    # q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
+    
+    # q.plotReceivedData(1,elementsToRemove=["pid out", "z"])

@@ -1,0 +1,25 @@
+Bio Controller version 1.0,,,,,,,,
+Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parameter value,Parameter measure unit,Parameter internal unit,UI position
+1,Current Generator,Base current,currentGenerator_baseCurrent,float,200e-3,ampere,generator_current,general
+2,Bio Controller,Base level,outWhenPiDisabled,float,0,volt,generator_input,general;wallFeedback
+3,Bio Controller,Y contribute,disableY,neg_bool,0,none,FPGA_bitRegister,general
+4,Bio Controller,Z contribute,disableZ,neg_bool,0,none,FPGA_bitRegister,general
+5,Bio Controller,Offset XDiff,xDiff_offset,float,0,volt,QPD_output,general
+6,Bio Controller,Offset YDiff,yDiff_offset,float,0,volt,QPD_output,general
+7,Bio Controller,Offset Sum,SUM_offsetFor_div,float,0,volt,QPD_output,general
+8,Bio Controller,Offset z,SUM_offsetFor_z,float,0,volt,QPD_output,general
+9,Bio Controller,Offset x,x_offset,float,0,none,FPGA_floatValue,general
+10,Bio Controller,Offset y,y_offset,float,0,none,FPGA_floatValue,general
+11,Bio Controller,Setpoint,setpoint,float,800e-9,none,bead_position,PI
+12,Bio Controller,Proportional control coefficient,kp,float,0,none,FPGA_floatValue,PI
+13,Bio Controller,Integral control coefficient,ki,float,0,none,FPGA_floatValue,PI
+14,Bio Controller,Ouput low limit,limitLow,float,150e-3,ampere,generator_current,PI
+15,Bio Controller,Output high limit,limitHigh,float,350e-3,ampere,generator_current,PI
+16,Bio Controller,Gain Sum,SUM_multiplierFor_div,float,0,none,FPGA_floatValue,general
+17,Bio Controller,Gain z,SUM_multiplierFor_z,float,0,none,FPGA_floatValue,general
+18,Bio Controller,feedback level,binFeedback_valueWhenActive,float,0,volt,generator_input,wallFeedback
+19,Bio Controller,activation threshold,binFeedback_threshold,float,1000e-9,none,bead_position,wallFeedback
+20,Bio Controller,active when higher,binFeedback_actOnInGreaterThanThreshold,bool,1,none,FPGA_bitRegister,wallFeedback
+21,Bio Controller,active feedback time,binFeedback_activeFeedbackMaxCycles,float,0,s,time,wallFeedback
+22,Bio Controller,inactive feedback time,binFeedback_idleWaitCycles,float,0,s,time,wallFeedback
+23,Bio Controller,activation time,binFeedback_cyclesForActivation,float,0,s,time,wallFeedback

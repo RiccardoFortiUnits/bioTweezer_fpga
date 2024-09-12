@@ -17,6 +17,10 @@ module control_param_decoder #(
 
     input [31:0] received_data,
     input        received_control_param_valid,
+	 
+    input                                control_param_read_request,
+	 output reg[maxTransmissionSize -1:0] read_control_param,
+    output reg                           control_param_read_valid,
 
     input wipe_settings,
 
@@ -44,7 +48,8 @@ localparam  largeRegistersStartDataControl = 1,
 // STATE MACHINE
 localparam  IDLE = 0,
             EVAL = 1,
-            CHECK_NAK = 2;
+            CHECK_NAK = 2,
+				GET_READ = 3;
 
 reg [1:0] STATE = IDLE;
 
@@ -73,7 +78,11 @@ begin
         largeRegister_LSB_written      <= 0;
         largeRegister_MSB_written      <= 0;
         smallRegister_written          <= 0;
-
+		  control_param_read_valid       <= 0;
+		  read_control_param             <= 0;
+		  ack <= 1'b0;
+		  nak <= 1'b0;
+		  err <= 1'b0;
         STATE <= IDLE;  
     end
     else 
@@ -85,13 +94,15 @@ begin
                 largeRegisters_update_cmd <= (largeRegister_LSB_updateCmd & largeRegister_MSB_updateCmd);
                 largeRegister_LSB_updateCmd <= largeRegister_LSB_updateCmd & (~largeRegister_MSB_updateCmd);
                 largeRegister_MSB_updateCmd <= largeRegister_MSB_updateCmd & (~largeRegister_LSB_updateCmd);
-
-                if (received_control_param_valid) 
+					 
+					 control_param_read_valid <= 0;
+                
+					 if (received_control_param_valid) 
                 begin
                     STATE <= EVAL;
-                end
-                else
-                begin
+                end else if(control_param_read_request)begin
+					     STATE <= GET_READ;
+					 end else begin
                     STATE <= IDLE;
                 end
             
@@ -144,6 +155,35 @@ begin
                 end
             end
             
+				GET_READ:
+				begin
+                STATE <= IDLE;
+					 for(i=0;i<nOflargeRegisters;i=i+1)begin
+                    //large registers MSB
+                    if(received_data[31-:8] == i*2+largeRegistersStartDataControl)begin
+                        for(j=maxTransmissionSize;j<`largeRegisterStart(i+1)-`largeRegisterStart(i);j=j+1)begin
+                            read_control_param[j-maxTransmissionSize] <= largeRegisters[`largeRegisterStart(i)+j];
+                        end
+								control_param_read_valid <= 1;
+                    end
+                    //large registers LSB
+                    if(received_data[31-:8] == i*2+largeRegistersStartDataControl+1)begin
+                        for(j=0;j<maxTransmissionSize;j=j+1)begin
+                            read_control_param[j] <= largeRegisters[`largeRegisterStart(i)+j];
+                        end
+								control_param_read_valid <= 1;
+                    end
+                end
+                for (i=0;i<nOfsmallRegisters;i=i+1) begin                    
+                    //small registers
+                    if(received_data[31-:8] == i+smallRegistersStartDataControl)begin
+                        for(j=0;j<`smallRegisterStart(i+1)-`smallRegisterStart(i);j=j+1)begin
+                            read_control_param[j] <= smallRegisters[`smallRegisterStart(i)+j];
+                        end
+								control_param_read_valid <= 1;
+                    end
+                end
+				end
             default: 
             begin
                 STATE <= IDLE;                     

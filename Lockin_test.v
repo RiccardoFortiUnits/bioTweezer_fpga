@@ -528,13 +528,13 @@ dataHandlerForTransmission #(
 ) dhft [0:6](
     .dataClk                        (ADC_outclock_50),
     .fifoReadClk                    (rx_xcvr_clk),
-    .reset                          (reset_50 | reset | SW[9] | (!controllerOut_valid)),
+    .reset                          (reset_50 | reset | SW[9]),
     .nOfDataPerTransmission         (nOfDataPerTransmission),
-    .enableData                     (controllerOut_valid),
+    .enableData                     (1'b1),
     .in                             ({controllerOut, x, y, z, xSquare, ySquare, zSquare}),
     .readRequest                    ({pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdreq_fifo, ySquare_rdreq_fifo, zSquare_rdreq_fifo}),
     .dataRead                       ({pi_rddata_output_fifo, x_rddata_fifo, y_rddata_fifo, z_rddata_fifo, xSquare_rddata_fifo, ySquare_rddata_fifo, zSquare_rddata_fifo}),
-    .readEmpty                      ({pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo}),
+    .readEmpty                      ({pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo})
 );
 ////////////////// STATUS //////////////
 onOffDisplay ood(

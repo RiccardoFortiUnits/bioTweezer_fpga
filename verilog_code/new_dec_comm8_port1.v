@@ -13,11 +13,11 @@ module new_dec_comm8_port1 #(
     output reg [IP_SIZE-1:0]  source_ip  = {{IP_SIZE}{1'b0}},
     //----------------------------------------------------------------
     // RX FIFO INTERFACE FROM 1GB ETHERNET
-    input [AVL_SIZE-1:0]	                     rx_fifo_data,
+    input [AVL_SIZE-1:0]                         rx_fifo_data,
     input [2*BYTE_SIZE + IP_SIZE + MAC_SIZE-1:0] rx_fifo_status,
-    input		                                 rx_fifo_status_empty,
-    output reg		                             rx_fifo_data_read,
-    output reg		                             rx_fifo_status_read,
+    input                                        rx_fifo_status_empty,
+    output reg                                   rx_fifo_data_read,
+    output reg                                   rx_fifo_status_read,
     //----------------------------------------------------------------
 
     //----------------------------------------------------------------
@@ -47,6 +47,11 @@ module new_dec_comm8_port1 #(
     input                        control_param_ack,
     input                        control_param_nak,
     input                        control_param_err,
+
+
+    output reg                   control_param_read_request,
+    input [15:0]                 read_control_param,
+    input                        control_param_read_valid,
 
     input                        pi_enable_comm_ack,
     input                        pi_enable_comm_nak,
@@ -83,6 +88,7 @@ localparam  SHOW_VERSION    = 32'h5645_523F, // VER? - Returns the current firmw
             START_CONTROL   = 32'h434F_4F4E, // COON - Starts the control and the acquisition
             STOP_CONTROL    = 32'h434F_4646, // COFF - Stops  the control and the acquisition
             CONTROL_PARAM   = 32'h4350_4152, // CPAR - This command sends the parameters necessary for the control
+            READ_PARAM      = 32'h5250_4152, // RPAR - This command reads back the parameter received by the control
             FPGA_PI_EN      = 32'h5049_454E, // PIEN - This command enables the FPGA PI controller
             FPGA_PI_RST     = 32'h5049_434C, // PICL - This command resets the FPGA PI controller
             RUN_OK          = 32'h5255_4E3F, // RUN? - Returns ACK if is running, otherwise returns ERR
@@ -102,7 +108,8 @@ localparam  RX_IDLE        = 0,
             RX_EVAL        = 6,
             RX_CONTROL_PARAM_EVAL  = 7,
             RX_FPGA_PIEN_COMM_EVAL = 8,
-            RX_FPGA_PICL_COMM_EVAL = 9;
+            RX_FPGA_PICL_COMM_EVAL = 9,
+            RX_READ_PARAM_EVAL = 10;
 
 reg [3:0] RX_STATUS = RX_IDLE;
 
@@ -114,7 +121,7 @@ reg [2*BYTE_SIZE-1:0]            byte_counter; // received byte counter
 reg [COMMAND_ONLY*BYTE_SIZE-1:0] received_cmd; // command part of the incoming data
 
 reg with_data;          // if the received command is with data or not
-reg ack, nak, ver, err; // signals for the TX state machine
+reg ack, nak, ver, err, read; // signals for the TX state machine
 
 reg    conn_timeout_restart, conn_timeout_enable;
 reg    wipe_from_command;
@@ -123,8 +130,8 @@ assign wipe_settings = wipe_from_timeout || wipe_from_command; // wipe from time
 
 always @(posedge clk)
 begin
-	if (reset)
-	begin
+    if (reset)
+    begin
         rx_fifo_data_read   <= 1'b0;
         rx_fifo_status_read <= 1'b0;
 
@@ -139,12 +146,14 @@ begin
         nak <= 1'b0;
         ver <= 1'b0;
         err <= 1'b0;
+        read <= 1'b0;
 
         conn_timeout_restart <= 1'b0;
         conn_timeout_enable  <= 1'b0;
         wipe_from_command    <= 1'b0;
 
         received_control_param_valid  <= 1'b0;
+        control_param_read_request <= 1'b0;
 
         received_pi_enable_comm_valid <= 1'b0;
         received_pi_reset_comm_valid  <= 1'b0;
@@ -180,8 +189,10 @@ begin
                 nak <= 1'b0;
                 ver <= 1'b0;
                 err <= 1'b0;
+                read <= 1'b0;
 
                 received_control_param_valid  <= 1'b0;
+                control_param_read_request <= 1'b0;
 
                 received_pi_enable_comm_valid <= 1'b0;
                 received_pi_reset_comm_valid  <= 1'b0;
@@ -290,6 +301,11 @@ begin
                         RX_STATUS <= RX_CONTROL_PARAM_EVAL;
                         //we'll toggle the ack only after receiving news from the control_param_decoder
                     )
+                    `evalCommand(READ_PARAM, with_data == 1'b1, 
+                        control_param_read_request <= 1'b1; // Parameters necessary for the control received
+                        RX_STATUS <= RX_READ_PARAM_EVAL;
+                        //we'll toggle the ack only after receiving news from the control_param_decoder
+                    )
                     `evalCommand(FPGA_PI_EN, with_data == 1'b1, 
                         received_pi_enable_comm_valid <= 1'b1; // This command enables the FPGA PI controller
                         RX_STATUS <= RX_FPGA_PIEN_COMM_EVAL;
@@ -316,6 +332,7 @@ begin
                         nak <= 1'b1;
                         ver <= 1'b0;
                         err <= 1'b0;
+                        read <= 1'b0;
                     end
                 endcase
             end
@@ -343,6 +360,15 @@ begin
             `evaluateAckNakErr(RX_FPGA_PIEN_COMM_EVAL, received_pi_enable_comm_valid, pi_enable_comm_ack, pi_enable_comm_nak, pi_enable_comm_err)
             `evaluateAckNakErr(RX_FPGA_PICL_COMM_EVAL, received_pi_reset_comm_valid, pi_reset_comm_ack, pi_reset_comm_nak, pi_reset_comm_err)
 
+            RX_READ_PARAM_EVAL:
+            begin
+					 control_param_read_request <= 1'b0;
+                if(control_param_read_valid)begin
+                    read <= 1'b1;
+                    RX_STATUS <= RX_IDLE;
+                end
+            end
+
             RX_FLUSH: // flush the fifo if the received command has an unusual length
             begin
                 if (byte_counter == 1'd0)
@@ -368,6 +394,7 @@ begin
                 nak <= 1'b0;
                 ver <= 1'b0;
                 err <= 1'b0;
+                read <= 1'b0;
 
                 RX_STATUS <= RX_IDLE;
             end
@@ -392,28 +419,30 @@ timeout_check #(.BIT_WIDTH(32)) wait_data_timeout (
 // DECODER TX STATE MACHINE
 
 localparam TX_IDLE = 0,
-		   TX_WRITE_DATA = 1;
+           TX_WRITE_DATA = 1;
 
 reg [2:0]  TX_STATUS = TX_IDLE;
 
 // registers added to improve timing/separation between the state machines
-reg ack_reg, nak_reg, ver_reg, err_reg;
+reg ack_reg, nak_reg, ver_reg, err_reg, read_reg;
 
 always @(posedge clk) 
 begin
     if (reset)
-	begin
+    begin
         ack_reg <= 1'b0;
         nak_reg <= 1'b0;
         ver_reg <= 1'b0;
         err_reg <= 1'b0;
-	end 
+        read_reg <= 0;
+    end 
     else 
     begin
         ack_reg <= ack;
         nak_reg <= nak;
         ver_reg <= ver;
         err_reg <= err;
+        read_reg <= read;
     end
 end
 
@@ -425,76 +454,86 @@ reg [15:0] tx_length  = 16'd0; // lenght of the data to send
 
 always @(posedge clk)
 begin
-	if (reset)
-	begin
-		tx_fifo_status_write <= 1'b0;
-		tx_fifo_data_write   <= 1'b0;
-		TX_STATUS            <= TX_IDLE;
-	end
-	else
-		case (TX_STATUS)
-			TX_IDLE: 
+    if (reset)
+    begin
+        tx_fifo_status_write <= 1'b0;
+        tx_fifo_data_write   <= 1'b0;
+        TX_STATUS            <= TX_IDLE;
+    end
+    else
+        case (TX_STATUS)
+            TX_IDLE: 
             begin
-				tx_fifo_status_write <= 1'b0;
-				if (ack_reg)
+                tx_fifo_status_write <= 1'b0;
+                if (ack_reg)
                 begin
-					tx_counter   <= 16'd5;
+                    tx_counter   <= 16'd5;
                     tx_length    <= 16'd5;
-					tx_buffer[4] <= 8'd65; // A
-					tx_buffer[3] <= 8'd67; // C
-					tx_buffer[2] <= 8'd75; // K
-					tx_buffer[1] <= 8'd13; // \r
-					tx_buffer[0] <= 8'd10; // \n
-					TX_STATUS    <= TX_WRITE_DATA;
-				end
-				else if (nak_reg)
+                    tx_buffer[4] <= 8'd65; // A
+                    tx_buffer[3] <= 8'd67; // C
+                    tx_buffer[2] <= 8'd75; // K
+                    tx_buffer[1] <= 8'd13; // \r
+                    tx_buffer[0] <= 8'd10; // \n
+                    TX_STATUS    <= TX_WRITE_DATA;
+                end
+                else if (nak_reg)
                 begin
-					tx_counter   <= 16'd5;
+                    tx_counter   <= 16'd5;
                     tx_length    <= 16'd5;
-					tx_buffer[4] <= 8'd78; // N
-					tx_buffer[3] <= 8'd65; // A
-					tx_buffer[2] <= 8'd75; // K
-					tx_buffer[1] <= 8'd13; // \r
-					tx_buffer[0] <= 8'd10; // \n
-					TX_STATUS    <= TX_WRITE_DATA;
-				end
-				else if (ver_reg)
+                    tx_buffer[4] <= 8'd78; // N
+                    tx_buffer[3] <= 8'd65; // A
+                    tx_buffer[2] <= 8'd75; // K
+                    tx_buffer[1] <= 8'd13; // \r
+                    tx_buffer[0] <= 8'd10; // \n
+                    TX_STATUS    <= TX_WRITE_DATA;
+                end
+                else if (ver_reg)
                 begin
-					tx_counter   <= 16'd8;
+                    tx_counter   <= 16'd8;
                     tx_length    <= 16'd8;
-					tx_buffer[7] <= 8'h31; // 1
-					tx_buffer[6] <= 8'h2E; // .
-					tx_buffer[5] <= 8'h30; // 0
-					tx_buffer[4] <= 8'h54; // T
-               tx_buffer[3] <= 8'h57; // W
-					tx_buffer[2] <= 8'h45; // E
-					tx_buffer[1] <= 8'd13; // \r
-					tx_buffer[0] <= 8'd10; // \n
-					TX_STATUS    <= TX_WRITE_DATA;
-				end
+                    tx_buffer[7] <= 8'h31; // 1
+                    tx_buffer[6] <= 8'h2E; // .
+                    tx_buffer[5] <= 8'h30; // 0
+                    tx_buffer[4] <= 8'h54; // T
+                    tx_buffer[3] <= 8'h57; // W
+                    tx_buffer[2] <= 8'h45; // E
+                    tx_buffer[1] <= 8'd13; // \r
+                    tx_buffer[0] <= 8'd10; // \n
+                    TX_STATUS    <= TX_WRITE_DATA;
+                end
                 else if (err_reg) 
                 begin
-					tx_counter   <= 16'd5;
+                    tx_counter   <= 16'd5;
                     tx_length    <= 16'd5;
-					tx_buffer[4] <= 8'd69; // E
-					tx_buffer[3] <= 8'd82; // R
-					tx_buffer[2] <= 8'd82; // R
-					tx_buffer[1] <= 8'd13; // \r
-					tx_buffer[0] <= 8'd10; // \n
-					TX_STATUS    <= TX_WRITE_DATA;
-				end
-			end
-
-			TX_WRITE_DATA: 
-            begin // scroll through the buffer and write into the the TX fifos
-				if (tx_counter == 16'd0) 
+                    tx_buffer[4] <= 8'd69; // E
+                    tx_buffer[3] <= 8'd82; // R
+                    tx_buffer[2] <= 8'd82; // R
+                    tx_buffer[1] <= 8'd13; // \r
+                    tx_buffer[0] <= 8'd10; // \n
+                    TX_STATUS    <= TX_WRITE_DATA;
+                end
+                else if (read_reg)
                 begin
-					tx_fifo_data_write   <= 1'b0;
-					tx_fifo_status       <= {tx_length, source_ip, source_mac}; // always answer to the last sender
-					tx_fifo_status_write <= 1'b1;
-					TX_STATUS            <= TX_IDLE;
-				end
-				else 
+                    tx_counter   <= 16'd4;
+                    tx_length    <= 16'd4;
+                    tx_buffer[3] <= read_control_param[15:8];
+                    tx_buffer[2] <= read_control_param[7:0];
+                    tx_buffer[1] <= 8'd13; // \r
+                    tx_buffer[0] <= 8'd10; // \n
+                    TX_STATUS    <= TX_WRITE_DATA;
+                end
+            end
+
+            TX_WRITE_DATA: 
+            begin // scroll through the buffer and write into the the TX fifos
+                if (tx_counter == 16'd0) 
+                begin
+                    tx_fifo_data_write   <= 1'b0;
+                    tx_fifo_status       <= {tx_length, source_ip, source_mac}; // always answer to the last sender
+                    tx_fifo_status_write <= 1'b1;
+                    TX_STATUS            <= TX_IDLE;
+                end
+                else 
                 begin
                     if (!tx_fifo_data_full) 
                     begin
@@ -505,17 +544,17 @@ begin
                     else 
                     begin
                         tx_fifo_data_write <= 1'b0;
-                    end					
-				end
-			end
+                    end                 
+                end
+            end
 
-			default: 
+            default: 
             begin
-				tx_fifo_status_write <= 1'b0;
-				tx_fifo_data_write   <= 1'b0;
-				TX_STATUS            <= TX_IDLE;
-			end
-		endcase
+                tx_fifo_status_write <= 1'b0;
+                tx_fifo_data_write   <= 1'b0;
+                TX_STATUS            <= TX_IDLE;
+            end
+        endcase
 end
 
 endmodule

@@ -179,6 +179,11 @@ wire control_param_ack, control_param_nak, control_param_err;
 wire pi_enable_cmd_ack, pi_enable_cmd_nak, pi_enable_cmd_err;
 wire pi_reset_cmd_ack,  pi_reset_cmd_nak,  pi_reset_cmd_err;
 
+ wire control_param_read_request;
+ wire [15:0] read_control_param;
+ wire control_param_read_valid;
+
+
 new_dec_comm8_port1 dec_comm8_1 
 (
     .clk(rx_xcvr_clk),
@@ -219,6 +224,9 @@ new_dec_comm8_port1 dec_comm8_1
      .pi_reset_comm_nak(pi_reset_cmd_nak),
      .pi_reset_comm_err(pi_reset_cmd_err),
 	 
+     .control_param_read_request(control_param_read_request),
+     .read_control_param(read_control_param),
+     .control_param_read_valid(control_param_read_valid),
 	 // Connection status
 	 //.conn_timeout_n(...),
 	 
@@ -276,11 +284,14 @@ control_param_decoder #(
     .ack(control_param_ack),
     .nak(control_param_nak),
     .err(control_param_err),
+    .control_param_read_request(control_param_read_request),
+    .read_control_param(read_control_param),
+    .control_param_read_valid(control_param_read_valid),
 
-	 .largeRegisters                 (largeRegisters),
-	 .largeRegisters_update_cmd      (largeRegisters_update_cmd),
-	 .smallRegisters                 (smallRegisters),
-	 .smallRegisters_update_cmd      (smallRegisters_update_cmd),
+    .largeRegisters                 (largeRegisters),
+    .largeRegisters_update_cmd      (largeRegisters_update_cmd),
+    .smallRegisters                 (smallRegisters),
+    .smallRegisters_update_cmd      (smallRegisters_update_cmd),
 
     .control_param_written(control_param_written)
 );
