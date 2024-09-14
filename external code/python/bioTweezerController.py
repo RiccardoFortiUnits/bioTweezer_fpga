@@ -209,10 +209,11 @@ class fpgaHandler:
             return transmitCommand(sock, self.fpga_ip, self.parameterPort, commands, waitForResponse)
     
     
-    def getDataStream(self, time = 1):
+    def getDataStream(self, time = 1, **dimensions):
         #receive the data stream from the FPGA for the specified time (in seconds). The returned value is a dictionary 
             #where the keys are the names of the different values sent by the FPGA (specified in dataValuesFromFPGA), 
             #and the values are the lists of values received during the reception time.
+            #you can specify the final dimension of the various signal (add to the declaration <signalName> = <desiredDimension>)
         with setupReception(self.self_ip, self.dataPort) as sock:
             retData = {}
             for name in self.dataValuesFromFPGA.keys():
@@ -229,42 +230,69 @@ class fpgaHandler:
                     if(val >= 0x8000):
                         val = -0x10000 + val
                     
-                    retData[name].append(register.fixedPointToFloat(val))
+                    if name in dimensions.keys():
+                        retData[name].append(register.fixedPointToFloat(val, dimensions[name]))
+                    else:
+                        retData[name].append(register.fixedPointToFloat(val))
                     byteIdx += 2
             return retData
         
-    def startDataStream(self):
+    def startDataStream(self, maxTime = 70, updateFunction = None, **dimensions):
+        #start a thread dedicated to reading the datastream from the FPGA. It works 
+            #similarly to getDataStream, but it is not a blocking procedure, and you 
+            #don't have to specify the duration of the reading.Remember  that you're 
+            #supposed to close the thread (and so the data reception) with 
+            #stopDataStream, which also returns the read data.
+            #you can execute a function at every reception of data (example, to update a 
+            #scatter plot in real time)
         sock = setupReception(self.self_ip, self.dataPort)
-        self.dataStreamThread = Thread(target=self.dataStreamThreadRun, args=(sock,))
-        self.dataStreamRunning = True
-        self.dataStreamBuffer = {}
-        self.dataStreamThread.start()
+        try:
+            self.dataStreamThread = Thread(target=self._dataStreamThreadRun, args=(sock,maxTime, updateFunction),kwargs= dimensions)
+            self.dataStreamRunning = True
+            self.dataStreamBuffer = {}
+            self.dataStreamThread.start()
+        except:
+            try:
+                sock.close()
+            except:
+                pass
 
-    def dataStreamThreadRun(self, sock):
-        for name in self.dataValuesFromFPGA.keys():
-            self.dataStreamBuffer[name] = []
+    def _dataStreamThreadRun(self, sock, maxTime = 70, updateFunction = None, **dimensions):
+        try:
+            for name in self.dataValuesFromFPGA.keys():
+                self.dataStreamBuffer[name] = []
 
-        self.dataStreamBuffer["times"] = []
-        startTime = t.time()
-        while self.dataStreamRunning:
-            received, address = sock.recvfrom(2048)
-            self.dataStreamBuffer["times"].append(t.time() - startTime)
-            byteIdx = 1
-            for name, register in self.dataValuesFromFPGA.items():
-                val = int(received[byteIdx] << 8) + int(received[byteIdx+1])
-                if(val >= 0x8000):
-                    val = -0x10000 + val
-                    
-                self.dataStreamBuffer[name].append(register.fixedPointToFloat(val))
-                byteIdx += 2
-        sock.close()
-
-        print('Exiting from dataStreamThread')
+            self.dataStreamBuffer["times"] = []
+            startTime = t.time()
+            maxendTime = startTime + maxTime
+            while self.dataStreamRunning:
+                received, address = sock.recvfrom(2048)
+                self.dataStreamBuffer["times"].append(t.time() - startTime)
+                byteIdx = 1
+                for name, register in self.dataValuesFromFPGA.items():
+                    val = int(received[byteIdx] << 8) + int(received[byteIdx+1])
+                    if(val >= 0x8000):
+                        val = -0x10000 + val
+                        
+                    if name in dimensions.keys():
+                        self.dataStreamBuffer[name].append(register.fixedPointToFloat(val, dimensions[name]))
+                    else:
+                        self.dataStreamBuffer[name].append(register.fixedPointToFloat(val))
+                    byteIdx += 2
+                if updateFunction is not None:
+                    updateFunction(self.dataStreamBuffer)
+                if t.time() > maxendTime:
+                    raise Exception(f"dataStream was kept open for too long (more than {maxTime}s). Closing automatically")
+        finally:                    
+            sock.close()
 
 
     def stopDataStream(self):
+        #stops the data stream thread and returns the read data
         if hasattr(self, "dataStreamThread") and self.dataStreamThread is not None:
             self.dataStreamRunning = False
+            if not self.dataStreamRunning.is_alive():
+                print("WARNING: data stream read finished early because of a timeout.")
             self.dataStreamThread.join()
             self.dataStreamThread = None
             return self.dataStreamBuffer
@@ -272,9 +300,9 @@ class fpgaHandler:
         return {}
 
         
-    def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None):
+    def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None, **dimensions):
         #receive a dataStream and print the values (or some of the values) received.
-        data = self.getDataStream(time)
+        data = self.getDataStream(time, **dimensions)
         plt.figure()
         x=data["times"]
         if(elementsToShow is None):
@@ -289,6 +317,7 @@ class fpgaHandler:
         
         # Add legend
         plt.legend()
+        plt.show()
         
 class bioTweezerController(fpgaHandler):
     
@@ -417,9 +446,10 @@ class bioTweezerController(fpgaHandler):
     #FPGA controller clock
     fpga_controller_clock = 50e6                                                                            # Hz
         
-    def initiateTweezers(self):
+    def initiateTweezers(self, singleCalibrationTime = 1, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
         #do some calibration measures
-        self.calibrateTweezer()
+        self.getCalibrationValues(singleCalibrationTime = singleCalibrationTime, usedLaserPowers = usedLaserPowers, 
+                              useXYDIFF_offset = useXYDIFF_offset, useSUM_offset = useSUM_offset)
         
         #set a lot of parameters in the FPGA
         mz = 1 / (self.range_x * self.sensitivity_z * self.ADC_sumAttenuation)
@@ -464,15 +494,20 @@ class bioTweezerController(fpgaHandler):
     
     def _get_zOffset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
         self.EnableConstantOutput(intensity)
+        self.setParameters(
+            SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
+            SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+            SUM_offsetFor_z = (0, "FPGA_floatValue"),
+            SUM_offsetFor_div = (0, "FPGA_floatValue"),
+        )
         z = - np.mean(self.getDataStream(time)["z"])
         self.reset()
         z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
         z = self.dimLink.convert(z, "FPGA_SUMsignalRegister", "QPD_output")
         return z
         
-    
-    def calibrateTweezer(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)]):
-        self.set_zOffset()
+    def getCalibrationValues(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
+        self.set_zOffset(singleCalibrationTime)
         #calculate the offsets for x and y
         SUM = np.zeros(len(usedLaserPowers))
         XDIFF = np.zeros(len(usedLaserPowers))
@@ -511,20 +546,23 @@ class bioTweezerController(fpgaHandler):
                 YDIFF[i] = self.dimLink.convert(YDIFF[i], self.dataValuesFromFPGA["y"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]
 
         #now, assuming that the formula for calculating x from SUM and XDIFF is
-            #     x = (XDIFF-o_xdiff) / (SUM- o_sum ) - o_x
+            #     x = (XDIFF - o_xdiff) / (SUM - o_sum ) - o_x
             #and knowing that x ~ 0, let's estimate the 3 offsets by minimizing the error of the formula on the values we obtained
-            #(same thing for y)
+            #(same thing for y, with the condition that o_sum is the same for both x and y)
+        #let's group together all the data for X and Y
         xydiff = np.append(XDIFF, YDIFF)
         sumsum = np.append(SUM, SUM)
+        #we might disable some offsets in case we want a simpler offset calculation
+        sumOffsetPosition = 1 if useXYDIFF_offset else 0
+        xOffsetPosition = sumOffsetPosition + (1 if useSUM_offset else 0)
         def fxy(oo):
             o = np.array([[oo[0]]*len(XDIFF) + [oo[1]]*len(YDIFF),
                           [oo[2]]*len(xydiff),
                           [oo[3]]*len(XDIFF) + [oo[4]]*len(YDIFF)])
-            return (xydiff - o[0]) - (sumsum - o[1]) * o[2]# minimizing this formula is the same as minimizing 
-                #( (XDIFF - o[0]) / (SUM - o[1]) - o[2] ), but it is more stable since it doesn't have any 
-                #variable in the denominator
-        # def fy(o):
-        #     return (YDIFF - o[0]) - (SUM - o[1]) * o[2]
+            return (xydiff - (o[0] if useXYDIFF_offset else 0)) - (sumsum - (o[1] if useSUM_offset else 0)) * o[2]
+                #when all the offsets are enabled, this formula equals to (xydiff - o[0]) - (sumsum - o[1]) * o[2]. 
+                #minimizing this formula is the same as minimizing      ( (xydiff - o[0]) / (sumsum - o[1]) - o[2] ), 
+                #but it is more stable since it doesn't have any variable in the denominator
         
         solution = least_squares(fxy, np.array([0,0,0,0,0]))
 
@@ -600,67 +638,12 @@ class bioTweezerController(fpgaHandler):
         self.currentGenerator_baseCurrent = float(newCurrent_Ampere)
         self.updateDimensionLinker()
     
-    def _bio_controller_update_entry_callback(self, var = None, name = None, event=None):
-              sp = var.get()
-              print(f'Setting setpoint {sp} to bio controller!')
-              self.setParameters(**{name:sp})
-
-    def _addToFrame(self, frame, parametersList, firstRow = 0, maxCol = 2):
-        row = firstRow
-        col = 0
-        for el in parametersList:
-               if isinstance(el, tuple):
-                   el, function = el
-               else:
-                   function = self._bio_controller_update_entry_callback
-               label = Label(frame, text=f"{el}:")
-               label.grid(row=row, column=col*2, sticky='w')
-               var = DoubleVar()
-               entry = Entry(frame, textvariable=var)
-               entry.bind('<Return>', partial(function, var, el))
-               entry.grid(row=row, column=col*2+1, sticky='ew')
-               
-               setattr(frame, f"bio_{el}_var", var)
-               setattr(frame, f"bio_{el}_label", label)
-               setattr(frame, f"bio_{el}_entry", entry)
-               col += 1
-               if col >= maxCol:
-                    col = 0
-                    row += 1
-        return row+1
-    def _addButtons(self, frame, button_and_function, firstRow = 0, maxCol = 2):
-        row = firstRow
-        col = 0
-        for name, function in button_and_function:
-               button = Button(frame, text=name, command=function)
-               button.grid(row=row, column=col*2+1, sticky='w')               
-               setattr(frame, f"bio_{name}_button", button)
-               col += 1
-               if col >= maxCol:
-                    col = 0
-                    row += 1
-
-    def getUI(self, root):      
-        bio_notebook = ttk.Notebook(root)
-        bio_notebook.frame_general = ttk.Frame(bio_notebook)
-        bio_notebook.frame_general.pack(expand=True, fill='both')
-        bio_notebook.add(bio_notebook.frame_general, text='general parameters')
-        nextRow = self._addToFrame(bio_notebook.frame_general, ["outWhenPiDisabled", "disableY", "disableZ", "xDiff_offset", "yDiff_offset", "x_offset", "y_offset", "SUM_offsetFor_div", "SUM_offsetFor_z"])
-        self._addButtons(bio_notebook.frame_general, [("disable", self.reset), ("calibrate", self.initiateTweezers)], nextRow)
-        
-        bio_notebook.frame_PI = ttk.Frame(bio_notebook)
-        bio_notebook.frame_PI.pack(expand=True, fill='both')
-        bio_notebook.add(bio_notebook.frame_PI, text='PI parameters')
-        self._addToFrame(bio_notebook.frame_PI, ["setpoint", "kp", "ki", "limitLow", "limitHigh"])
-        nextRow = self._addButtons(bio_notebook.frame_general, [("enable PI", self.EnablePI)], nextRow)
-        return bio_notebook
-    
 
 if __name__ == "__main__":
     q = bioTweezerController()  
-    # q.initiateTweezers()
+    q.initiateTweezers()
     print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
-    
+    t.sleep(0.2)
     # q.disable_yz_Dimensions(True, True)
     
     # q.EnableConstantOutput((0.0, "generator_input"))
@@ -669,4 +652,4 @@ if __name__ == "__main__":
     
     # q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
     
-    # q.plotReceivedData(1,elementsToRemove=["pid out", "z"])
+    q.plotReceivedData(1,elementsToRemove=["pid out", "z"], x = "FPGA_floatValue", y = "FPGA_floatValue")

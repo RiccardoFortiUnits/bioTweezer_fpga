@@ -320,12 +320,31 @@ class NiFrame(Frame):
 				if(self.bio_UI_frames[uiFrame]["col"]>1):
 					self.bio_UI_frames[uiFrame]["col"]=0
 					self.bio_UI_frames[uiFrame]["row"]+=1
+		#set the calibration parameters
+		self.bio_calib_frame = ttk.Frame(self.bio_notebook)
+		self.bio_calib_frame.pack(fill='both', expand=True)		
+		self.bio_notebook.add(self.bio_calib_frame, text='calibration')
+		
+		bioControllerCalibrationSettings = self.getBaseSettingsFromFile(device = "Bio Controller Calibration", returnType=dict)
+		self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_sampleTime_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
+		self.bio_calib_nOfSamples_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["nOfSamples"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_nOfSamples_entry.pack()
+		self.bio_calib_baseCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["baseCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_baseCurrent_entry.pack()
+		self.bio_calib_EndCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["EndCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_EndCurrent_entry.pack()
+		self.bio_calib_enableXdiff_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableXdiff"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
+		self.bio_calib_enableXdiff_entry.pack()
+		self.bio_calib_enableSum_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableSum"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
+		self.bio_calib_enableSum_entry.pack()
+
+
 
 		#add some buttons
 		self.bio_reset_button = Button(self.bio_frame, text="Disable all",command=self.bio_controller.reset)
 		self.bio_reset_button.grid(row=1,column=0)
-		self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",
-						command=lambda:(self.bio_controller.initiateTweezers(), self.bio_notebook.event_generate('<<NotebookTabChanged>>')))#after calibration, refresh the tab, to see the new offset values
+		self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
 		self.bio_calibrate_button.grid(row=1,column=1)
 
 		self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
@@ -1426,13 +1445,16 @@ class NiFrame(Frame):
 			self.bio_controller.setParameters(setpoint=sp)
 	
 	@staticmethod
-	def getBaseSettingsFromFile(fileName='bio_controller.csv', device = "Bio Controller"):
+	def getBaseSettingsFromFile(fileName='bio_controller.csv', device = "Bio Controller", returnType = list):
 		pf = pd.read_csv(fileName, sep=',', lineterminator="\n", header=1)
 		l = [dict(row) for index, row in pf.iterrows()]
 		for i in range(len(l)):
 			l[i]["UI position"] = l[i]["UI position\r"].replace('\r','')
-			l[i].pop("UI position\r")        
-		return [e for e in l if e["Device"] == device]
+			l[i].pop("UI position\r")
+		if returnType == list:
+			return [e for e in l if e["Device"] == device]
+		elif returnType == dict:
+			return {e["Parameter internal name"] : e for e in l if e["Device"] == device}
 	
 	
 	def on_bio_tab_change(self, event):
@@ -1450,8 +1472,8 @@ class NiFrame(Frame):
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
 		entry.insert(0, f"{readvalue:.3e}")
 
-	def refreshCheckboxFromFPGA(self, parent, var):
-		var.set(self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit)))
+	def refreshCheckboxFromFPGA(self, parent):
+		parent.var.set(self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit)))
 		
 
 	def updateBioControllerParameterFromEntry(self, event):
@@ -1461,42 +1483,89 @@ class NiFrame(Frame):
 		self.bio_controller.setParameters(**{parent.internalName : (float(entry.get()),parent.internalUnit)})
 		self.refreshEntryFromFPGA(entry)
 
-	def updateBioControllerParameterFromCheckbox(self, parent, var):
-		self.bio_controller.setParameters(**{parent.internalName : var.get()})
+	def updateBioControllerParameterFromCheckbox(self, parent):
+		self.bio_controller.setParameters(**{parent.internalName : parent.var.get()})
+		
+	def calibrateBioController(self):
+		#depending on if we want to use all the offsets or not, do different calibrations
+		useXdiff = self.bio_calib_enableXdiff_entry.var.get() == 1
+		useSum = self.bio_calib_enableSum_entry.var.get() == 1
+		sampleTime = float(self.bio_calib_sampleTime_entry.get())
+		baseCurrent = float(self.bio_calib_baseCurrent_entry.get())
+		endCurrent = float(self.bio_calib_EndCurrent_entry.get())
+		nOfSamples = int(self.bio_calib_nOfSamples_entry.get())
+		if useSum or useXdiff:
+			self.bio_controller.initiateTweezers(
+				singleCalibrationTime= sampleTime,
+				usedLaserPowers=[(n,"generator_current") for n in np.linspace(
+																		baseCurrent,
+																		endCurrent,
+																		nOfSamples
+																  )
+				],
+				useXYDIFF_offset=useXdiff,
+				useSUM_offset=useSum
+			)
+		else:
+			self.bio_controller.initiateTweezers(
+				singleCalibrationTime=sampleTime,
+				usedLaserPowers=[baseCurrent],
+				useXYDIFF_offset=useXdiff,
+				useSUM_offset=useSum
+			)
+
+		#after calibration, refresh the tab, to see the new offset values
+		self.bio_notebook.event_generate('<<NotebookTabChanged>>')
 
 	def createUIElement(self, root, valuesFromCsvFile, bindingFunction = None, refreshFunction = None):
-		#print(valuesFromCsvFile)
+		#create a basic entry or checkButton for the property extracted from a CSV file. This function returns a frame
+			#containing the checkbox or the entry/label for the specific property. This frame also has some added parameters
+			#to either identify it faster or to get the actual value from the internal UI. So, for example, you can call the
+			#property get() of the frame to get the internal value, or get the name and unit of the parameter with parameters
+			#internalName and internalUnit.
+			#-bindingFunction is a function bound to either typing escape in the entry (for numerical parameters) or checking
+			#the checkbox (for boolean parameters). Use it to update some internal values after the property has been updated
+			#in the UI. It is also called at the start, to update the parameters to the value read from the csv file.
+			#-refreshFunction is called at the start (after bindingFunction), or whenever you want to call it externally. Use
+			#it to update the UI values when some other internal values have changed.
+			#If not specified, these functions will default to the default ones used for BioController. (If you want to do
+			#nothing when calling these functions, set them to "lambda *x : None")
 		el = Frame(root)
 		el.internalName = valuesFromCsvFile["Parameter internal name"]
 		el.internalUnit = valuesFromCsvFile["Parameter internal unit"]
-		if(valuesFromCsvFile["Parameter type"] == "float"):
-			label = Label(el, text=valuesFromCsvFile["Parameter name"])
-			entry = Entry(el, textvariable=DoubleVar(value=valuesFromCsvFile["Parameter value"]))
+		if(valuesFromCsvFile["Parameter type"] == "float" or valuesFromCsvFile["Parameter type"] == "int"):
+			el.label = Label(el, text=valuesFromCsvFile["Parameter name"])
+			if(valuesFromCsvFile["Parameter type"] == "float"):
+				el.entry = Entry(el, textvariable=DoubleVar(value=valuesFromCsvFile["Parameter value"]))
+			else:
+				el.entry = Entry(el, textvariable=IntVar(value=valuesFromCsvFile["Parameter value"]))
+			el.get = el.entry.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromEntry
-			entry.bind("<Return>", bindingFunction)
+			el.entry.bind("<Return>", bindingFunction)
 			# entry.event_generate("<Return>")
-			fakeEvent = SimpleNamespace(widget = entry, parent = el)
+			fakeEvent = SimpleNamespace(widget = el.entry, parent = el)
 			bindingFunction(fakeEvent)
-			label.pack(side=LEFT)
-			entry.pack(side=LEFT)
+			el.label.pack(side=LEFT)
+			el.entry.pack(side=LEFT)
 			if refreshFunction is None:
 				refreshFunction = self.refreshEntryFromFPGA
-			el.refreshValue = partial(refreshFunction, entry)
+			el.refreshValue = partial(refreshFunction, el.entry)
 			
 		elif (valuesFromCsvFile["Parameter type"] == "bool") or (valuesFromCsvFile["Parameter type"] == "neg_bool"):
-			var = IntVar()
+			var = IntVar(value=valuesFromCsvFile["Parameter value"])
+			el.var = var
+			el.get = var.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromCheckbox
 			on,off = (1,0) if valuesFromCsvFile["Parameter type"] == "bool" else (0,1)
-			checkbox = Checkbutton(el, text=valuesFromCsvFile["Parameter name"], variable=var,onvalue=on,offvalue=off, 
-								command=partial(bindingFunction, el, var))
-			var.set(valuesFromCsvFile["Parameter value"])
-			bindingFunction(el, var)
-			checkbox.pack(side=BOTTOM)
+			el.checkbox = Checkbutton(el, text=valuesFromCsvFile["Parameter name"], variable=var,onvalue=on,offvalue=off, 
+								command=partial(bindingFunction, el))
+			bindingFunction(el)
+			el.checkbox.pack(side=BOTTOM)
 			if refreshFunction is None:
 				refreshFunction = self.refreshCheckboxFromFPGA
-			el.refreshValue = partial(refreshFunction, el, var)
+			el.refreshValue = partial(refreshFunction, el)
 		return el              
 
 

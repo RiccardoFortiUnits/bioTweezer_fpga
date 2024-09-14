@@ -7,6 +7,7 @@ Created on Wed Jul 31 17:06:54 2024
 
 import networkx as nx
 import numpy as np
+import matplotlib.pyplot as plt
 
 def graphFromCheckedGraph(checked, startingNode):
     G=[]
@@ -138,7 +139,11 @@ class dimensionLinker():
             print("Loops found:")
             for c in cycles:
                 print(c)
-    
+
+    def plot(self):
+        nx.draw(self.g, with_labels=True)
+        plt.show()
+
     @property
     def nodes(self):
         return self.g.nodes
@@ -211,4 +216,5 @@ G.addMultiConnection(["v","a","t"], dimensionLinker.monomialFunctions(["v"],["a"
 G.addMultiConnection(["p","v","m"], dimensionLinker.monomialFunctions(["p"],["v","m"]))
 q=G.convert([10, 0.3, 0.1], ["pix", "m", "t"], "p") 
 print(q)
-'''
+G.plot()
+#'''

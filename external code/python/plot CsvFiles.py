@@ -19,8 +19,8 @@ def average_filter(signal, window_size):
 
 X = list()
 Y = list()
-sx=.5e-3/1e-9
-sz= 1e-3/1e-9
+sx=1#.5e-3/1e-9
+sz=1# 1e-3/1e-9
 folder_path = None# ["C:/Users/lastline/Documents/bioTweezers/8_8_24/biglia3um_vs_10um_015.csv"]#None# ['C:/Users/lastline/Downloads/canale_blue_risposta_su_e_x_div_sum_001.csv']
 if folder_path is None:
     root = tkinter.Tk()
@@ -51,11 +51,11 @@ else:
         df["piezo displacement"] = df["piezo displacement"] - np.mean(df["piezo displacement"])
         
         
-        df["x"] = 1e9*(df["XDIFF"]) / df["SUM"] / sx
-        df["y"] = 1e9*(df["YDIFF"]) / df["SUM"] / sx
-        df["z"] = 1e9*(df["SUM"] - np.mean(df["SUM"][:100])) / sz
-        df["ray xz"] = np.sqrt(df["x"]**2 + df["z"]**2)
-        df["feedback signal"] *= 1e9*2e-6*75/25
+        df["x"] = (df["XDIFF"]) / df["SUM"] / sx
+        df["y"] = (df["YDIFF"]) / df["SUM"] / sx
+        df["z"] = (df["SUM"] - np.mean(df["SUM"][:100])) / sz
+        # df["ray xz"] = np.sqrt(df["x"]**2 + df["z"]**2)
+        # df["feedback signal"] *= 1e9*2e-6*75/25
         # Set the first column as the index (times)
         # df.drop(["piezo displacement", "SUM", "XDIFF", "YDIFF", "current signal"], axis=1, inplace=True)
         
