@@ -90,8 +90,7 @@ class fpgaRegister:
         elif(val < minVal):
             minVal_unConverted = self.dimLinker.convert(minVal, self.dimension, startDimension)
             print(f"warning: value too low! using Min value = {minVal_unConverted}" )
-            val = int(minVal_unConverted)
-            
+            val = int(minVal)
         if(len(self.command) > 1):
             return [val >> 16, val & 0xffff]
         return [val]
@@ -103,7 +102,7 @@ class fpgaRegister:
         if isinstance(intValue, list):
             intValue = intValue[0]
         intValue &= ((1<<self.bitSize) - 1)
-        if intValue > (1 << (self.bitSize - 1)):
+        if intValue >= (1 << (self.bitSize - 1)):
             intValue -= (1 << self.bitSize)
         if(toDimension is None):
             toDimension = self.preferredConversionDimension
@@ -291,13 +290,23 @@ class fpgaHandler:
         #stops the data stream thread and returns the read data
         if hasattr(self, "dataStreamThread") and self.dataStreamThread is not None:
             self.dataStreamRunning = False
-            if not self.dataStreamRunning.is_alive():
+            if not self.dataStreamThread.is_alive():
                 print("WARNING: data stream read finished early because of a timeout.")
             self.dataStreamThread.join()
             self.dataStreamThread = None
             return self.dataStreamBuffer
         print("start the stream first!")
         return {}
+    
+    def getArraysFromDataStreamBuffer(self):
+        t = np.array(self.dataStreamBuffer["times"])
+        pts = t.shape[0]
+        y = np.zeros((pts, 3), dtype=np.float64)
+        y[:,0] = np.array(self.dataStreamBuffer["x"])
+        y[:,1] = np.array(self.dataStreamBuffer["y"])
+        y[:,2] = np.array(self.dataStreamBuffer["z"])
+        
+        return(t, y)
 
         
     def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None, **dimensions):
@@ -641,10 +650,9 @@ class bioTweezerController(fpgaHandler):
 
 if __name__ == "__main__":
     q = bioTweezerController()  
-    q.initiateTweezers()
     print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
-    t.sleep(0.2)
-    # q.disable_yz_Dimensions(True, True)
+    q.initiateTweezers()
+    q.disable_yz_Dimensions(True, True)
     
     # q.EnableConstantOutput((0.0, "generator_input"))
     

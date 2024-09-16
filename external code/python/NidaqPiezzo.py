@@ -514,6 +514,7 @@ class NiFrame(Frame):
 		self.sub_plot.set_autoscalex_on(True)
 		self.line_handle = None
 		self.ai_line_handles = None
+		self.bio_line_handles = None
 		self.custom_canvas = FigureCanvasTkAgg(self.fig, master=self.ai_frame)
 		self.custom_canvas.get_tk_widget().pack(fill='both', expand=True)
 		# self.plot_nav = NavigationToolbar2Tk(self.custom_canvas, self, pack_toolbar=False)
@@ -845,6 +846,11 @@ class NiFrame(Frame):
 			sum_average = np.mean(reference_signal)
 
 		#print(f'y min is {np.min(mny)}, y max is {np.max(mxy)}')
+		if self.bio_controller is not None:
+			(t,bio_y) = self.bio_controller.getArraysFromDataStreamBuffer()
+		else:
+			t = None
+			bio_y = None
 
 
 		if self.ai_line_handles is not None:
@@ -861,14 +867,25 @@ class NiFrame(Frame):
 					else:
 						self.ai_line_handles[i].set_ydata(y[:,i])
 
+			if self.bio_line_handles is not None:
+				for i in range(3):
+					self.bio_line_handles[i].set_xdata(t)
+					self.bio_line_handles[i].set_ydata(bio_y[:,i])
+
 			self.sub_plot.set_xlim(x[0], x[-1])
-			self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
+			#self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
 			#self.sub_plot.set_ylim(-0.5, 10.0)
 		else:
 			self.sub_plot.cla()
+			
 			self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
+			if t is not None:
+				self.bio_line_handles = self.sub_plot.plot(t, bio_y)
+
 			self.sub_plot.set_xlim(x[0], x[-1])
-			self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
+			#self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
+			self.sub_plot.set_ylim(-10.0, 10.0)
+
 			#for i in range(self._ai_n_channels):
 			#    obj = self.sub_plot.plot(x, y[i,:])
 			#    self.ai_line_handles.append(obj[0])
@@ -905,7 +922,8 @@ class NiFrame(Frame):
 			self.attach_stream_writers()
 			self.attach_stream_readers()
 
-			self.bio_controller.startDataStream()
+			if self.bio_controller:
+				self.bio_controller.startDataStream(x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue")
 
 			self.start_tasks()
 
@@ -915,8 +933,16 @@ class NiFrame(Frame):
 			self.protocol_start_button_text_var.set('Start wave')
 			self.update_from_ao_sliders()
 
-			buf = self.bio_controller.stopDataStream()
-			print(buf)
+			if self.bio_controller:
+				self.bio_buffer = self.bio_controller.stopDataStream()
+
+	def plot_bio_buffer(self:Self):
+		buf = self.bio_buffer
+
+		if self.bio_line_handles is None:
+			pass
+		else:
+			pass
 
 
 	def save_data_to_file_cb(self:Self):
