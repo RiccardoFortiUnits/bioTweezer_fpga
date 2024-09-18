@@ -25,7 +25,7 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 23,Bio Controller,activation time,binFeedback_cyclesForActivation,float,0,s,time,wallFeedback
 24,Bio Controller Calibration,base current,baseCurrent,float,150e-3,ampere,\none,calibration
 25,Bio Controller Calibration,end current,EndCurrent,float,350e-3,ampere,\none,calibration
-26,Bio Controller Calibration,n of samples,nOfSamples,float,10,none,\none,calibration
+26,Bio Controller Calibration,n of samples,nOfSamples,int,10,none,\none,calibration
 27,Bio Controller Calibration,sample duration,sampleTime,float,0.5,s,\none,calibration
 28,Bio Controller Calibration,enable offset on XDIFF,enableXdiff,bool,1,none,\none,calibration
 29,Bio Controller Calibration,enable offset on SUM,enableSum,bool,1,none,\none,calibration

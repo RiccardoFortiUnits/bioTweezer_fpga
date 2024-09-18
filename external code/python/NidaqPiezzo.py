@@ -16,6 +16,7 @@ except:
 
 import numpy as np
 import time
+from datetime import datetime
 from typing import List, Tuple
 from typing_extensions import Self
 
@@ -892,7 +893,7 @@ class NiFrame(Frame):
 
 		self.fig.canvas.draw()
 
-	def start_button_cb(self:Self):
+	def start_button_cb(self:Self):	
 		if self.protocol_start_button_text_var.get() == 'Start wave':
 			#self.stop_tasks()
 			#self.start_tasks()
@@ -923,6 +924,7 @@ class NiFrame(Frame):
 			self.attach_stream_readers()
 
 			if self.bio_controller:
+				self.storeConfigurations()
 				self.bio_controller.startDataStream(x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue")
 
 			self.start_tasks()
@@ -943,25 +945,44 @@ class NiFrame(Frame):
 			pass
 		else:
 			pass
+	@staticmethod
+	def _saveCsv(data, folder_name, fileName, separator = '\t', header = None):
+		df = pd.DataFrame(data)
+		
+		output_path = folder_name + '/' + fileName
+		print(output_path)
+		if header is not None:
+			with open(output_path, 'w') as f:
+				f.write(header + '\n')
+
+		df.to_csv(output_path, mode='a', header=(not os.path.exists(output_path)) or header is not None, sep=separator, index=False)
 
 
 	def save_data_to_file_cb(self:Self):
-		fname = self.wdg_wave_save_file_entry_var.get()  
+		fname = self.wdg_wave_save_file_entry_var.get()
+		name, extension = fname.rsplit('.', 1)
+		confName = f"{name}_conf.{extension}"
+		bioControllerName = f"{name}_bioControllerAcquisition.{extension}"
+
 		folder_name = self.autosaveFolder.get()
 
-		t = self.ai_buffer_times / self.data_rate
-		buf = self.ai_buffer
-		nchan = self._ai_n_channels
-
-		data = {'Time (s)' : t}
-		for i in range(nchan):
-			data[f'AI{i+1}'] = buf[i, :]
-
-		df = pd.DataFrame(data)
+		#save data from ai
+		if hasattr(self, "ai_buffer_times") and self.ai_buffer_times is not None:
+			data = {'Time (s)' : self.ai_buffer_times / self.data_rate, 
+		   			**{f'AI{i+1}' : self.ai_buffer[i, :] for i in range(self._ai_n_channels)}}
+			
+			self._saveCsv(data, folder_name, fname)
 		
-		output_path = folder_name + '/' + fname
-		print(output_path)
-		df.to_csv(output_path, mode='a', header=not os.path.exists(output_path), sep='\t', index=False)
+		#save configuration file
+		if hasattr(self, "bio_configurationsToSave") and self.bio_configurationsToSave is not None:
+			self._saveCsv(self.bio_configurationsToSave, folder_name, confName, separator=',', header = f'Bio Controller version 1.0, acquisition time {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}')
+
+		#save data from bio controller
+		if hasattr(self, "bio_buffer") and self.bio_buffer is not None:
+			data = {f'AI{i+1}' : self.ai_buffer[i, :] for i in range(self._ai_n_channels)}
+			
+			self._saveCsv(data, folder_name, bioControllerName)
+
 
 		self.advance_autosave_file_name()
 
@@ -988,7 +1009,25 @@ class NiFrame(Frame):
 		#self.autosaveOn.set(True)
 		return folder_path  
 	
-	
+	def storeConfigurations(self):
+		self.bio_configurationsToSave = None
+		for frame in [self.bio_general_frame, self.bio_PI_frame, self.bio_binFeedback_frame, self.bio_calib_frame]:
+			for el in frame.winfo_children():
+				if (not isinstance(el, Button)):
+					#initialize self.bio_configurationsToSave
+					if self.bio_configurationsToSave is None:
+						self.bio_configurationsToSave = {columnName : [] for columnName in el.valuesFromCsvFile.keys()}
+					if el.valuesFromCsvFile["Parameter name"] not in self.bio_configurationsToSave["Parameter name"]:
+						for key, value in el.valuesFromCsvFile.items():
+							if key != "Parameter value":
+								self.bio_configurationsToSave[key].append(value)
+							else:
+								self.bio_configurationsToSave[key].append(el.get())
+		#sort the elements using the "Parameter id" column
+		sorted_indices = sorted(range(len(self.bio_configurationsToSave["Parameter id"])), key=lambda k: self.bio_configurationsToSave["Parameter id"][k])
+		self.bio_configurationsToSave = {key: [value[i] for i in sorted_indices] for key, value in self.bio_configurationsToSave.items()}
+
+
 	def compute_ao_buffer_from_protocol(self:Self)->np.ndarray:
 		if len(self.output_protocol) > 0:
 			buf = None
@@ -1474,9 +1513,12 @@ class NiFrame(Frame):
 	def getBaseSettingsFromFile(fileName='bio_controller.csv', device = "Bio Controller", returnType = list):
 		pf = pd.read_csv(fileName, sep=',', lineterminator="\n", header=1)
 		l = [dict(row) for index, row in pf.iterrows()]
-		for i in range(len(l)):
-			l[i]["UI position"] = l[i]["UI position\r"].replace('\r','')
-			l[i].pop("UI position\r")
+		if '\r' in list(l[0].keys())[-1]:
+			lastKey_slashR = list(l[0].keys())[-1]
+			lastKey = lastKey_slashR.replace('\r','')
+			for i in range(len(l)):
+				l[i][lastKey] = l[i][lastKey_slashR].replace('\r','')
+				l[i].pop(lastKey_slashR)
 		if returnType == list:
 			return [e for e in l if e["Device"] == device]
 		elif returnType == dict:
@@ -1496,7 +1538,11 @@ class NiFrame(Frame):
 		parent = entry.nametowidget(entry.winfo_parent())
 		entry.delete(0, END)
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
-		entry.insert(0, f"{readvalue:.3e}")
+		
+		if isinstance(entry.get(), DoubleVar):
+			entry.insert(0, f"{readvalue:.3e}")
+		else:
+			entry.insert(0, f"{readvalue}")
 
 	def refreshCheckboxFromFPGA(self, parent):
 		parent.var.set(self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit)))
@@ -1559,12 +1605,16 @@ class NiFrame(Frame):
 		el = Frame(root)
 		el.internalName = valuesFromCsvFile["Parameter internal name"]
 		el.internalUnit = valuesFromCsvFile["Parameter internal unit"]
+		el.valuesFromCsvFile = valuesFromCsvFile
 		if(valuesFromCsvFile["Parameter type"] == "float" or valuesFromCsvFile["Parameter type"] == "int"):
-			el.label = Label(el, text=valuesFromCsvFile["Parameter name"])
+			if valuesFromCsvFile["Parameter measure unit"] != "none":
+				el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']} ({valuesFromCsvFile['Parameter measure unit']})")
+			else:
+				el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']}")
 			if(valuesFromCsvFile["Parameter type"] == "float"):
 				el.entry = Entry(el, textvariable=DoubleVar(value=valuesFromCsvFile["Parameter value"]))
 			else:
-				el.entry = Entry(el, textvariable=IntVar(value=valuesFromCsvFile["Parameter value"]))
+				el.entry = Entry(el, textvariable=IntVar(value=int(valuesFromCsvFile["Parameter value"])))
 			el.get = el.entry.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromEntry
