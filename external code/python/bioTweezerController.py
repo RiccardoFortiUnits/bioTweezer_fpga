@@ -90,7 +90,7 @@ class fpgaRegister:
 		if isinstance(intValue, list):
 			intValue = intValue[0]
 		intValue &= ((1<<self.bitSize) - 1)
-		if intValue >= (1 << (self.bitSize - 1)):
+		if (self.isSigned) and (intValue >= (1 << (self.bitSize - 1))):
 			intValue -= (1 << self.bitSize)
 		if(toDimension is None):
 			toDimension = self.preferredConversionDimension
@@ -146,6 +146,9 @@ class fpgaHandler:
 	
 	
 	def setupFpgaCommandIndexes(self):
+		#this function determines the command indexes of each parameter, in the same way as the FPGA compiler
+			#determines them. So, you don't have to keep track of the index of each parameter, as long as the
+			#order in which they are inserted in ParametersForFPGA is consistent with the FPGA code
 		offset = 1
 		for (key,value) in self.ParametersForFPGA.items():
 			for j in range(len(value.command)):
@@ -153,6 +156,10 @@ class fpgaHandler:
 				offset += 1
 				
 	def setParameters(self, **kwargs):
+		#sets the specified parameters inside the FPGA. The input argument names must be contained inside
+			#ParametersForFPGA. The values can be either a number (which will be interpreted as a value in
+			#the default dimension for that parameter) or a tuple (number, dimension). In that case, the
+			#function will convert the value in the appropriate dimension before sending it to the FPGA
 		(parameters, values) = list(kwargs.keys()), list(kwargs.values())
 		commandList = []
 		for i in range(len(parameters)):
@@ -169,6 +176,7 @@ class fpgaHandler:
 		self.sendCommand(commandList)
 			
 	def readBackParameter(self, *parameters):
+		#reads back the requested parameters. *parameters is a list of strings, where each of them identifies a register of ParametersForFPGA.
 		values = [[]] * len(parameters)
 		for i,param in enumerate(parameters):
 			if isinstance(param, tuple):
@@ -243,8 +251,10 @@ class fpgaHandler:
 				sock.close()
 			except:
 				pass
-
-	def _dataStreamThreadRun(self, sock, maxTime = 70, updateFunction = None, **dimensions):
+	#FPGA controller clock
+	fpga_controller_clock = 50e6																							#	Hz
+	fpga_controller_streamPeriod = 0x40000 / fpga_controller_clock															#	s
+	def _dataStreamThreadRun(self, sock, maxTime = 70, updateFunction = None, useFixedTimings = True, **dimensions):
 		try:
 			for name in self.dataValuesFromFPGA.keys():
 				self.dataStreamBuffer[name] = []
@@ -254,7 +264,11 @@ class fpgaHandler:
 			maxendTime = startTime + maxTime
 			while self.dataStreamRunning:
 				received, address = sock.recvfrom(2048)
-				self.dataStreamBuffer["times"].append(t.time() - startTime)
+				if useFixedTimings:
+					self.dataStreamBuffer["times"].append(startTime)
+					startTime += self.fpga_controller_streamPeriod
+				else:
+					self.dataStreamBuffer["times"].append(t.time() - startTime)
 				byteIdx = 1
 				for name, register in self.dataValuesFromFPGA.items():
 					val = int(received[byteIdx] << 8) + int(received[byteIdx+1])
@@ -313,6 +327,7 @@ class fpgaHandler:
 			plt.plot(x, data[key], label=key, alpha=0.7)
 		plt.legend()
 		plt.show()
+		return data
 		
 class bioTweezerController(fpgaHandler):
 	
@@ -422,11 +437,11 @@ class bioTweezerController(fpgaHandler):
 	laser_currentToLaserPower = 340e-3 / 730e-3																				#	W/A
 	
 	#conversion from bead position to qpd voltage output
-	sensitivity_x = sensitivity_y = 0.5e-3 / 1e-9																			#	[adimensional]/m
+	sensitivity_x = sensitivity_y = 2e-3 / 1e-9																			#	[adimensional]/m
 	sensitivity_z = 1e-3 / 1e-9																								#	V/m
 	
 	#distance ranges (i.e. the values of x and y when their respective DIFF signals are == SUM)
-	range_x = range_y = 10 / sensitivity_x																					#	m
+	range_x = range_y = 1 / sensitivity_x																					#	m
 	#value of the SUM signal when the bead is at the center of the laser (z == 0)
 	SUM_at_z0 = 0.1																											#	V
 	SUM_multiplierForDIFF_SUM = range_x/range_x																				#	[adimensional]
@@ -438,8 +453,6 @@ class bioTweezerController(fpgaHandler):
 	xDiff_offset = 0																										#	[adimensional]
 	yDiff_offset = 0																										#	[adimensional]
 
-	#FPGA controller clock
-	fpga_controller_clock = 50e6																							#	Hz
 		
 	def initiateTweezers(self, singleCalibrationTime = 1, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
 		#do some calibration measures
@@ -461,17 +474,17 @@ class bioTweezerController(fpgaHandler):
 			yDiff_offset = (self.yDiff_offset, "FPGA_floatValue"),
 			outWhenPiDisabled = (0, "generator_input"),
 		)
-		if(self.DAC_gain > 0):
-			self.setParameters(
-				limitLow = (self.currentGenerator_minCurrent, "generator_current"),
-				limitHigh = (self.currentGenerator_maxCurrent, "generator_current"),
-			)
-		else:
-			self.setParameters(
-				#high and low limits are switched, because the DAC amplifier has a negative gain
-				limitLow = (self.currentGenerator_maxCurrent, "generator_current"),
-				limitHigh = (self.currentGenerator_minCurrent, "generator_current"),
-			)
+		# if(self.DAC_gain > 0):
+		# 	self.setParameters(
+		# 		limitLow = (self.currentGenerator_minCurrent, "generator_current"),
+		# 		limitHigh = (self.currentGenerator_maxCurrent, "generator_current"),
+		# 	)
+		# else:
+		# 	self.setParameters(
+		# 		#high and low limits are switched, because the DAC amplifier has a negative gain
+		# 		limitLow = (self.currentGenerator_maxCurrent, "generator_current"),
+		# 		limitHigh = (self.currentGenerator_minCurrent, "generator_current"),
+		# 	)
 		
 	
 	def calcStiffness(self, time = 3, temperature = 300, directions = ["x", "y"]):
@@ -585,17 +598,14 @@ class bioTweezerController(fpgaHandler):
 		else:
 			self.setParameters(outWhenPiDisabled = output, useToggleEnable = False)
 		self.sendCommand([b"PICL0000", b"PIEN0000"])
-	def EnablePI(self, kp = 0.1, ki = 0.001, **kwargs):
+	def EnablePI(self, **kwargs):
 		self.sendCommand([b"PICL0001"])
-		self.setParameters(kp=kp, ki=ki, useToggleEnable = False, **kwargs)
+		self.setParameters(useToggleEnable = False, **kwargs)
 		self.sendCommand([b"PICL0000", b"PIEN0001"])
 		
-	def EnableBinaryFeedback(self, threshold = 0.5, actOn_In_HigherThanThreshold = True, valueWhenActive = 0.1,
-					activeFeedbackDuration = 0.01, idleDurationAfterFeedback = 0, timeBeforeActivation = 0, **kwargs):
+	def EnableBinaryFeedback(self, **kwargs):
 		self.sendCommand([b"PICL0001"])
-		self.setParameters(binFeedback_threshold = threshold, binFeedback_actOnInGreaterThanThreshold = actOn_In_HigherThanThreshold,
-							binFeedback_valueWhenActive = valueWhenActive, binFeedback_activeFeedbackMaxCycles = activeFeedbackDuration,
-							binFeedback_idleWaitCycles = idleDurationAfterFeedback, binFeedback_cyclesForActivation = timeBeforeActivation,
+		self.setParameters(
 							useToggleEnable = False, **kwargs)
 		self.sendCommand([b"PICL0000", b"PIEN0002"])
 		
@@ -636,14 +646,17 @@ class bioTweezerController(fpgaHandler):
 
 if __name__ == "__main__":
 	q = bioTweezerController()
-	print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
-	q.initiateTweezers()
-	q.disable_yz_Dimensions(True, True)
+	# print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
+	# q.initiateTweezers(useXYDIFF_offset = False, useSUM_offset = False)
+	# q.disable_yz_Dimensions(True, True)
 	
 	#q.EnableConstantOutput((0.0, "generator_input"))
 	
-	#q.EnablePI(kp = -0.01, ki = 0.0, setpoint = (-0.1, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
+	q.EnablePI(kp = 0.01, ki = 0.0, setpoint = (-0, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
 	
-	#q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)
+	#q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)	
+	data = q.plotReceivedData(1,elementsToShow=["pid out", "x","z", "x^2"], **{"x" : "FPGA_floatValue", "x^2" : "FPGA_floatValue"})
 	
-	q.plotReceivedData(1,elementsToRemove=["pid out", "z"], x = "FPGA_floatValue", y = "FPGA_floatValue")
+	plt.plot(data["times"], np.array(data["x^2"]) - np.array(data["x"])**2, label="var_x", alpha=0.7)
+	plt.legend()
+

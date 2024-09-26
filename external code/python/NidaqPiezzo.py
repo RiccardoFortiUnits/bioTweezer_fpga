@@ -695,6 +695,8 @@ class NiFrame(Frame):
 			print('read finished, resetting task')
 			self.protocol_start_button_text_var.set('Start wave')
 			self.reset_tasks()
+			if self.bio_controller:
+				self.bio_buffer = self.bio_controller.stopDataStream()
 			self.update_from_ao_sliders()
 		
 		self.event_generate("<<AiReadEventMain>>")
@@ -925,7 +927,7 @@ class NiFrame(Frame):
 
 			if self.bio_controller:
 				self.storeConfigurations()
-				self.bio_controller.startDataStream(x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue")
+				self.bio_controller.startDataStream(x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue", **{"x^2" : "FPGA_floatValue", "y^2" : "FPGA_floatValue", "z^2" : "FPGA_floatValue"})
 
 			self.start_tasks()
 
@@ -979,7 +981,7 @@ class NiFrame(Frame):
 
 		#save data from bio controller
 		if hasattr(self, "bio_buffer") and self.bio_buffer is not None:
-			data = {f'AI{i+1}' : self.ai_buffer[i, :] for i in range(self._ai_n_channels)}
+			data = self.bio_buffer
 			
 			self._saveCsv(data, folder_name, bioControllerName)
 
@@ -1010,6 +1012,7 @@ class NiFrame(Frame):
 		return folder_path  
 	
 	def storeConfigurations(self):
+		#get all the parameters from the labels and checkboxes for the bio controller. These will be saved when pressing the "Save file" button
 		self.bio_configurationsToSave = None
 		for frame in [self.bio_general_frame, self.bio_PI_frame, self.bio_binFeedback_frame, self.bio_calib_frame]:
 			for el in frame.winfo_children():
@@ -1619,6 +1622,7 @@ class NiFrame(Frame):
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromEntry
 			el.entry.bind("<Return>", bindingFunction)
+			el.entry.bind("<KeyRelease>", lambda x: el.entry.config(bg="white" if x.keysym == 'Return' else "yellow"))
 			# entry.event_generate("<Return>")
 			fakeEvent = SimpleNamespace(widget = el.entry, parent = el)
 			bindingFunction(fakeEvent)
