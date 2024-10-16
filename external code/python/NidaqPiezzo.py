@@ -17,8 +17,8 @@ except:
 import numpy as np
 import time
 from datetime import datetime
-from typing import List, Tuple
-from typing_extensions import Self
+from typing import List, Tuple, Self
+#from typing_extensions import Self
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -129,6 +129,8 @@ class NiFrame(Frame):
 		self._ao_streams = None
 		self._ai_streams = None
 		self.protocol_save_last_folder = None
+		self.ni_start_acquisition_time = None
+		self.ni_acquisition_time_offset = 0.0 # in seconds
 
 		if nidaq_status == 0:
 			(self.dev_info, self.devs) = self.get_info()
@@ -282,80 +284,83 @@ class NiFrame(Frame):
 		
 		self.ao_frame.pack(expand=True, fill='both', side='left')
 
-		self.bio_frame = LabelFrame(self.ao_bio_frame, text="Bio controller")
-		self.bio_notebook = ttk.Notebook(self.bio_frame)
-		self.bio_notebook.grid(columnspan=2)
-		
-		self.bio_general_frame = ttk.Frame(self.bio_notebook)
-		self.bio_PI_frame = ttk.Frame(self.bio_notebook)
-		self.bio_binFeedback_frame = ttk.Frame(self.bio_notebook)
+		if self.status != 'no bio controller':
 
-		# Pack the frames (optional, depending on your layout needs)
-		self.bio_general_frame.pack(fill='both', expand=True)
-		self.bio_PI_frame.pack(fill='both', expand=True)
-		self.bio_binFeedback_frame.pack(fill='both', expand=True)
+			self.bio_frame = LabelFrame(self.ao_bio_frame, text="Bio controller")
+			self.bio_notebook = ttk.Notebook(self.bio_frame)
+			self.bio_notebook.grid(columnspan=2)
+			
+			self.bio_general_frame = ttk.Frame(self.bio_notebook)
+			self.bio_PI_frame = ttk.Frame(self.bio_notebook)
+			self.bio_binFeedback_frame = ttk.Frame(self.bio_notebook)
 
-		# Add frames to the notebook as tabs
-		self.bio_notebook.add(self.bio_general_frame, text='general')
-		self.bio_notebook.add(self.bio_PI_frame, text='PI')
-		self.bio_notebook.add(self.bio_binFeedback_frame, text='binary feedback')
-		self.bio_notebook.bind('<<NotebookTabChanged>>', self.on_bio_tab_change)
-		self.bio_UI_frames = {"general" : self.bio_general_frame, "PI" : self.bio_PI_frame, "wallFeedback" : self.bio_binFeedback_frame}
-		self.bio_UI_frames = {key : {"frame":val, "row":0,"col":0} for key,val in self.bio_UI_frames.items()}
-		#get the current generator base current. It's important for the bioTweezerController class to know this value before setting other parameters 
-		generatorCurrentSettings = self.getBaseSettingsFromFile(device = "Current Generator")[0]
-		baseCurrentFrame = self.createUIElement(self.bio_UI_frames ["general"]["frame"],generatorCurrentSettings, 
-												bindingFunction=lambda event:self.bio_controller.updateGeneratorBaseCurrent(event.widget.get()),
-												refreshFunction=lambda x:None)
-		baseCurrentFrame.grid(row=self.bio_UI_frames["general"]["row"], column=self.bio_UI_frames["general"]["col"])
-		self.bio_UI_frames ["general"]["col"]=1
-		#get all the parameters of the FPGA
-		bioControllerSettings = self.getBaseSettingsFromFile(device = "Bio Controller")
-		for element in bioControllerSettings:
-			#a parameter can be useful in more than one UI, so we'll have a different frame for each of the UI
-			UI_frames = element["UI position"].split(";")
-			for uiFrame in UI_frames:
-				frame = self.createUIElement(self.bio_UI_frames[uiFrame]["frame"],element)
-				frame.grid(row=self.bio_UI_frames[uiFrame]["row"], column=self.bio_UI_frames[uiFrame]["col"])
-				self.bio_UI_frames[uiFrame]["col"]+=1
-				if(self.bio_UI_frames[uiFrame]["col"]>1):
-					self.bio_UI_frames[uiFrame]["col"]=0
-					self.bio_UI_frames[uiFrame]["row"]+=1
-		#set the calibration parameters
-		self.bio_calib_frame = ttk.Frame(self.bio_notebook)
-		self.bio_calib_frame.pack(fill='both', expand=True)		
-		self.bio_notebook.add(self.bio_calib_frame, text='calibration')
-		
-		bioControllerCalibrationSettings = self.getBaseSettingsFromFile(device = "Bio Controller Calibration", returnType=dict)
-		self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_sampleTime_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
-		self.bio_calib_nOfSamples_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["nOfSamples"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_nOfSamples_entry.pack()
-		self.bio_calib_baseCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["baseCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_baseCurrent_entry.pack()
-		self.bio_calib_EndCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["EndCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_EndCurrent_entry.pack()
-		self.bio_calib_enableXdiff_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableXdiff"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
-		self.bio_calib_enableXdiff_entry.pack()
-		self.bio_calib_enableSum_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableSum"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
-		self.bio_calib_enableSum_entry.pack()
+			# Pack the frames (optional, depending on your layout needs)
+			self.bio_general_frame.pack(fill='both', expand=True)
+			self.bio_PI_frame.pack(fill='both', expand=True)
+			self.bio_binFeedback_frame.pack(fill='both', expand=True)
+
+			# Add frames to the notebook as tabs
+			self.bio_notebook.add(self.bio_general_frame, text='general')
+			self.bio_notebook.add(self.bio_PI_frame, text='PI')
+			self.bio_notebook.add(self.bio_binFeedback_frame, text='binary feedback')
+			self.bio_notebook.bind('<<NotebookTabChanged>>', self.on_bio_tab_change)
+			self.bio_UI_frames = {"general" : self.bio_general_frame, "PI" : self.bio_PI_frame, "wallFeedback" : self.bio_binFeedback_frame}
+			self.bio_UI_frames = {key : {"frame":val, "row":0,"col":0} for key,val in self.bio_UI_frames.items()}
+			#get the current generator base current. It's important for the bioTweezerController class to know this value before setting other parameters 
+			generatorCurrentSettings = self.getBaseSettingsFromFile(device = "Current Generator")[0]
+			baseCurrentFrame = self.createUIElement(self.bio_UI_frames ["general"]["frame"],generatorCurrentSettings, 
+													bindingFunction=lambda event:self.bio_controller.updateGeneratorBaseCurrent(event.widget.get()),
+													refreshFunction=lambda x:None)
+			baseCurrentFrame.grid(row=self.bio_UI_frames["general"]["row"], column=self.bio_UI_frames["general"]["col"])
+			self.bio_UI_frames ["general"]["col"]=1
+			#get all the parameters of the FPGA
+			bioControllerSettings = self.getBaseSettingsFromFile(device = "Bio Controller")
+			for element in bioControllerSettings:
+				#a parameter can be useful in more than one UI, so we'll have a different frame for each of the UI
+				UI_frames = element["UI position"].split(";")
+				for uiFrame in UI_frames:
+					frame = self.createUIElement(self.bio_UI_frames[uiFrame]["frame"],element)
+					frame.grid(row=self.bio_UI_frames[uiFrame]["row"], column=self.bio_UI_frames[uiFrame]["col"])
+					self.bio_UI_frames[uiFrame]["col"]+=1
+					if(self.bio_UI_frames[uiFrame]["col"]>1):
+						self.bio_UI_frames[uiFrame]["col"]=0
+						self.bio_UI_frames[uiFrame]["row"]+=1
+			#set the calibration parameters
+			self.bio_calib_frame = ttk.Frame(self.bio_notebook)
+			self.bio_calib_frame.pack(fill='both', expand=True)		
+			self.bio_notebook.add(self.bio_calib_frame, text='calibration')
+			
+			bioControllerCalibrationSettings = self.getBaseSettingsFromFile(device = "Bio Controller Calibration", returnType=dict)
+			self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+			self.bio_calib_sampleTime_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
+			self.bio_calib_nOfSamples_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["nOfSamples"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+			self.bio_calib_nOfSamples_entry.pack()
+			self.bio_calib_baseCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["baseCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+			self.bio_calib_baseCurrent_entry.pack()
+			self.bio_calib_EndCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["EndCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+			self.bio_calib_EndCurrent_entry.pack()
+			self.bio_calib_enableXdiff_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableXdiff"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
+			self.bio_calib_enableXdiff_entry.pack()
+			self.bio_calib_enableSum_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableSum"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
+			self.bio_calib_enableSum_entry.pack()
 
 
 
-		#add some buttons
-		self.bio_reset_button = Button(self.bio_frame, text="Disable all",command=self.bio_controller.reset)
-		self.bio_reset_button.grid(row=1,column=0)
-		self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
-		self.bio_calibrate_button.grid(row=1,column=1)
+			#add some buttons
+			self.bio_reset_button = Button(self.bio_frame, text="Disable all",command=self.bio_controller.reset)
+			self.bio_reset_button.grid(row=1,column=0)
+			self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
+			self.bio_calibrate_button.grid(row=1,column=1)
 
-		self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
-		self.bio_set_const_out_button.grid(row=self.bio_UI_frames["general"]["row"]+1,column=0)
-		self.bio_enable_PI_button = Button(self.bio_PI_frame, text="Enable PI",command=self.bio_controller.EnablePI)
-		self.bio_enable_PI_button.grid(row=self.bio_UI_frames["PI"]["row"]+1,column=0)
-		self.bio_enable_BinaryFeedback_button = Button(self.bio_binFeedback_frame, text="Enable binary feedback",command=self.bio_controller.EnableBinaryFeedback)
-		self.bio_enable_BinaryFeedback_button.grid(row=self.bio_UI_frames["wallFeedback"]["row"]+1,column=0)
+			self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
+			self.bio_set_const_out_button.grid(row=self.bio_UI_frames["general"]["row"]+1,column=0)
+			self.bio_enable_PI_button = Button(self.bio_PI_frame, text="Enable PI",command=self.bio_controller.EnablePI)
+			self.bio_enable_PI_button.grid(row=self.bio_UI_frames["PI"]["row"]+1,column=0)
+			self.bio_enable_BinaryFeedback_button = Button(self.bio_binFeedback_frame, text="Enable binary feedback",command=self.bio_controller.EnableBinaryFeedback)
+			self.bio_enable_BinaryFeedback_button.grid(row=self.bio_UI_frames["wallFeedback"]["row"]+1,column=0)
 
-		self.bio_frame.pack(expand=True, fill='both', side='right')
+			self.bio_frame.pack(expand=True, fill='both', side='right')
+
 		self.ao_bio_frame.pack(expand=True, fill='x', side='top')
 
 		self.protocol_frame = Frame(self)
@@ -518,9 +523,9 @@ class NiFrame(Frame):
 		self.bio_line_handles = None
 		self.custom_canvas = FigureCanvasTkAgg(self.fig, master=self.ai_frame)
 		self.custom_canvas.get_tk_widget().pack(fill='both', expand=True)
-		# self.plot_nav = NavigationToolbar2Tk(self.custom_canvas, self, pack_toolbar=False)
-		# self.plot_nav.update()
-		# self.plot_nav.pack(side='bottom')
+		self.plot_nav = NavigationToolbar2Tk(self.custom_canvas, self, pack_toolbar=False)
+		self.plot_nav.update()
+		self.plot_nav.pack(side='bottom')
 		self.ai_frame.pack(expand=True, fill='both', side='bottom')
 
 		self.ao_buffer[:,0] = self.ao_desired_values[0].get() / 2.0
@@ -674,6 +679,8 @@ class NiFrame(Frame):
 			self.ai_buffer_times = np.concatenate((self.ai_buffer_times, 
 												self.ai_buffer_times[-1] + np.arange(1.0, read_samples+1,1.0)))# / self.data_rate))
 		else:
+			t = time.perf_counter() #+ read_samples / self.data_rate
+			self.ni_acquisition_time_offset = t-self.ni_start_acquisition_time
 			self.ai_buffer = buf
 			self.ai_buffer_times = np.arange(0.0, read_samples, 1.0)# / self.data_rate
 
@@ -744,7 +751,7 @@ class NiFrame(Frame):
 		#if self.ai_buffer_times is not None:
 		#      print(f'x shape is {self.ai_buffer_times.shape}, y shape is {self.ai_buffer.shape}')
 		if self.ai_buffer_times is not None:
-			self.ai_plot(self.ai_buffer_times / self.data_rate, self.ai_buffer, self.ai_buffer_min, self.ai_buffer_max)
+			self.ai_plot(self.ai_buffer_times / self.data_rate + self.ni_acquisition_time_offset, self.ai_buffer, self.ai_buffer_min, self.ai_buffer_max)
 		#pass
 
 	def start_tasks(self:Self):
@@ -761,9 +768,11 @@ class NiFrame(Frame):
 			
 			#print(f'Written first {n} samples')
 			
-			self.start_time = time.perf_counter()
+			
 			self._ao_task.start()
 			self._ai_task.start()
+			self.start_time = time.perf_counter()
+			self.ni_start_acquisition_time = self.start_time
 			
 			#self._ao_streams.write_many_sample(np.ascontiguousarray(self.ao_buffer[:, 
 			#                                     self.ao_written_samples : self.ao_written_samples + self.ao_chunk_size]))

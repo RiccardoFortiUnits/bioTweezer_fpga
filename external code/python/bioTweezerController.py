@@ -349,8 +349,10 @@ class bioTweezerController(fpgaHandler):
 		dimLink.addDimension("control_voltage", "V")
 		dimLink.addDimension("generator_input", "V")
 		dimLink.addDimension("generator_current", "I")
+		dimLink.addDimension("generator_debugVoltage", "V")
 		dimLink.addDimension("laserPower", "W")
 		dimLink.addDimension("time", "s")
+		dimLink.addDimension("piezo_voltage", "V")
 		self.dimLink = dimLink
 		
 	def updateDimensionLinker(self):
@@ -366,10 +368,12 @@ class bioTweezerController(fpgaHandler):
 		self.dimLink.addConnection("FPGA_floatValue", "control_voltage", dimensionLinker.gain_n_shiftFunctions(self.DAC_fpgaOuputToVoltage, self.DAC_offset))
 		self.dimLink.addConnection("control_voltage", "generator_input", dimensionLinker.shift_n_gainFunctions(-self.DAC_offset, self.DAC_gain))
 		self.dimLink.addConnection("generator_input", "generator_current", dimensionLinker.gain_n_shiftFunctions(self.currentGenerator_inputVtoI, self.currentGenerator_baseCurrent))
+		self.dimLink.addConnection("generator_current", "generator_debugVoltage", dimensionLinker.gainFunctions(self.currentGenerator_ItoDebugV))
 		self.dimLink.addConnection("generator_current", "laserPower", dimensionLinker.gainFunctions(self.laser_currentToLaserPower))
 		
 		self.dimLink.addConnection("FPGA_floatValue", "bead_position", dimensionLinker.gainFunctions(self.range_x))
 		self.dimLink.addConnection("bead_position", "bead_positionSquare", dimensionLinker.squareFunctions())
+		self.dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(self.piezo_V_to_distance))
 		self.dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(self.fpga_controller_clock))
 		self.dimLink.checkForLoops()
 	
@@ -429,6 +433,7 @@ class bioTweezerController(fpgaHandler):
 	
 	#parameters of the current generator (how does the control input voltage get translated into a current)
 	currentGenerator_inputVtoI = 1e-3 / 20e-3																				#	A/V
+	currentGenerator_ItoDebugV = - 2 / 100e-3 																				#	V/A
 	currentGenerator_baseCurrent = 100e-3																					#	A
 	currentGenerator_minCurrent = 0e-3																						#	A
 	currentGenerator_maxCurrent = 250e-3																					#	A
@@ -437,8 +442,9 @@ class bioTweezerController(fpgaHandler):
 	laser_currentToLaserPower = 340e-3 / 730e-3																				#	W/A
 	
 	#conversion from bead position to qpd voltage output
-	sensitivity_x = sensitivity_y = 2e-3 / 1e-9																			#	[adimensional]/m
+	sensitivity_x = sensitivity_y = 2e-3 / 1e-9																				#	[adimensional]/m
 	sensitivity_z = 1e-3 / 1e-9																								#	V/m
+	piezo_V_to_distance = 2e-6 / 1																							#	m/V
 	
 	#distance ranges (i.e. the values of x and y when their respective DIFF signals are == SUM)
 	range_x = range_y = 1 / sensitivity_x																					#	m
