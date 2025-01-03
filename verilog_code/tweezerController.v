@@ -25,7 +25,7 @@ module tweezerController#(
 	input 	[1:0]									enable,
 	input											PI_freeze,
 	input											useToggleEnable,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0		enableToggleCycles,
+	input	[$clog2(EnableToggleMaxTime+1) -1:0]	enableToggleCycles,
 
 	input	[coeffBitSize -1:0]						PI_kp,
 	input	[coeffBitSize -1:0]						PI_ki,
@@ -47,9 +47,9 @@ module tweezerController#(
 	 
 	 input	[inputBitSize -1:0]						binFeedback_threshold,
 	 input											binFeedback_actOnInGreaterThanThreshold,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0		binFeedback_cyclesForActivation,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0		binFeedback_activeFeedbackMaxCycles,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0		binFeedback_idleWaitCycles,
+	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_cyclesForActivation,
+	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_activeFeedbackMaxCycles,
+	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_idleWaitCycles,
 	input	[outputBitSize -1:0]					binFeedback_valueWhenActive,
 
 	output	[outputBitSize -1:0]					ray,
@@ -92,7 +92,7 @@ functionsOnSUM#(
 	.inputBitSize		(inputBitSize),
 	.inputFracSize		(inputFracSize),
 	.largeCoeffBitSize	(largeCoeffBitSize),
-	.largeCoeffFracSize	largeCoeffFracSize),
+	.largeCoeffFracSize	(largeCoeffFracSize),
 	.workingBitSize		(workingBitSize),
 	.workingFracSize	(workingFracSize)
 )fos(
@@ -286,7 +286,7 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 );
 
 timedSwitch #(
-	.maxTime				EnableToggleMaxTime)
+	.maxTime				(EnableToggleMaxTime)
 ) ts (
 	.clk					(clk),
 	.reset					(reset),

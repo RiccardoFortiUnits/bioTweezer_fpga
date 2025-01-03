@@ -47,3 +47,28 @@ module precisionSaturator #(
     end
   end
 endmodule
+
+module freeEdgeSaturator #(
+	parameter inputWidth = 8
+) (
+  input wire signed [inputWidth-1:0] input_data,
+  output reg signed [inputWidth-1:0] saturated_output,
+  input wire signed [inputWidth-1:0] maxValue,
+  input wire signed [inputWidth-1:0] minValue,
+  output reg is_saturated
+);
+    
+  // Calculate the saturation limit
+  always @(*) begin
+    if(input_data > $signed(maxValue)) begin
+        saturated_output = maxValue; // max positive
+        is_saturated = 1;
+    end else if (input_data < $signed(minValue)) begin // negative saturation
+        saturated_output = minValue;
+        is_saturated = 1;
+    end else begin // No saturation
+        saturated_output = input_data;
+        is_saturated = 0;
+    end
+  end
+endmodule

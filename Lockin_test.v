@@ -518,7 +518,7 @@ dataHandlerForTransmission #(
 	.readEmpty					({pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo})
 );
 ////////////////// STATUS //////////////
-	ffDisplay ood(
+onOffDisplay ood(
 	controllerOut_valid,
 	HEX0,
 	HEX1,

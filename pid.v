@@ -17,13 +17,15 @@ module pi_controller#(
 
     input signed [inputBitSize-1:0] pi_setpoint,    // Q2.25
     input signed [inputBitSize-1:0] pi_input, // Q2.25
-    input                       pi_input_valid,
+    input                           pi_input_valid,
 
     input signed [coeffBitSize-1:0] pi_kp_coefficient, // Q1.26
     input signed [coeffBitSize-1:0] pi_ti_coefficient, // Q1.26 
+    input [outputBitSize -1:0]      pi_limit_LO,
+    input [outputBitSize -1:0]      pi_limit_HI,
 
-    output [outputBitSize-1:0] pi_output,
-    output reg    pi_output_valid
+    output [outputBitSize-1:0]      pi_output,
+    output reg                      pi_output_valid
 );
 
 localparam  inputWholeSize = inputBitSize - inputFracSize,
@@ -224,14 +226,20 @@ assign integralSum_cleaned = save_integral_component_pi && (pi_limiting || reset
                                 integralSum_delayed :
                                 integralSum;
 
-wire signed [saturationBitSize-1:0] integralPart;
+wire [saturationBitSize -1:0] limLO_extended, limHI_extended;
 
-saturator #(
-  .inputWidth     (saturationBitSize),
-  .outputMaxWidth (saturatedBitSize)
+fixedPointShifter#(outputBitSize, outputFracSize, saturationBitSize, saturationFracSize) 
+extendLimits[0:1]
+    ({pi_limit_LO, pi_limit_HI}, {limLO_extended, limHI_extended});
+
+wire signed [saturationBitSize-1:0] integralPart;
+freeEdgeSaturator #(
+  .inputWidth     (saturationBitSize)
 )integralSaturation(
   .input_data         (integralSum_cleaned),
   .saturated_output   (integralPart),
+  .maxValue           (limHI_extended),
+  .minValue           (limLO_extended),
   .is_saturated       ()
 );
 //----------------------------------------------------------------
