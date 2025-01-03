@@ -45,12 +45,15 @@ module tweezerController#(
 	input	[inputBitSize -1:0]						x_offset,
 	input	[inputBitSize -1:0]						y_offset,
 	 
-	 input	[inputBitSize -1:0]						binFeedback_threshold,
-	 input											binFeedback_actOnInGreaterThanThreshold,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_cyclesForActivation,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_activeFeedbackMaxCycles,
-	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_idleWaitCycles,
-	input	[outputBitSize -1:0]					binFeedback_valueWhenActive,
+	input	[inputBitSize -1:0]						binFeedback_x0,
+	input	[inputBitSize -1:0]						binFeedback_x1,
+	input	[$clog2(EnableToggleMaxTime+1) -1:0]	binFeedback_maxTimeOn_x0,
+	input 											binFeedback_cfg,
+	input   [outputBitSize -1:0]                    binFeedback_valueWhenIn_x0,
+	input   [outputBitSize -1:0]                    binFeedback_valueWhenIn_x1,
+	output  [outputBitSize -1:0]             	    binFeedback_out,
+	output  [$clog2(EnableToggleMaxTime+1) -1:0] 	binFeedback_lastActiveDuration,
+	output                                          binFeedback_lastActiveDuration_dataValid,
 
 	output	[outputBitSize -1:0]					ray,
 	output	[outputBitSize -1:0]					x,
@@ -216,29 +219,49 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 	pi_out_to_unlimitedOut(pi_out, unlimitedOut);
 	 
 	  
-wire [outputBitSize -1:0] binFeedback_out;
-timedBinaryFeedback #(
-	.inputBitSize					(16),
-	.outputBitSize					(16),
-	.isInputSigned					(1),
-	.maxActiveFeedbacCycles			(EnableToggleMaxTime)
-)tbf(
+// wire [outputBitSize -1:0] binFeedback_out;
+// timedBinaryFeedback #(
+// 	.inputBitSize					(16),
+// 	.outputBitSize					(16),
+// 	.isInputSigned					(1),
+// 	.EnableToggleMaxTime			(EnableToggleMaxTime)
+// )tbf(
+// 	.clk							(clk),
+// 	.reset							(reset),    
+	
+// 	.in								(ray),
+// 	.threshold						(binFeedback_threshold),
+// 	.actOnInGreaterThanThreshold	(binFeedback_actOnInGreaterThanThreshold),
+	
+// 	.cyclesForActivation			(binFeedback_cyclesForActivation),
+// 	.activeFeedbackMaxCycles		(binFeedback_activeFeedbackMaxCycles),
+// 	.idleWaitCycles					(binFeedback_idleWaitCycles),
+	
+// 	.valueWhenIdle					(output_when_pi_disabled),
+// 	.valueWhenActive				(binFeedback_valueWhenActive),
+// 	.out							(binFeedback_out)
+// );
+thresholdFeedback #(
+  .inputBitSize						(16),
+  .outputBitSize						(16),
+  .isInputSigned						(1),
+  .maxActiveFeedbacCycles			(EnableToggleMaxTime)			
+)tf(
 	.clk							(clk),
-	.reset							(reset),    
+	.reset							(reset),
 	
 	.in								(ray),
-	.threshold						(binFeedback_threshold),
-	.actOnInGreaterThanThreshold	(binFeedback_actOnInGreaterThanThreshold),
-	
-	.cyclesForActivation			(binFeedback_cyclesForActivation),
-	.activeFeedbackMaxCycles		(binFeedback_activeFeedbackMaxCycles),
-	.idleWaitCycles					(binFeedback_idleWaitCycles),
-	
-	.valueWhenIdle					(output_when_pi_disabled),
-	.valueWhenActive				(binFeedback_valueWhenActive),
-	.out							(binFeedback_out)
+	.x0								(binFeedback_x0),
+	.x1								(binFeedback_x1),
+	.maxTimeOn_x0					(binFeedback_maxTimeOn_x0),
+	.cfg							(binFeedback_cfg),
+
+	.valueWhenIn_x0					(binFeedback_valueWhenIn_x0),
+	.valueWhenIn_x1					(binFeedback_valueWhenIn_x1),
+	.out							(binFeedback_out),
+	.lastActiveDuration				(binFeedback_lastActiveDuration),
+	.lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid)
 );
-	 
 assign retroactionController =  reset || PI_reset ? (
 									0
 								) : (

@@ -19,8 +19,9 @@ module network_wrapper #(
     parameter nOfsmallRegisters = 4,
     parameter maxTransmissionSize = 16,
 	 
-    parameter FIFO_LENGTH = 16,
-    parameter nOfFifos = 7
+    parameter fastDataFifoLength = 16,
+    parameter nOfFastDataFifos = 7,
+    parameter slowDataFifoLength = 16
 ) (
     input   clock_100,  //100 MHz clock input
     input   ref_clk_125,  //125 MHz clock input for ethernet
@@ -46,9 +47,13 @@ module network_wrapper #(
     output [nOfsmallRegisters -1:0] smallRegisters_update_cmd,
 	     
 	 
-    output[nOfFifos -1:0]                   rdreq_fifo,
-    input [nOfFifos * FIFO_LENGTH -1:0]     rddata_fifo, 
-    input [nOfFifos -1:0]                   rdempty_fifo,
+    output[nOfFastDataFifos -1:0]                       fastData_rdreq,
+    input [nOfFastDataFifos * fastDataFifoLength -1:0]  fastData_rddata, 
+    input [nOfFastDataFifos -1:0]                       fastData_rdempty,
+
+    output                                              slowData_rdreq,
+    input [slowDataFifoLength -1:0]                     slowData_rddata, 
+    input                                               slowData_rdempty,
 	 
 	 
     // DACs and ADC status
@@ -308,25 +313,55 @@ control_param_decoder #(
 
 //
 /// DECODER 2 /// used to receive the waveform from the client and to sent the current in FAST mode
-wire wfm_written; //1 if the WFM has been written
-wire current_rdreq_fifo_dec2; //RDREQ for the current FIFO in fast mode
-new_dec_comm8_port2 #(
-    .FIFO_LENGTH(FIFO_LENGTH),
-    .nOfFifos(nOfFifos)
-)dec_comm8_2(
+//wire wfm_written; //1 if the WFM has been written
+//wire current_rdreq_fifo_dec2; //RDREQ for the current FIFO in fast mode
+//new_dec_comm8_port2 #(
+//    .fastDataFifoLength(fastDataFifoLength),
+//    .nOfFastDataFifos(nOfFastDataFifos)
+//)dec_comm8_2(
+//    .clk                      (rx_xcvr_clk),
+//    .reset                    (~mac_configured_125),
+//    .tx_fifo_data             (tx_fifo_data1),
+//    .tx_fifo_status           (tx_fifo_status1),
+//    .tx_fifo_data_write       (tx_fifo_data_write1),
+//    .tx_fifo_status_write     (tx_fifo_status_write1),
+//    .tx_fifo_data_full        (tx_fifo_data_full1),
+//    .tx_fifo_status_full      (tx_fifo_status_full1),
+//    .destination_mac          (client_mac),
+//    .destination_ip           (client_ip),
+//    .rdreq_fifo(rdreq_fifo),
+//    .rddata_fifo(rddata_fifo),
+//    .rdempty_fifo(rdempty_fifo)
+//);
+
+wire fastData_allWithData = !fastData_rdempty;
+wire requestFastData;
+assign fastData_rdreq = {nOfFastDataFifos{requestFastData}};
+dec_comm8_FastAndSlowData #(
+    .fastDataWordSize(fastDataFifoLength * nOfFastDataFifos),
+	.slowDataWordSize(slowDataFifoLength)
+) dec_comm8_2(
     .clk                      (rx_xcvr_clk),
     .reset                    (~mac_configured_125),
+
     .tx_fifo_data             (tx_fifo_data1),
     .tx_fifo_status           (tx_fifo_status1),
     .tx_fifo_data_write       (tx_fifo_data_write1),
     .tx_fifo_status_write     (tx_fifo_status_write1),
     .tx_fifo_data_full        (tx_fifo_data_full1),
     .tx_fifo_status_full      (tx_fifo_status_full1),
+
     .destination_mac          (client_mac),
     .destination_ip           (client_ip),
-    .rdreq_fifo(rdreq_fifo),
-    .rddata_fifo(rddata_fifo),
-    .rdempty_fifo(rdempty_fifo)
+    
+
+    .fastDataWord            (fastData_rddata),
+    .fastDataReady           (fastData_allWithData),
+    .requestFastData         (requestFastData),
+
+    .slowDataWord            (slowData_rddata),
+    .slowDataReady           (!slowData_rdempty),
+    .requestSlowData         (slowData_rdreq) 
 );
   
 endmodule

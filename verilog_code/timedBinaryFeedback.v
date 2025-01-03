@@ -137,7 +137,9 @@ module thresholdFeedback #(
 
     input   [outputBitSize -1:0]                    valueWhenIn_x0,
     input   [outputBitSize -1:0]                    valueWhenIn_x1,
-    output reg [outputBitSize -1:0]                 out
+    output reg [outputBitSize -1:0]                 out,
+    output reg [$clog2(maxActiveFeedbacCycles+1) -1:0] lastActiveDuration,
+    output reg                                         lastActiveDuration_dataValid
 );
 localparam  cfg_useTimer = 0,
             cfg_use_x1 = 1;
@@ -145,7 +147,7 @@ localparam  s_crossed_x0 = 0,
             s_crossed_x1 = 1;
 reg state;
 
-reg [$clog2(maxActiveFeedbacCycles) -1:0] counter;
+reg [$clog2(maxActiveFeedbacCycles+1) -1:0] counter;
 
 reg [inputBitSize -1:0] prev_in;
 wire isTimerFinished = (cfg == cfg_useTimer) && (counter == 0);
@@ -160,14 +162,23 @@ always @(posedge clk)begin
         prev_in <= 0;
         state <= s_crossed_x1;
         counter <= 0;
+        lastActiveDuration <= 0;
     end else begin
         prev_in <= in;
         if(switchState[state])begin
             state <= ! state;
         end
+        lastActiveDuration_dataValid <= switchState[s_crossed_x1];
+
         case(state)
-            s_crossed_x0: counter <= counter - 1;
-            s_crossed_x1 : counter <= maxTimeOn_x0;
+            s_crossed_x0: begin
+                counter <= counter - 1;
+                lastActiveDuration <= lastActiveDuration + 1;//todo controlla
+            end
+            s_crossed_x1 : begin
+                counter <= maxTimeOn_x0;
+                lastActiveDuration <= 0;
+            end
         endcase
 
         out <= outputs[state];

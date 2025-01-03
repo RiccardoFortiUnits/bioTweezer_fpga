@@ -173,9 +173,13 @@ wire pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSq
 wire [15:0] controllerOut;
 wire [15:0] ray;
 wire [15:0] x, y, z, xSquare, ySquare, zSquare;
-wire useToggleEnable, binFeedback_actOnInGreaterThanThreshold;
-wire [27:0] enableToggleCycles, binFeedback_activeFeedbackMaxCycles, binFeedback_idleWaitCycles, binFeedback_cyclesForActivation;
-wire [15:0] binFeedback_threshold, binFeedback_valueWhenActive;
+wire useToggleEnable;//, binFeedback_actOnInGreaterThanThreshold;
+wire [27:0] enableToggleCycles;//, binFeedback_activeFeedbackMaxCycles, binFeedback_idleWaitCycles, binFeedback_cyclesForActivation;
+// wire [15:0] binFeedback_threshold, binFeedback_valueWhenActive;
+wire [27:0] binFeedback_maxTimeOn_x0, binFeedback_lastActiveDuration, binFeedback_cyclesForActivation, binFeedback_activeFeedbackMaxCycles, binFeedback_idleWaitCycles;
+wire [15:0] binFeedback_x0, binFeedback_x1, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, binFeedback_out, binFeedback_valueWhenActive;
+wire binFeedback_cfg;
+wire binFeedback_lastActiveDuration_dataValid;
 wire disableY, disableZ;
 	/*How to add custom connections to the network module:
 	
@@ -215,23 +219,22 @@ wire disableY, disableZ;
 			-increase nOfFifos
 			-add the relative wires to the rdreq_fifo, rddata_fifo and rdempty_fifo registers.
 		 
-
 */
-parameter nOflargeRegisters = 8;
+parameter nOflargeRegisters = 6;
 
-parameter largeRegisterStartIdxs = {32'd216                         , 32'd188                   , 32'd160                            , 32'd132           , 32'd104     , 32'd78                   , 32'd52           , 32'd26           , 32'd0};
+parameter largeRegisterStartIdxs = {32'D160                 , 32'd132           , 32'd104     , 32'd78                   , 32'd52           , 32'd26           , 32'd0};
 wire [largeRegisterStartIdxs[nOflargeRegisters*32+32 -1-:32] -1:0] largeRegisters;
-assign                             {binFeedback_cyclesForActivation , binFeedback_idleWaitCycles, binFeedback_activeFeedbackMaxCycles, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient} = largeRegisters;
+assign                             {binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient} = largeRegisters;
 
 wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125} = largeRegisters_update_cmd;
 
 
-parameter nOfsmallRegisters = 16;
+parameter nOfsmallRegisters = 18;
 
-parameter smallRegisterStartIdxs = {32'hC4      , 32'hB4      , 32'hA4  , 32'hA3  , 32'hA2                     , 32'h92               , 32'h82                                 , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83  , 32'h82  , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
-assign                             {yDiff_offset, xDiff_offset, disableZ, disableY, binFeedback_valueWhenActive, binFeedback_threshold, binFeedback_actOnInGreaterThanThreshold, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
+assign                             {binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, disableZ, disableY, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
 wire [nOfsmallRegisters -1:0] smallRegisters_update_cmd;
 //assign {...} = smallRegisters_update_cmd;
@@ -241,7 +244,8 @@ wire DAC_running_125, ADC_ready_125;
 wire DAC_running_50_fb; //feedback on the DAC running 125 to be sure the signal has arrived before starting
 wire [31:0] start_fifo_cmd_2_50, stop_dac_cmd_2_50;
 wire reset_DAC;
-
+wire slowData_rdreq, slowData_rdempty;
+wire [27:0] slowData_rddata;
 network_wrapper #(
 	.LOCKIN_NUMBER(LOCKIN_NUMBER),
 
@@ -251,8 +255,9 @@ network_wrapper #(
 	.nOfsmallRegisters			(nOfsmallRegisters),
 	.maxTransmissionSize		(16),
 
-	.FIFO_LENGTH				(16),
-	.nOfFifos					(7)
+	.fastDataFifoLength			(16),
+	.nOfFastDataFifos			(7),
+	.slowDataFifoLength			(28)
 ) network_wrapper_0 (
 	.clock_100					(clock_100),
 	.ref_clk_125				(REFCLK_125),
@@ -272,9 +277,12 @@ network_wrapper #(
 	.smallRegisters				(smallRegisters),
 	.smallRegisters_update_cmd	(smallRegisters_update_cmd),
 
-	.rdreq_fifo					({zSquare_rdreq_fifo,   ySquare_rdreq_fifo,   xSquare_rdreq_fifo,   z_rdreq_fifo,   y_rdreq_fifo,   x_rdreq_fifo,   pi_rdreq_output_fifo}),
-	.rddata_fifo				({zSquare_rddata_fifo,  ySquare_rddata_fifo,  xSquare_rddata_fifo,  z_rddata_fifo,  y_rddata_fifo,  x_rddata_fifo,  pi_rddata_output_fifo}),
-	.rdempty_fifo				({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo}),
+	.fastData_rdreq				({zSquare_rdreq_fifo,   ySquare_rdreq_fifo,   xSquare_rdreq_fifo,   z_rdreq_fifo,   y_rdreq_fifo,   x_rdreq_fifo,   pi_rdreq_output_fifo}),
+	.fastData_rddata			({zSquare_rddata_fifo,  ySquare_rddata_fifo,  xSquare_rddata_fifo,  z_rddata_fifo,  y_rddata_fifo,  x_rddata_fifo,  pi_rddata_output_fifo}),
+	.fastData_rdempty			({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo}),
+	.slowData_rdreq				(slowData_rdreq),
+	.slowData_rddata			(slowData_rddata),
+	.slowData_rdempty			(slowData_rdempty),
 
 	.DAC_running				(1'b0),
 	.DAC_stopped				(1'b1),
@@ -411,12 +419,23 @@ tweezerController#(
 	.y_offset								(y_offset),
 	.xDiff_offset							(xDiff_offset),
 	.yDiff_offset							(yDiff_offset),
-	.binFeedback_threshold					(binFeedback_threshold),
-	.binFeedback_actOnInGreaterThanThreshold(binFeedback_actOnInGreaterThanThreshold),
-	.binFeedback_activeFeedbackMaxCycles	(binFeedback_activeFeedbackMaxCycles),
-	.binFeedback_cyclesForActivation		(binFeedback_cyclesForActivation),
-	.binFeedback_idleWaitCycles				(binFeedback_idleWaitCycles),
-	.binFeedback_valueWhenActive			(binFeedback_valueWhenActive),
+//	.binFeedback_threshold					(binFeedback_threshold),
+	// .binFeedback_actOnInGreaterThanThreshold(binFeedback_actOnInGreaterThanThreshold),
+	// .binFeedback_activeFeedbackMaxCycles	(binFeedback_activeFeedbackMaxCycles),
+	// .binFeedback_cyclesForActivation		(binFeedback_cyclesForActivation),
+	// .binFeedback_idleWaitCycles				(binFeedback_idleWaitCycles),
+	// .binFeedback_valueWhenActive			(binFeedback_valueWhenActive),
+
+	.binFeedback_x0								(binFeedback_x0),
+	.binFeedback_x1								(binFeedback_x1),
+	.binFeedback_maxTimeOn_x0					(binFeedback_maxTimeOn_x0),
+	.binFeedback_cfg							(binFeedback_cfg),
+	.binFeedback_valueWhenIn_x0					(binFeedback_valueWhenIn_x0),
+	.binFeedback_valueWhenIn_x1					(binFeedback_valueWhenIn_x1),
+	.binFeedback_out							(binFeedback_out),
+	.binFeedback_lastActiveDuration				(binFeedback_lastActiveDuration),
+	.binFeedback_lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid),
+	
 	
 	.disableY								(disableY),
 	.disableZ								(disableZ),
@@ -506,7 +525,7 @@ dataHandlerForTransmission #(
 	.dataBitSize				(16),
 	.max_nOfDataPerTransmission	(nOfDataPerTransmission),
 	.fifoSize					(32)
-) dhft [0:6](
+) dhft_periodicData [0:6](
 	.dataClk					(ADC_outclock_50),
 	.fifoReadClk				(rx_xcvr_clk),
 	.reset						(reset_50 | reset | SW[9]),
@@ -517,6 +536,22 @@ dataHandlerForTransmission #(
 	.dataRead					({pi_rddata_output_fifo, x_rddata_fifo, y_rddata_fifo, z_rddata_fifo, xSquare_rddata_fifo, ySquare_rddata_fifo, zSquare_rddata_fifo}),
 	.readEmpty					({pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo})
 );
+
+dataHandlerForSporadicData #(
+	.dataBitSize				(28),
+	.fifoSize					(32)
+) dhft_sporadicData (
+	.dataClk					(ADC_outclock_50),
+	.fifoReadClk				(rx_xcvr_clk),
+	.reset						(reset_50 | reset | SW[9]),
+	.in							(binFeedback_lastActiveDuration),
+	.in_valid					(binFeedback_lastActiveDuration_dataValid),
+	.readRequest				(slowData_rdreq),
+	.dataRead					(slowData_rddata),
+	.readEmpty					(slowData_rdempty)
+);
+
+
 ////////////////// STATUS //////////////
 onOffDisplay ood(
 	controllerOut_valid,
