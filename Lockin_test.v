@@ -135,6 +135,22 @@ wire [25:0] z_multiplier;
 
 wire ADC_outclock_50, ADC_ready_50, ADC_outclock_100;
 
+
+localparam maxTimeBetweenTransmissions = 28'h8000000;// ~2.7 s
+
+reg [28 -1:0] TimeBetweenTransmissions;
+wire [28 -1:0] TimeBetweenTransmissions_fromNetwork;
+wire TimeBetweenTransmissions_updated;
+always @(posedge rx_xcvr_clk) begin
+	if(reset) begin
+		TimeBetweenTransmissions <= 'h3D090;//with the 50MHz clock, there's a transmission every 5.0ms;
+	end else begin
+		if(TimeBetweenTransmissions_updated)begin
+			TimeBetweenTransmissions <= TimeBetweenTransmissions_fromNetwork;
+		end
+	end
+end
+
 `define synchToNewClock(outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
 wire wire_inputClk, wire_outputClk;	\
 sync_edge_det stretchEdgeName(		\
@@ -220,14 +236,14 @@ wire disableY, disableZ;
 			-add the relative wires to the rdreq_fifo, rddata_fifo and rdempty_fifo registers.
 		 
 */
-parameter nOflargeRegisters = 6;
+parameter nOflargeRegisters = 7;
 
-parameter largeRegisterStartIdxs = {32'D160                 , 32'd132           , 32'd104     , 32'd78                   , 32'd52           , 32'd26           , 32'd0};
+parameter largeRegisterStartIdxs = {32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
 wire [largeRegisterStartIdxs[nOflargeRegisters*32+32 -1-:32] -1:0] largeRegisters;
-assign                             {binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient} = largeRegisters;
+assign                             {binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
 
 wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
-assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125} = largeRegisters_update_cmd;
+assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
 
 
 parameter nOfsmallRegisters = 18;
@@ -281,7 +297,7 @@ network_wrapper #(
 	.fastData_rddata			({zSquare_rddata_fifo,  ySquare_rddata_fifo,  xSquare_rddata_fifo,  z_rddata_fifo,  y_rddata_fifo,  x_rddata_fifo,  pi_rddata_output_fifo}),
 	.fastData_rdempty			({zSquare_rdempty_fifo, ySquare_rdempty_fifo, xSquare_rdempty_fifo, z_rdempty_fifo, y_rdempty_fifo, x_rdempty_fifo, pi_rdempty_output_fifo}),
 	.slowData_rdreq				(slowData_rdreq),
-	.slowData_rddata			(slowData_rddata),
+	.slowData_rddata			(slowData_rddata),//({debugCounter, activationCounter}),
 	.slowData_rdempty			(slowData_rdempty),
 
 	.DAC_running				(1'b0),
@@ -448,10 +464,10 @@ dacs_ad5541a dacs_ad5541a_0 (
 	.clock			(ADC_outclock_50),
 	.reset			(reset_DAC),
 
-	.dac1_datain	(16'h8000),					//setpoint for the output shift
+	.dac1_datain	(controllerOut+16'h8000),					//setpoint for the output shift
 	.dac2_datain	(controllerOut+16'h8000),	//PI output
-	.dac3_datain	((ray >> 3)+16'h8000),		//calculated ray (attenuated, so that it doesn't saturate with the output circuit amplification)
-	.dac4_datain	(x+16'h8000),				//unused (put any debug signal you like)
+	.dac3_datain	(controllerOut+16'h8000),		//calculated ray (attenuated, so that it doesn't saturate with the output circuit amplification)
+	.dac4_datain	(controllerOut+16'h8000),				//unused (put any debug signal you like)
 //	.dac1_datain	(16'h8000),
 //	.dac2_datain	(sweep_data+16'h8000),
 //	.dac3_datain	(sweep_data+16'h8000),
@@ -519,17 +535,16 @@ end
 
 wire [31:0] X_reg, Y_reg;
 
-localparam nOfDataPerTransmission = 19'h40000;//262144, with the 50Hz clock, there's a transmission every 5.24ms
 
 dataHandlerForTransmission #(
 	.dataBitSize				(16),
-	.max_nOfDataPerTransmission	(nOfDataPerTransmission),
+	.max_nOfDataPerTransmission	(maxTimeBetweenTransmissions),
 	.fifoSize					(32)
 ) dhft_periodicData [0:6](
 	.dataClk					(ADC_outclock_50),
 	.fifoReadClk				(rx_xcvr_clk),
 	.reset						(reset_50 | reset | SW[9]),
-	.nOfDataPerTransmission		(nOfDataPerTransmission),
+	.nOfDataPerTransmission		(TimeBetweenTransmissions),
 	.enableData					(1'b1),
 	.in							({controllerOut, x, y, z, xSquare, ySquare, zSquare}),
 	.readRequest				({pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdreq_fifo, ySquare_rdreq_fifo, zSquare_rdreq_fifo}),
@@ -537,6 +552,20 @@ dataHandlerForTransmission #(
 	.readEmpty					({pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSquare_rdempty_fifo, ySquare_rdempty_fifo, zSquare_rdempty_fifo})
 );
 
+// //______________DEBUG____________________
+
+// always @(posedge rx_xcvr_clk) begin
+// 	if(reset_50 | reset | SW[9]) begin
+// 		debugCounter <= 0;
+// 		activationCounter <= 0;
+// 	end else begin
+// 		debugCounter <= debugCounter + 1;
+// 		if(slowData_rdreq)begin
+// 			activationCounter <= activationCounter + 1;
+// 		end
+// 	end
+// end
+// //__________________________________
 dataHandlerForSporadicData #(
 	.dataBitSize				(28),
 	.fifoSize					(32)

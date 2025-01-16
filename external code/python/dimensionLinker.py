@@ -8,24 +8,25 @@ Created on Wed Jul 31 17:06:54 2024
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Dict, List, Any
 
 def graphFromCheckedGraph(checked, startingNode):
 	G=[]
 	sub_graphFromCheckedGraph(G, checked, startingNode, None)
 	return G
 	
-def sub_graphFromCheckedGraph(G, checked, currentNode, startingNode = None):
+def sub_graphFromCheckedGraph(G : list, checked, currentNode, startingNode = None):
 	parents = checked[currentNode][1]
 	for p in parents:
 		sub_graphFromCheckedGraph(G, checked, p, currentNode)
 	if(startingNode is not None):
 		G.append((currentNode, startingNode))
 
-def shortestPath(G, startNodes, endNode):
+def shortestPath(G : nx.DiGraph, startNodes, endNode):
 	if not isinstance(startNodes, list):
 		startNodes = [startNodes]
 	queues = [[node] for node in startNodes]
-	checked = {key: [1,[]]  for key in G.nodes}
+	checked : Dict[Any, List[int,list]]= {key: [1,[]]  for key in G.nodes}
 	for node,data in G.nodes(data=True):
 		if data["mult"]:
 			checked[node][0] = len(G.edges(node))-1
@@ -135,7 +136,7 @@ class dimensionLinker():
 	def checkForLoops(self):
 		#some loops would mean that a value can be converted in more than one way, which should be avoided. Use this function to check for loops
 		cycles = list(nx.simple_cycles(self.g))
-		cycles = [lst for lst in cycles if len(lst) > 2]
+		cycles = [lst for lst in cycles if len(lst) > 2 and not any('[' in string for string in lst)]
 		if len(cycles) > 0:
 			print("Loops found:")
 			for c in cycles:
@@ -182,24 +183,51 @@ class dimensionLinker():
 		return (lambda x : 1/x, lambda x : 1/x)
 	
 	@staticmethod
+	def additionFunction(list1, list2):#the equations has the form:
+				#list1[0] + list1[1] + ... + list1[-1] = list2[0] + list2[1] + ... + list2[-1]
+		def fun1(**kwargs):
+			val = 0
+			for key, value in kwargs.items():
+				if key in list2:
+					val += value
+				elif key in list1:
+					val -= value
+			return val
+		
+		def fun2(**kwargs):
+			val = 0
+			for key, value in kwargs.items():
+				if key in list1:
+					val += value
+				elif key in list2:
+					val -= value
+			return val
+		return [fun1]*len(list1) + [fun2]*len(list2)
+		
 	def monomialFunctions(list1, list2, constantGain = 1):#the equations has the form:
-				#list1[0] * list1[1] * ... *list1[-1] = list2[0] * list2[1] * ... *list2[-1]
+				#list1[0] * list1[1] * ... * list1[-1] = list2[0] * list2[1] * ... * list2[-1]
 		def fun1(**kwargs):
 			val = constantGain
 			for key, value in kwargs.items():
 				if key in list2:
-					val *= value
+					val *= (value ** list2.count(key))
 				elif key in list1:
-					val /= value
+					val /= (value ** list1.count(key))
+			resultKey = [el for el in list1 if el not in kwargs.keys()]
+			if len(resultKey) > 1:
+				return val ** (1/len(resultKey))
 			return val
 		
 		def fun2(**kwargs):
 			val = 1 / constantGain
 			for key, value in kwargs.items():
 				if key in list1:
-					val *= value
+					val *= (value ** list1.count(key))
 				elif key in list2:
-					val /= value
+					val /= (value ** list2.count(key))
+			resultKey = [el for el in list2 if el not in kwargs.keys()]
+			if len(resultKey) > 1:
+				return val ** (1/len(resultKey))
 			return val
 		return [fun1]*len(list1) + [fun2]*len(list2)
 		

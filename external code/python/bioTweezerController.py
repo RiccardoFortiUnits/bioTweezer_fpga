@@ -10,6 +10,7 @@ from scipy.optimize import  least_squares
 from functools import partial
 import pandas as pd
 from threading import Thread
+from typing import Dict
 
 def setupReception(ip, port):
 	#get a socket for UDP transmission
@@ -45,8 +46,8 @@ class fpgaRegister:
 		#dimension that the FPGA value represents). It uses a dimensionLinker to convert between dimensions, so you
 		#can also change/read the value of this object by feeding it a value in a different dimension, as long as
 		#it is connected to the base dimension
-	def __init__(self, dimLinker, dimension, preferredConversionDimension, command = None):
-		self.dimLinker = dimLinker
+	def __init__(self, dimLinker : dimensionLinker, dimension, preferredConversionDimension, command = None):
+		self.dimLinker : dimensionLinker = dimLinker
 		self.dimension = dimension
 		self.preferredConversionDimension = preferredConversionDimension
 		self.bitSize = dimLinker.nodes[dimension]["bitSize"]
@@ -132,6 +133,9 @@ class fpgaHandler:
 	dataValuesFromFPGA = {
 		"data read from the fpga stream"    : fpgaRegister(dimLink, "small_FPGA_register", "small_FPGA_register"),
 	}
+	sporadicDataValuesFromFPGA = {
+		"sporadic data from the fpga"       : fpgaRegister(dimLink, "small_FPGA_register", "small_FPGA_register"),
+	}
 	
 	#these values are sent by the computer, and they are meant to be configuration values. If a value is stored
 		#in more than 16 bits inside the FPGA (and less than 32), you should add it to the list in the first group
@@ -204,13 +208,13 @@ class fpgaHandler:
 			return transmitCommand(sock, self.fpga_ip, self.parameterPort, commands, waitForResponse)
 	
 	
-	def getDataStream(self, time = 1, **dimensions):
+	def getDataStream_old(self, time = 1, **dimensions):
 		#receive the data stream from the FPGA for the specified time (in seconds). The returned value is a dictionary
 			#where the keys are the names of the different values sent by the FPGA (specified in dataValuesFromFPGA),
 			#and the values are the lists of values received during the reception time.
 			#you can specify the final dimension of the various signal (add to the declaration <signalName> = <desiredDimension>)
 		with setupReception(self.self_ip, self.dataPort) as sock:
-			retData = {}
+			retData : Dict[str, list]= {}
 			for name in self.dataValuesFromFPGA.keys():
 				retData[name] = []
 			retData["times"] = []
@@ -231,6 +235,64 @@ class fpgaHandler:
 						retData[name].append(register.fixedPointToFloat(val))
 					byteIdx += 2
 			return retData
+		
+	def getDataStream(self, time = 1, **dimensions):
+		#upgrade of getDataStream, with a reception that can have a variable amount of data. Data can be of 2 types: 
+			# fast data: (fast because it is sent as soon as it is ready in the fpga), has a fixed size, but you can 
+			#   have a transmission without this value
+			# slow data: (slow because it is sent only if the fpga is already sending a fast data, or if the slow data 
+			#   buffer is filling up), has a variable size, and can also be ommitted.
+		with setupReception(self.self_ip, self.dataPort) as sock:
+			fastData : Dict[str, list]= {}
+			for name in self.dataValuesFromFPGA.keys():
+				fastData[name] = []
+			fastData["times"] = []
+			slowData = []
+			endTime = t.time() + time
+			startTime = t.time()
+			while t.time() < endTime:
+				received, address = sock.recvfrom(2048)
+				currentTime = t.time() - startTime#we'll add it to fastData["times"] only if we received some fast data
+				#received[0] tells if fast/slow data is present, and how many slow words are present
+				isThereFastData = received[0] & 0x1
+				isThereSlowData = received[0] & 0x2				
+				byteIdx = 1
+				if(isThereFastData):
+					fastData["times"].append(currentTime)
+					for name, register in self.dataValuesFromFPGA.items():
+						val = int(received[byteIdx+1] << 8) + int(received[byteIdx])
+						if(val >= 0x8000):
+							val = -0x10000 + val
+						
+						if name in dimensions.keys():
+							fastData[name].append(register.fixedPointToFloat(val, dimensions[name]))
+						else:
+							fastData[name].append(register.fixedPointToFloat(val))
+						byteIdx += 2
+						
+				if(isThereSlowData):
+					nOfSlowWords = received[0] >> 2
+					word_size = 28
+					word_mask = (1 << word_size) - 1
+					bytesPerWord = (word_size + 7) >> 3
+					currentBit = 0
+					if nOfSlowWords > 1:
+						word_size += 0
+					for i in range(nOfSlowWords):
+						val = (int.from_bytes(received[byteIdx:byteIdx+bytesPerWord], byteorder='little') >> currentBit) & word_mask
+						currentBit += word_size
+						byteIdx += (currentBit >> 3)
+						currentBit = currentBit & 0x07
+						# if i % 2 == 0:
+						# 	val = int.from_bytes(received[byteIdx:byteIdx+4], byteorder='little') & word_mask
+						# 	byteIdx += 3
+						# else:
+						# 	val = (int.from_bytes(received[byteIdx:byteIdx+4], byteorder='little') >> 4) & word_mask
+						# 	byteIdx += 4
+						if val >= (1 << (word_size - 1)):
+							val -= (1 << word_size)
+						slowData.append((currentTime, val))
+			return fastData, slowData
 		
 	def startDataStream(self, maxTime = 70, updateFunction = None, **dimensions):
 		#start a thread dedicated to reading the datastream from the FPGA. It works
@@ -391,32 +453,36 @@ class bioTweezerController(fpgaHandler):
 		}
 		self.ParametersForFPGA = {#follow the FPGA order
 			#large parameters
+			"transmissionTime"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			"kp"					: fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
 			"ki"					: fpgaRegister(self.dimLink, "FPGA_coeffRegister", "FPGA_floatValue"),
 			"SUM_multiplierFor_div" : fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
 			"SUM_multiplierFor_z"	: fpgaRegister(self.dimLink, "FPGA_largeCoeffRegister", "FPGA_floatValue"),
 			"toggleEnableTime"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
-			"binFeedback_activeFeedbackMaxCycles"	: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
-			"binFeedback_idleWaitCycles"			: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
-			"binFeedback_cyclesForActivation"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+			# "binFeedback_activeFeedbackMaxCycles"	: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+			# "binFeedback_idleWaitCycles"			: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+			# "binFeedback_cyclesForActivation"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+			"binFeedback_maxTimeOn_x0"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			
 			#small parameters
-			"outWhenPiDisabled"		: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-			"setpoint"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-			"limitLow"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-			"limitHigh"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-			"SUM_offsetFor_div"		: fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
-			"SUM_offsetFor_z"		: fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
-			"x_offset"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-			"y_offset"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-			"useToggleEnable"		: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
-			"binFeedback_actOnInGreaterThanThreshold"	: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
-			"binFeedback_threshold"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-			"binFeedback_valueWhenActive"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-			"disableY"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
-			"disableZ"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
-			"xDiff_offset"			: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
-			"yDiff_offset"			: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
+			"outWhenPiDisabled"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+			"setpoint"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+			"limitLow"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+			"limitHigh"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+			"SUM_offsetFor_div"				: fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
+			"SUM_offsetFor_z"				: fpgaRegister(self.dimLink, "FPGA_SUMsignalRegister", "QPD_output"),
+			"x_offset"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+			"y_offset"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+			"useToggleEnable"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"disableY"						: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"disableZ"						: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"xDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
+			"yDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),			
+			"binFeedback_valueWhenIn_x1"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+			"binFeedback_valueWhenIn_x0"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
+			"binFeedback_cfg"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"binFeedback_x1"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+			"binFeedback_x0"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 		}
 		super(bioTweezerController, self).__init__(**kwargs)
 		self.reset()
@@ -495,7 +561,6 @@ class bioTweezerController(fpgaHandler):
 	
 	def calcStiffness(self, time = 3, temperature = 300, directions = ["x", "y"]):
 		#calculate the stiffness of the trap based on the variation on the bead position
-		self.initiateFpga()
 		dataFromFPGA = self.getDataStream(time)
 		kBoltzman = 1.3806504e-23
 		stiffnesses = [0] * len(directions)
@@ -503,7 +568,7 @@ class bioTweezerController(fpgaHandler):
 			l = dataFromFPGA[direction]
 			l_squared = dataFromFPGA[direction+"^2"]
 			variance = np.mean(l_squared) - np.mean(l)**2
-			stiffnesses[i] = kBoltzman * self.temperature / variance
+			stiffnesses[i] = kBoltzman * temperature / variance
 		return stiffnesses
 	
 	def _get_zOffset(self, intensity = (0, "FPGA_floatValue"), time = 0.2):
@@ -519,7 +584,17 @@ class bioTweezerController(fpgaHandler):
 		z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
 		z = self.dimLink.convert(z, "FPGA_SUMsignalRegister", "QPD_output")
 		return z
-		
+	def initializeTweezers_noCalibration(self):
+		self.setParameters(
+			x_offset = (0, "FPGA_floatValue"),
+			y_offset = (0, "FPGA_floatValue"),
+			xDiff_offset = (0, "FPGA_floatValue"),
+			yDiff_offset = (0, "FPGA_floatValue"),
+			SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
+			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+			SUM_offsetFor_z = (0, "FPGA_floatValue"),
+			SUM_offsetFor_div = (0, "FPGA_floatValue"),
+		)
 	def getCalibrationValues(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
 		self.set_zOffset(singleCalibrationTime)
 		#calculate the offsets for x and y

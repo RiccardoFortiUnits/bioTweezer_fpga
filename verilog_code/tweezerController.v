@@ -241,6 +241,7 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 // 	.valueWhenActive				(binFeedback_valueWhenActive),
 // 	.out							(binFeedback_out)
 // );
+wire binFeedback_lastActiveDuration_dataValid_notTrimmed;
 thresholdFeedback #(
   .inputBitSize						(16),
   .outputBitSize						(16),
@@ -260,8 +261,9 @@ thresholdFeedback #(
 	.valueWhenIn_x1					(binFeedback_valueWhenIn_x1),
 	.out							(binFeedback_out),
 	.lastActiveDuration				(binFeedback_lastActiveDuration),
-	.lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid)
+	.lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid_notTrimmed)
 );
+assign binFeedback_lastActiveDuration_dataValid = binFeedback_enable && binFeedback_lastActiveDuration_dataValid_notTrimmed;
 assign retroactionController =  reset || PI_reset ? (
 									0
 								) : (

@@ -151,11 +151,22 @@ reg [$clog2(maxActiveFeedbacCycles+1) -1:0] counter;
 
 reg [inputBitSize -1:0] prev_in;
 wire isTimerFinished = (cfg == cfg_useTimer) && (counter == 0);
-wire crossing_x0 = ((prev_in < x0 & in >= x0) || (prev_in > x0 & in <= x0));
-wire crossing_x1 = isTimerFinished || ((cfg == cfg_use_x1) && (((prev_in < x1 & in >= x1) || (prev_in > x1 & in <= x1))));
+
+wire crossing_x0, crossing_x1;
+generate
+    if(isInputSigned)begin
+        assign crossing_x0 = (( $signed (prev_in) <  $signed (x0) &  $signed (in) >=  $signed (x0)) || ( $signed (prev_in) >  $signed (x0) &  $signed (in) <=  $signed (x0)));
+        assign crossing_x1 = isTimerFinished || ((cfg == cfg_use_x1) && ((( $signed (prev_in) <  $signed (x1) &  $signed (in) >=  $signed (x1)) || ( $signed (prev_in) >  $signed (x1) &  $signed (in) <=  $signed (x1)))));
+    end else begin
+        assign crossing_x0 = (($unsigned(prev_in) < $unsigned(x0) & $unsigned(in) >= $unsigned(x0)) || ($unsigned(prev_in) > $unsigned(x0) & $unsigned(in) <= $unsigned(x0)));
+        assign crossing_x1 = isTimerFinished || ((cfg == cfg_use_x1) && ((($unsigned(prev_in) < $unsigned(x1) & $unsigned(in) >= $unsigned(x1)) || ($unsigned(prev_in) > $unsigned(x1) & $unsigned(in) <= $unsigned(x1)))));        
+    end
+endgenerate
 
 wire [1:0] switchState = {crossing_x0, crossing_x1};//state x0 finishes when we cross x1, and vice versa
-wire [outputBitSize -1:0] outputs = {valueWhenIn_x1, valueWhenIn_x0};
+wire [outputBitSize -1:0] outputs[1:0];
+assign outputs[0] = valueWhenIn_x0;
+assign outputs[1] = valueWhenIn_x1;
 
 always @(posedge clk)begin
     if(reset)begin
@@ -163,12 +174,14 @@ always @(posedge clk)begin
         state <= s_crossed_x1;
         counter <= 0;
         lastActiveDuration <= 0;
+        out <= 0;
+        lastActiveDuration_dataValid <= 0;
     end else begin
         prev_in <= in;
         if(switchState[state])begin
             state <= ! state;
         end
-        lastActiveDuration_dataValid <= switchState[s_crossed_x1];
+        lastActiveDuration_dataValid <= switchState[s_crossed_x0] && state == s_crossed_x0;
 
         case(state)
             s_crossed_x0: begin
@@ -187,3 +200,47 @@ always @(posedge clk)begin
 end
 
 endmodule
+/*
+add wave -position insertpoint sim:/thresholdFeedback/*
+force -freeze sim:/thresholdFeedback/clk 1 0, 0 {50 ps} -r 100
+force -freeze sim:/thresholdFeedback/reset z1 0
+force -freeze sim:/thresholdFeedback/in 0 0
+force -freeze sim:/thresholdFeedback/x0 10 0
+force -freeze sim:/thresholdFeedback/x1 50 0
+force -freeze sim:/thresholdFeedback/maxTimeOn_x0 3 0
+force -freeze sim:/thresholdFeedback/cfg 0 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x0 aaaa 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x1 bbbb 0
+run
+force -freeze sim:/thresholdFeedback/reset 10 0
+run
+
+run
+run
+force -freeze sim:/thresholdFeedback/in 00f 0
+run
+force -freeze sim:/thresholdFeedback/in 0015 0
+run
+force -freeze sim:/thresholdFeedback/in 0019 0
+run
+run
+run
+run
+run
+run
+run
+force -freeze sim:/thresholdFeedback/in 004 0
+run
+run
+force -freeze sim:/thresholdFeedback/cfg 01 0
+force -freeze sim:/thresholdFeedback/in 0008 0
+run
+force -freeze sim:/thresholdFeedback/in 0020 0
+run
+force -freeze sim:/thresholdFeedback/in 0047 0
+run
+force -freeze sim:/thresholdFeedback/in 0059 0
+run
+run
+run
+*/
