@@ -195,7 +195,8 @@ wire [27:0] enableToggleCycles;//, binFeedback_activeFeedbackMaxCycles, binFeedb
 wire [27:0] binFeedback_maxTimeOn_x0, binFeedback_lastActiveDuration, binFeedback_cyclesForActivation, binFeedback_activeFeedbackMaxCycles, binFeedback_idleWaitCycles;
 wire [15:0] binFeedback_x0, binFeedback_x1, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, binFeedback_out, binFeedback_valueWhenActive;
 wire binFeedback_cfg;
-wire binFeedback_lastActiveDuration_dataValid;
+wire binFeedback_lastActiveDuration_dataValid, binFeedback_lastReachedThreshold;
+wire [1:0] binFeedback_transmissionCfg;
 wire disableY, disableZ;
 	/*How to add custom connections to the network module:
 	
@@ -227,6 +228,7 @@ wire disableY, disableZ;
 			then, all small registers (one idx each)
 		 
 	transmission: data stream
+	TODO modify description, this is the old one
 		if enabled, there will be a constant stream of data. The structure of the data of every packet is:
 			-header byte: a simple counter that gets updated on every transmission, to check for missing or double packets
 			-data to stream, from a list of FIFOs. For now, every FIFO has to have the same bit size (FIFO_LENGTH). Transmission is done whenever 
@@ -246,11 +248,11 @@ wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
 
 
-parameter nOfsmallRegisters = 18;
+parameter nOfsmallRegisters = 19;
 
-parameter smallRegisterStartIdxs = {32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83  , 32'h82  , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hE6                     , 32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83  , 32'h82  , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
-assign                             {binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, disableZ, disableY, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
+assign                             {binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, disableZ, disableY, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
 wire [nOfsmallRegisters -1:0] smallRegisters_update_cmd;
 //assign {...} = smallRegisters_update_cmd;
@@ -261,7 +263,7 @@ wire DAC_running_50_fb; //feedback on the DAC running 125 to be sure the signal 
 wire [31:0] start_fifo_cmd_2_50, stop_dac_cmd_2_50;
 wire reset_DAC;
 wire slowData_rdreq, slowData_rdempty;
-wire [27:0] slowData_rddata;
+wire [30:0] slowData_rddata;
 network_wrapper #(
 	.LOCKIN_NUMBER(LOCKIN_NUMBER),
 
@@ -273,7 +275,7 @@ network_wrapper #(
 
 	.fastDataFifoLength			(16),
 	.nOfFastDataFifos			(7),
-	.slowDataFifoLength			(28)
+	.slowDataFifoLength			(31)
 ) network_wrapper_0 (
 	.clock_100					(clock_100),
 	.ref_clk_125				(REFCLK_125),
@@ -451,6 +453,8 @@ tweezerController#(
 	.binFeedback_out							(binFeedback_out),
 	.binFeedback_lastActiveDuration				(binFeedback_lastActiveDuration),
 	.binFeedback_lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid),
+	.binFeedback_lastReachedThreshold 			(binFeedback_lastReachedThreshold),
+	.binFeedback_transmissionCfg 				(binFeedback_transmissionCfg),
 	
 	
 	.disableY								(disableY),
@@ -464,10 +468,10 @@ dacs_ad5541a dacs_ad5541a_0 (
 	.clock			(ADC_outclock_50),
 	.reset			(reset_DAC),
 
-	.dac1_datain	(controllerOut+16'h8000),					//setpoint for the output shift
+	.dac1_datain	(16'h8000),					//setpoint for the output shift
 	.dac2_datain	(controllerOut+16'h8000),	//PI output
-	.dac3_datain	(controllerOut+16'h8000),		//calculated ray (attenuated, so that it doesn't saturate with the output circuit amplification)
-	.dac4_datain	(controllerOut+16'h8000),				//unused (put any debug signal you like)
+	.dac3_datain	((ray >> 3)+16'h8000),		//calculated ray (attenuated, so that it doesn't saturate with the output circuit amplification)
+	.dac4_datain	(16'h8000),					//unused (put any debug signal you like)
 //	.dac1_datain	(16'h8000),
 //	.dac2_datain	(sweep_data+16'h8000),
 //	.dac3_datain	(sweep_data+16'h8000),
@@ -567,13 +571,13 @@ dataHandlerForTransmission #(
 // end
 // //__________________________________
 dataHandlerForSporadicData #(
-	.dataBitSize				(28),
+	.dataBitSize				(31),
 	.fifoSize					(32)
 ) dhft_sporadicData (
 	.dataClk					(ADC_outclock_50),
 	.fifoReadClk				(rx_xcvr_clk),
 	.reset						(reset_50 | reset | SW[9]),
-	.in							(binFeedback_lastActiveDuration),
+	.in							({binFeedback_transmissionCfg, binFeedback_lastReachedThreshold, binFeedback_lastActiveDuration}),
 	.in_valid					(binFeedback_lastActiveDuration_dataValid),
 	.readRequest				(slowData_rdreq),
 	.dataRead					(slowData_rddata),

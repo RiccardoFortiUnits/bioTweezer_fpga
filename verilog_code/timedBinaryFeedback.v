@@ -138,21 +138,29 @@ module thresholdFeedback #(
     input   [outputBitSize -1:0]                    valueWhenIn_x0,
     input   [outputBitSize -1:0]                    valueWhenIn_x1,
     output reg [outputBitSize -1:0]                 out,
+    input   [1:0]                                      transmissionCfg,
     output reg [$clog2(maxActiveFeedbacCycles+1) -1:0] lastActiveDuration,
-    output reg                                         lastActiveDuration_dataValid
+    output reg                                         lastActiveDuration_dataValid,
+    output                                             lastReachedThreshold
 );
 localparam  cfg_useTimer = 0,
             cfg_use_x1 = 1;
+localparam  trasmCfg_0to1 = 0,              //send the time intervals between the transitions from x0 to x1
+            trasmCfg_1to0 = 1,              //send the time intervals between the transitions from x1 to x0
+            trasmCfg_anyTransition = 2,     //send the time intervals between any transition (from x0 to x1 and from x1 to x0) (the reached threshold is specified by lastReachedThreshold)
+            trasmCfg_everyCross = 3;        //send the time intervals between any 2 threshold crosses (even if they are from x0 to x0, or from x1 to x1)
 localparam  s_crossed_x0 = 0,
             s_crossed_x1 = 1;
 reg state;
 
 reg [$clog2(maxActiveFeedbacCycles+1) -1:0] counter;
+reg resetCounterNextCycle;
 
 reg [inputBitSize -1:0] prev_in;
 wire isTimerFinished = (cfg == cfg_useTimer) && (counter == 0);
 
-wire crossing_x0, crossing_x1;
+wire crossing_x0, crossing_x1, crossing_any;
+assign crossing_any = crossing_x0 || crossing_x1;
 generate
     if(isInputSigned)begin
         assign crossing_x0 = (( $signed (prev_in) <  $signed (x0) &  $signed (in) >=  $signed (x0)) || ( $signed (prev_in) >  $signed (x0) &  $signed (in) <=  $signed (x0)));
@@ -167,6 +175,8 @@ wire [1:0] switchState = {crossing_x0, crossing_x1};//state x0 finishes when we 
 wire [outputBitSize -1:0] outputs[1:0];
 assign outputs[0] = valueWhenIn_x0;
 assign outputs[1] = valueWhenIn_x1;
+assign lastReachedThreshold = state;
+
 
 always @(posedge clk)begin
     if(reset)begin
@@ -176,25 +186,46 @@ always @(posedge clk)begin
         lastActiveDuration <= 0;
         out <= 0;
         lastActiveDuration_dataValid <= 0;
+        resetCounterNextCycle <= 0;
     end else begin
         prev_in <= in;
         if(switchState[state])begin
             state <= ! state;
+            out <= outputs[!state];
+            resetCounterNextCycle <= 1;
+        end else begin
+            resetCounterNextCycle <= 0;            
         end
-        lastActiveDuration_dataValid <= switchState[s_crossed_x0] && state == s_crossed_x0;
+        if(resetCounterNextCycle)begin
+            lastActiveDuration <= 1;
+        end else begin
+            lastActiveDuration <= lastActiveDuration + 1;
+        end
+
+        case (transmissionCfg)
+            trasmCfg_0to1 : begin
+                lastActiveDuration_dataValid <= crossing_x1 && state == s_crossed_x0;
+            end
+            trasmCfg_1to0 : begin
+                lastActiveDuration_dataValid <= crossing_x0 && state == s_crossed_x1;
+            end
+            trasmCfg_anyTransition : begin
+                lastActiveDuration_dataValid <= crossing_any && switchState[state];
+            end
+            trasmCfg_everyCross : begin
+                lastActiveDuration_dataValid <= crossing_any;
+            end
+        endcase
 
         case(state)
             s_crossed_x0: begin
                 counter <= counter - 1;
-                lastActiveDuration <= lastActiveDuration + 1;//todo controlla
             end
             s_crossed_x1 : begin
                 counter <= maxTimeOn_x0;
-                lastActiveDuration <= 0;
             end
         endcase
 
-        out <= outputs[state];
 
     end
 end
@@ -208,7 +239,8 @@ force -freeze sim:/thresholdFeedback/in 0 0
 force -freeze sim:/thresholdFeedback/x0 10 0
 force -freeze sim:/thresholdFeedback/x1 50 0
 force -freeze sim:/thresholdFeedback/maxTimeOn_x0 3 0
-force -freeze sim:/thresholdFeedback/cfg 0 0
+force -freeze sim:/thresholdFeedback/cfg 1 0
+force -freeze sim:/thresholdFeedback/transmissionCfg 1 0
 force -freeze sim:/thresholdFeedback/valueWhenIn_x0 aaaa 0
 force -freeze sim:/thresholdFeedback/valueWhenIn_x1 bbbb 0
 run
@@ -223,16 +255,8 @@ force -freeze sim:/thresholdFeedback/in 0015 0
 run
 force -freeze sim:/thresholdFeedback/in 0019 0
 run
-run
-run
-run
-run
-run
-run
 force -freeze sim:/thresholdFeedback/in 004 0
 run
-run
-force -freeze sim:/thresholdFeedback/cfg 01 0
 force -freeze sim:/thresholdFeedback/in 0008 0
 run
 force -freeze sim:/thresholdFeedback/in 0020 0
@@ -240,6 +264,18 @@ run
 force -freeze sim:/thresholdFeedback/in 0047 0
 run
 force -freeze sim:/thresholdFeedback/in 0059 0
+run
+force -freeze sim:/thresholdFeedback/in 0030 0
+run
+force -freeze sim:/thresholdFeedback/in 0025 0
+run
+force -freeze sim:/thresholdFeedback/in 0004 0
+run
+run
+force -freeze sim:/thresholdFeedback/in 0054 0
+run
+run
+run
 run
 run
 run

@@ -272,7 +272,7 @@ class fpgaHandler:
 						
 				if(isThereSlowData):
 					nOfSlowWords = received[0] >> 2
-					word_size = 28
+					word_size = 31
 					word_mask = (1 << word_size) - 1
 					bytesPerWord = (word_size + 7) >> 3
 					currentBit = 0
@@ -283,6 +283,9 @@ class fpgaHandler:
 						currentBit += word_size
 						byteIdx += (currentBit >> 3)
 						currentBit = currentBit & 0x07
+						reachedThreshold = (val >> 28) & 1
+						currentConfig = val >> 29 & 0x3
+						val = val & 0x0fffffff
 						# if i % 2 == 0:
 						# 	val = int.from_bytes(received[byteIdx:byteIdx+4], byteorder='little') & word_mask
 						# 	byteIdx += 3
@@ -291,7 +294,7 @@ class fpgaHandler:
 						# 	byteIdx += 4
 						if val >= (1 << (word_size - 1)):
 							val -= (1 << word_size)
-						slowData.append((currentTime, val))
+						slowData.append((currentTime, val, reachedThreshold, currentConfig))
 			return fastData, slowData
 		
 	def startDataStream(self, maxTime = 70, updateFunction = None, **dimensions):
@@ -408,6 +411,8 @@ class bioTweezerController(fpgaHandler):
 		dimLink.addDimension("FPGA_largeCoeffRegister", "bit", bitSize = 26)
 		dimLink.addDimension("FPGA_bitRegister", "bit", bitSize = 1, isSigned = False)
 		dimLink.addDimension("FPGA_timeRegister", "bit", bitSize = 28, isSigned = False)
+		dimLink.addDimension("FPGA_bf_cfg", bitSize = 1, isSigned = False)
+		dimLink.addDimension("FPGA_bf_transmissionCfg", bitSize = 2, isSigned = False)
 		dimLink.addDimension("control_voltage", "V")
 		dimLink.addDimension("generator_input", "V")
 		dimLink.addDimension("generator_current", "I")
@@ -480,9 +485,10 @@ class bioTweezerController(fpgaHandler):
 			"yDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),			
 			"binFeedback_valueWhenIn_x1"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
 			"binFeedback_valueWhenIn_x0"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
-			"binFeedback_cfg"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"binFeedback_cfg"				: fpgaRegister(self.dimLink, "FPGA_bf_cfg", "FPGA_bf_cfg"),
 			"binFeedback_x1"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"binFeedback_x0"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
+			"binFeedback_transmissionCfg"   : fpgaRegister(self.dimLink, "FPGA_bf_transmissionCfg", "FPGA_bf_transmissionCfg"),
 		}
 		super(bioTweezerController, self).__init__(**kwargs)
 		self.reset()

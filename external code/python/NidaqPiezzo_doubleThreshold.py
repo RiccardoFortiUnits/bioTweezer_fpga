@@ -34,6 +34,7 @@ try:
 	from bioTweezerController import bioTweezerController
 except:
 	print('Could not import bio controller library')
+import ast
 	
 
 class ProtocolNode:
@@ -1551,15 +1552,18 @@ class NiFrame(Frame):
 		parent = entry.nametowidget(entry.winfo_parent())
 		entry.delete(0, END)
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
-		
-		if isinstance(entry.get(), DoubleVar):
-			entry.insert(0, f"{readvalue:.3e}")
+		if parent.numberType == "float":
+			entry.insert(0, f"{readvalue:.2e}")
 		else:
 			entry.insert(0, f"{readvalue}")
 
 	def refreshCheckboxFromFPGA(self, parent):
 		parent.var.set(self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit)))
-		
+	
+	def refreshComboboxFromFPGA(self, entry):
+		parent = entry.nametowidget(entry.winfo_parent())
+		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
+		entry.current(readvalue)
 
 	def updateBioControllerParameterFromEntry(self, event):
 		entry = event.widget
@@ -1571,6 +1575,12 @@ class NiFrame(Frame):
 	def updateBioControllerParameterFromCheckbox(self, parent):
 		self.bio_controller.setParameters(**{parent.internalName : parent.var.get()})
 		
+	def updateBioControllerParameterFromCombobox(self, event):
+		entry = event.widget
+		parent = entry.nametowidget(entry.winfo_parent())
+		print(parent.internalName , entry.current(),parent.internalUnit)
+		self.bio_controller.setParameters(**{parent.internalName : entry.current()})
+
 	def calibrateBioController(self):
 		#depending on if we want to use all the offsets or not, do different calibrations
 		useXdiff = self.bio_calib_enableXdiff_entry.var.get() == 1
@@ -1641,8 +1651,10 @@ class NiFrame(Frame):
 				el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']}")
 			if(valuesFromCsvFile["Parameter type"] == "float"):
 				el.entry = Entry(el, textvariable=DoubleVar(value=valuesFromCsvFile["Parameter value"]))
+				el.numberType = "float"
 			else:
 				el.entry = Entry(el, textvariable=IntVar(value=int(valuesFromCsvFile["Parameter value"])))
+				el.numberType = "int"
 			el.get = el.entry.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromEntry
@@ -1671,6 +1683,26 @@ class NiFrame(Frame):
 			if refreshFunction is None:
 				refreshFunction = self.refreshCheckboxFromFPGA
 			el.refreshValue = partial(refreshFunction, el)
+		elif valuesFromCsvFile["Parameter type"] == "option":
+			optionString = valuesFromCsvFile['Parameter measure unit']			
+			formatted_string = optionString.replace('; ', '","')
+			formatted_string = formatted_string.replace(';', '","')
+			formatted_string = formatted_string.replace('[', '["')
+			formatted_string = formatted_string.replace(']', '"]')
+			el.menu = ttk.Combobox(el, values = ast.literal_eval(formatted_string))
+			if bindingFunction is None:
+				bindingFunction = self.updateBioControllerParameterFromCombobox
+			el.menu.bind("<<ComboboxSelected>>", bindingFunction)
+			el.menu.current(int(valuesFromCsvFile["Parameter value"]))
+			fakeEvent = SimpleNamespace(widget = el.menu, parent = el)
+			bindingFunction(fakeEvent)
+			el.menu.pack(side=BOTTOM)
+			if refreshFunction is None:
+				refreshFunction = self.refreshComboboxFromFPGA
+			el.refreshValue = partial(refreshFunction, el.menu)
+			
+			
+			
 		return el              
 
 

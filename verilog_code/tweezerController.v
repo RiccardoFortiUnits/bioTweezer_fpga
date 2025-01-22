@@ -51,9 +51,11 @@ module tweezerController#(
 	input 											binFeedback_cfg,
 	input   [outputBitSize -1:0]                    binFeedback_valueWhenIn_x0,
 	input   [outputBitSize -1:0]                    binFeedback_valueWhenIn_x1,
+	input [1:0]																		binFeedback_transmissionCfg,
 	output  [outputBitSize -1:0]             	    binFeedback_out,
 	output  [$clog2(EnableToggleMaxTime+1) -1:0] 	binFeedback_lastActiveDuration,
 	output                                          binFeedback_lastActiveDuration_dataValid,
+	output 																					binFeedback_lastReachedThreshold,
 
 	output	[outputBitSize -1:0]					ray,
 	output	[outputBitSize -1:0]					x,
@@ -248,20 +250,22 @@ thresholdFeedback #(
   .isInputSigned						(1),
   .maxActiveFeedbacCycles			(EnableToggleMaxTime)			
 )tf(
-	.clk							(clk),
-	.reset							(reset),
+	.clk													(clk),
+	.reset												(reset),
 	
-	.in								(ray),
-	.x0								(binFeedback_x0),
-	.x1								(binFeedback_x1),
-	.maxTimeOn_x0					(binFeedback_maxTimeOn_x0),
-	.cfg							(binFeedback_cfg),
+	.in														(ray),
+	.x0														(binFeedback_x0),
+	.x1														(binFeedback_x1),
+	.maxTimeOn_x0									(binFeedback_maxTimeOn_x0),
+	.cfg													(binFeedback_cfg),
 
-	.valueWhenIn_x0					(binFeedback_valueWhenIn_x0),
-	.valueWhenIn_x1					(binFeedback_valueWhenIn_x1),
-	.out							(binFeedback_out),
-	.lastActiveDuration				(binFeedback_lastActiveDuration),
-	.lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid_notTrimmed)
+	.valueWhenIn_x0								(binFeedback_valueWhenIn_x0),
+	.valueWhenIn_x1								(binFeedback_valueWhenIn_x1),
+	.out													(binFeedback_out),
+	.transmissionCfg             	(binFeedback_transmissionCfg),
+	.lastActiveDuration						(binFeedback_lastActiveDuration),
+	.lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid_notTrimmed),
+	.lastReachedThreshold   			(binFeedback_lastReachedThreshold)
 );
 assign binFeedback_lastActiveDuration_dataValid = binFeedback_enable && binFeedback_lastActiveDuration_dataValid_notTrimmed;
 assign retroactionController =  reset || PI_reset ? (
