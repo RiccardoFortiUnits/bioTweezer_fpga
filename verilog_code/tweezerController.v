@@ -10,7 +10,8 @@ module tweezerController#(
 	parameter workingBitSize		= 24,//I'm too lazy to follow all the bit size conversions... let's just use a bigger register size for all the internal processes
 	//todo usa meglio workingBitSize
 	parameter workingFracSize		= 20,
-	parameter EnableToggleMaxTime	= 28'h8000000
+	parameter EnableToggleMaxTime	= 28'h8000000,
+	parameter binFeedbackMaxAveragingTime = 'h40000//~5.25 ms
 )(
 	input											clk,
 	input											reset,
@@ -56,6 +57,7 @@ module tweezerController#(
 	output  [$clog2(EnableToggleMaxTime+1) -1:0] 	binFeedback_lastActiveDuration,
 	output                                          binFeedback_lastActiveDuration_dataValid,
 	output 																					binFeedback_lastReachedThreshold,
+	input 	[$clog2(binFeedbackMaxAveragingTime+1) -1:0] binFeedback_preAverageTime,
 
 	output	[outputBitSize -1:0]					ray,
 	output	[outputBitSize -1:0]					x,
@@ -243,17 +245,35 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 // 	.valueWhenActive				(binFeedback_valueWhenActive),
 // 	.out							(binFeedback_out)
 // );
+wire averagedData_valid;
+wire [$clog2(binFeedbackMaxAveragingTime+1)  + outputBitSize -1:0] averagedData_uncropped;
+averager #(
+    .AVERAGING_POINTS_BITS  ($clog2(binFeedbackMaxAveragingTime+1)),
+    .INPUT_DATA_BITS        (outputBitSize),
+    .SIGNED                 (1)
+)averagerForThresholdFeedback(
+    .clock                  (clk),   
+    .reset                  (reset),
+    .run_averaging          (r_valid),
+    .shift                  (1'b1),
+    .averaging_points       (binFeedback_preAverageTime),
+    .data_in                (ray),
+    .data_out               (averagedData_uncropped),
+    .data_valid             (averagedData_valid)
+);
+
 wire binFeedback_lastActiveDuration_dataValid_notTrimmed;
 thresholdFeedback #(
-  .inputBitSize						(16),
-  .outputBitSize						(16),
+  .inputBitSize							(outputBitSize),
+  .outputBitSize						(outputBitSize),
   .isInputSigned						(1),
-  .maxActiveFeedbacCycles			(EnableToggleMaxTime)			
+  .maxActiveFeedbacCycles		(EnableToggleMaxTime)			
 )tf(
 	.clk													(clk),
 	.reset												(reset),
 	
-	.in														(ray),
+	.in														(averagedData_uncropped[outputBitSize -1:0]),
+	.in_valid                    	(averagedData_valid),
 	.x0														(binFeedback_x0),
 	.x1														(binFeedback_x1),
 	.maxTimeOn_x0									(binFeedback_maxTimeOn_x0),

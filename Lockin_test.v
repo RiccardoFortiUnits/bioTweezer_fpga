@@ -197,6 +197,7 @@ wire [15:0] binFeedback_x0, binFeedback_x1, binFeedback_valueWhenIn_x0, binFeedb
 wire binFeedback_cfg;
 wire binFeedback_lastActiveDuration_dataValid, binFeedback_lastReachedThreshold;
 wire [1:0] binFeedback_transmissionCfg;
+wire [18:0] binFeedback_preAverageTime;
 wire disableY, disableZ;
 	/*How to add custom connections to the network module:
 	
@@ -238,11 +239,11 @@ wire disableY, disableZ;
 			-add the relative wires to the rdreq_fifo, rddata_fifo and rdempty_fifo registers.
 		 
 */
-parameter nOflargeRegisters = 7;
+parameter nOflargeRegisters = 8;
 
-parameter largeRegisterStartIdxs = {32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
+parameter largeRegisterStartIdxs = {32'd207 				  , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
 wire [largeRegisterStartIdxs[nOflargeRegisters*32+32 -1-:32] -1:0] largeRegisters;
-assign                             {binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
+assign                             {binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
 
 wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
@@ -400,7 +401,8 @@ tweezerController#(
 	.coeffBitSize		(26),
 	.coeffFracSize		(24),	//you can have values between -2 and 1.9999
 	.workingBitSize		(28), 
-	.workingFracSize	(24)
+	.workingFracSize	(24),
+	.binFeedbackMaxAveragingTime('h40000)
 )tc(
 	.clk									(ADC_outclock_50),
 	.reset									(reset_50),
@@ -455,6 +457,7 @@ tweezerController#(
 	.binFeedback_lastActiveDuration_dataValid	(binFeedback_lastActiveDuration_dataValid),
 	.binFeedback_lastReachedThreshold 			(binFeedback_lastReachedThreshold),
 	.binFeedback_transmissionCfg 				(binFeedback_transmissionCfg),
+	.binFeedback_preAverageTime              	(binFeedback_preAverageTime),
 	
 	
 	.disableY								(disableY),

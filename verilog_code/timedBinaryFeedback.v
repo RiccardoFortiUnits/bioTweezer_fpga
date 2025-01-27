@@ -125,6 +125,7 @@ module thresholdFeedback #(
     input                                           reset,
     
     input   [inputBitSize -1:0]                     in,
+    input                                           in_valid,
     input   [inputBitSize -1:0]                     x0,
     input   [inputBitSize -1:0]                     x1,
     input   [$clog2(maxActiveFeedbacCycles+1) -1:0] maxTimeOn_x0,
@@ -188,34 +189,40 @@ always @(posedge clk)begin
         lastActiveDuration_dataValid <= 0;
         resetCounterNextCycle <= 0;
     end else begin
-        prev_in <= in;
-        if(switchState[state])begin
-            state <= ! state;
-            out <= outputs[!state];
-            resetCounterNextCycle <= 1;
+        if(in_valid)begin
+            prev_in <= in;
+            if(switchState[state])begin
+                state <= ! state;
+                out <= outputs[!state];
+                resetCounterNextCycle <= 1;
+            end else begin
+                resetCounterNextCycle <= 0;            
+            end
+
+            case (transmissionCfg)
+                trasmCfg_0to1 : begin
+                    lastActiveDuration_dataValid <= crossing_x1 && state == s_crossed_x0;
+                end
+                trasmCfg_1to0 : begin
+                    lastActiveDuration_dataValid <= crossing_x0 && state == s_crossed_x1;
+                end
+                trasmCfg_anyTransition : begin
+                    lastActiveDuration_dataValid <= crossing_any && switchState[state];
+                end
+                trasmCfg_everyCross : begin
+                    lastActiveDuration_dataValid <= crossing_any;
+                end
+            endcase
         end else begin
-            resetCounterNextCycle <= 0;            
+            lastActiveDuration_dataValid <= 0;
+            resetCounterNextCycle <= 0; 
         end
+
         if(resetCounterNextCycle)begin
             lastActiveDuration <= 1;
         end else begin
             lastActiveDuration <= lastActiveDuration + 1;
         end
-
-        case (transmissionCfg)
-            trasmCfg_0to1 : begin
-                lastActiveDuration_dataValid <= crossing_x1 && state == s_crossed_x0;
-            end
-            trasmCfg_1to0 : begin
-                lastActiveDuration_dataValid <= crossing_x0 && state == s_crossed_x1;
-            end
-            trasmCfg_anyTransition : begin
-                lastActiveDuration_dataValid <= crossing_any && switchState[state];
-            end
-            trasmCfg_everyCross : begin
-                lastActiveDuration_dataValid <= crossing_any;
-            end
-        endcase
 
         case(state)
             s_crossed_x0: begin
@@ -240,7 +247,148 @@ force -freeze sim:/thresholdFeedback/x0 10 0
 force -freeze sim:/thresholdFeedback/x1 50 0
 force -freeze sim:/thresholdFeedback/maxTimeOn_x0 3 0
 force -freeze sim:/thresholdFeedback/cfg 1 0
+force -freeze sim:/thresholdFeedback/transmissionCfg 0 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x0 aaaa 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x1 bbbb 0
+run
+# GetModuleFileName: Impossibile trovare il modulo specificato.
+# 
+# 
+force -freeze sim:/thresholdFeedback/reset 10 0
+run
+
+run
+run
+force -freeze sim:/thresholdFeedback/in 00f 0
+run
+force -freeze sim:/thresholdFeedback/in 0015 0
+run
+force -freeze sim:/thresholdFeedback/in 0019 0
+run
+force -freeze sim:/thresholdFeedback/in 004 0
+run
+force -freeze sim:/thresholdFeedback/in 0008 0
+run
+force -freeze sim:/thresholdFeedback/in 0020 0
+run
+force -freeze sim:/thresholdFeedback/in 0047 0
+run
+force -freeze sim:/thresholdFeedback/in 0059 0
+run
+force -freeze sim:/thresholdFeedback/in 0030 0
+run
+force -freeze sim:/thresholdFeedback/in 0025 0
+run
+force -freeze sim:/thresholdFeedback/in 0004 0
+run
+run
+force -freeze sim:/thresholdFeedback/in 0054 0
+run
+run
+run
+run
+run
+run
+force -freeze sim:/thresholdFeedback/clk 1 0, 0 {50 ps} -r 100
+force -freeze sim:/thresholdFeedback/reset z1 0
+force -freeze sim:/thresholdFeedback/in 0 0
+force -freeze sim:/thresholdFeedback/x0 10 0
+force -freeze sim:/thresholdFeedback/x1 50 0
+force -freeze sim:/thresholdFeedback/maxTimeOn_x0 3 0
+force -freeze sim:/thresholdFeedback/cfg 1 0
 force -freeze sim:/thresholdFeedback/transmissionCfg 1 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x0 aaaa 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x1 bbbb 0
+run
+force -freeze sim:/thresholdFeedback/reset 10 0
+run
+
+run
+run
+force -freeze sim:/thresholdFeedback/in 00f 0
+run
+force -freeze sim:/thresholdFeedback/in 0015 0
+run
+force -freeze sim:/thresholdFeedback/in 0019 0
+run
+force -freeze sim:/thresholdFeedback/in 004 0
+run
+force -freeze sim:/thresholdFeedback/in 0008 0
+run
+force -freeze sim:/thresholdFeedback/in 0020 0
+run
+force -freeze sim:/thresholdFeedback/in 0047 0
+run
+force -freeze sim:/thresholdFeedback/in 0059 0
+run
+force -freeze sim:/thresholdFeedback/in 0030 0
+run
+force -freeze sim:/thresholdFeedback/in 0025 0
+run
+force -freeze sim:/thresholdFeedback/in 0004 0
+run
+run
+force -freeze sim:/thresholdFeedback/in 0054 0
+run
+run
+run
+run
+run
+run
+force -freeze sim:/thresholdFeedback/clk 1 0, 0 {50 ps} -r 100
+force -freeze sim:/thresholdFeedback/reset z1 0
+force -freeze sim:/thresholdFeedback/in 0 0
+force -freeze sim:/thresholdFeedback/x0 10 0
+force -freeze sim:/thresholdFeedback/x1 50 0
+force -freeze sim:/thresholdFeedback/maxTimeOn_x0 3 0
+force -freeze sim:/thresholdFeedback/cfg 1 0
+force -freeze sim:/thresholdFeedback/transmissionCfg 2 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x0 aaaa 0
+force -freeze sim:/thresholdFeedback/valueWhenIn_x1 bbbb 0
+run
+force -freeze sim:/thresholdFeedback/reset 10 0
+run
+
+run
+run
+force -freeze sim:/thresholdFeedback/in 00f 0
+run
+force -freeze sim:/thresholdFeedback/in 0015 0
+run
+force -freeze sim:/thresholdFeedback/in 0019 0
+run
+force -freeze sim:/thresholdFeedback/in 004 0
+run
+force -freeze sim:/thresholdFeedback/in 0008 0
+run
+force -freeze sim:/thresholdFeedback/in 0020 0
+run
+force -freeze sim:/thresholdFeedback/in 0047 0
+run
+force -freeze sim:/thresholdFeedback/in 0059 0
+run
+force -freeze sim:/thresholdFeedback/in 0030 0
+run
+force -freeze sim:/thresholdFeedback/in 0025 0
+run
+force -freeze sim:/thresholdFeedback/in 0004 0
+run
+run
+force -freeze sim:/thresholdFeedback/in 0054 0
+run
+run
+run
+run
+run
+run
+force -freeze sim:/thresholdFeedback/clk 1 0, 0 {50 ps} -r 100
+force -freeze sim:/thresholdFeedback/reset z1 0
+force -freeze sim:/thresholdFeedback/in 0 0
+force -freeze sim:/thresholdFeedback/x0 10 0
+force -freeze sim:/thresholdFeedback/x1 50 0
+force -freeze sim:/thresholdFeedback/maxTimeOn_x0 3 0
+force -freeze sim:/thresholdFeedback/cfg 1 0
+force -freeze sim:/thresholdFeedback/transmissionCfg 3 0
 force -freeze sim:/thresholdFeedback/valueWhenIn_x0 aaaa 0
 force -freeze sim:/thresholdFeedback/valueWhenIn_x1 bbbb 0
 run

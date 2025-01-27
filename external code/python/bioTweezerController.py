@@ -207,7 +207,27 @@ class fpgaHandler:
 				return responses
 			return transmitCommand(sock, self.fpga_ip, self.parameterPort, commands, waitForResponse)
 	
-	
+	def getSlowDataDictionaryAndSize(self):
+		#returns an empty dictionary for the slow data reception, and the length of the expected slow words
+		slowData = {
+			"startTimes": [],
+			"configuration": [],
+			"reachedThreshold": [],
+			"timing": [],
+		}
+		return slowData, 31
+	def addValueToSlowData(self, slowData, startTime, val):
+		word_size = 31
+		reachedThreshold = (val >> 28) & 1
+		currentConfig = val >> 29 & 0x3
+		val = val & 0x0fffffff
+		if val >= (1 << (word_size - 1)):
+			val -= (1 << word_size)
+		slowData["startTimes"].append(startTime)
+		slowData["configuration"].append(currentConfig)
+		slowData["reachedThreshold"].append(reachedThreshold)
+		slowData["timing"].append(val)
+
 	def getDataStream_old(self, time = 1, **dimensions):
 		#receive the data stream from the FPGA for the specified time (in seconds). The returned value is a dictionary
 			#where the keys are the names of the different values sent by the FPGA (specified in dataValuesFromFPGA),
@@ -247,7 +267,7 @@ class fpgaHandler:
 			for name in self.dataValuesFromFPGA.keys():
 				fastData[name] = []
 			fastData["times"] = []
-			slowData = []
+			slowData, slowWordSize = self.getSlowDataDictionaryAndSize()
 			endTime = t.time() + time
 			startTime = t.time()
 			while t.time() < endTime:
@@ -273,28 +293,15 @@ class fpgaHandler:
 				if(isThereSlowData):
 					nOfSlowWords = received[0] >> 2
 					word_size = 31
-					word_mask = (1 << word_size) - 1
-					bytesPerWord = (word_size + 7) >> 3
+					word_mask = (1 << slowWordSize) - 1
+					bytesPerWord = (slowWordSize + 7) >> 3
 					currentBit = 0
-					if nOfSlowWords > 1:
-						word_size += 0
 					for i in range(nOfSlowWords):
 						val = (int.from_bytes(received[byteIdx:byteIdx+bytesPerWord], byteorder='little') >> currentBit) & word_mask
 						currentBit += word_size
 						byteIdx += (currentBit >> 3)
 						currentBit = currentBit & 0x07
-						reachedThreshold = (val >> 28) & 1
-						currentConfig = val >> 29 & 0x3
-						val = val & 0x0fffffff
-						# if i % 2 == 0:
-						# 	val = int.from_bytes(received[byteIdx:byteIdx+4], byteorder='little') & word_mask
-						# 	byteIdx += 3
-						# else:
-						# 	val = (int.from_bytes(received[byteIdx:byteIdx+4], byteorder='little') >> 4) & word_mask
-						# 	byteIdx += 4
-						if val >= (1 << (word_size - 1)):
-							val -= (1 << word_size)
-						slowData.append((currentTime, val, reachedThreshold, currentConfig))
+						self.addValueToSlowData(slowData, currentTime, val)
 			return fastData, slowData
 		
 	def startDataStream(self, maxTime = 70, updateFunction = None, **dimensions):
@@ -310,6 +317,7 @@ class fpgaHandler:
 			self.dataStreamThread = Thread(target=self._dataStreamThreadRun, args=(sock,maxTime, updateFunction),kwargs= dimensions)
 			self.dataStreamRunning = True
 			self.dataStreamBuffer = {}
+			self.slowData = {}
 			self.dataStreamThread.start()
 		except:
 			try:
@@ -325,28 +333,50 @@ class fpgaHandler:
 				self.dataStreamBuffer[name] = []
 
 			self.dataStreamBuffer["times"] = []
+			self.slowData, slowWordSize = self.getSlowDataDictionaryAndSize()
 			startTime = t.time()
 			maxendTime = startTime + maxTime
 			while self.dataStreamRunning:
 				received, address = sock.recvfrom(2048)
-				if useFixedTimings:
-					self.dataStreamBuffer["times"].append(startTime)
-					startTime += self.fpga_controller_streamPeriod
-				else:
-					self.dataStreamBuffer["times"].append(t.time() - startTime)
+				
+				currentTime = t.time()#we'll add it to fastData["times"] only if we received some fast data
+				#received[0] tells if fast/slow data is present, and how many slow words are present
+				isThereFastData = received[0] & 0x1
+				isThereSlowData = received[0] & 0x2
 				byteIdx = 1
-				for name, register in self.dataValuesFromFPGA.items():
-					val = int(received[byteIdx] << 8) + int(received[byteIdx+1])
-					if(val >= 0x8000):
-						val = -0x10000 + val
-						
-					if name in dimensions.keys():
-						self.dataStreamBuffer[name].append(register.fixedPointToFloat(val, dimensions[name]))
+				
+				if(isThereFastData):
+					if useFixedTimings:
+						self.dataStreamBuffer["times"].append(startTime)
+						startTime += self.fpga_controller_streamPeriod
 					else:
-						self.dataStreamBuffer[name].append(register.fixedPointToFloat(val))
-					byteIdx += 2
+						self.dataStreamBuffer["times"].append(currentTime)
+					for name, register in self.dataValuesFromFPGA.items():
+						val = int(received[byteIdx+1] << 8) + int(received[byteIdx])
+						if(val >= 0x8000):
+							val = -0x10000 + val
+							
+						if name in dimensions.keys():
+							self.dataStreamBuffer[name].append(register.fixedPointToFloat(val, dimensions[name]))
+						else:
+							self.dataStreamBuffer[name].append(register.fixedPointToFloat(val))
+						byteIdx += 2
+				
+				if(isThereSlowData):
+					nOfSlowWords = received[0] >> 2
+					word_size = 31
+					word_mask = (1 << slowWordSize) - 1
+					bytesPerWord = (slowWordSize + 7) >> 3
+					currentBit = 0
+					for i in range(nOfSlowWords):
+						val = (int.from_bytes(received[byteIdx:byteIdx+bytesPerWord], byteorder='little') >> currentBit) & word_mask
+						currentBit += word_size
+						byteIdx += (currentBit >> 3)
+						currentBit = currentBit & 0x07
+						self.addValueToSlowData(self.slowData, currentTime, val)
+
 				if updateFunction is not None:
-					updateFunction(self.dataStreamBuffer)
+					updateFunction(self.dataStreamBuffer, self.slowData)
 				if t.time() > maxendTime:
 					raise Exception(f"dataStream was kept open for too long (more than {maxTime}s). Closing automatically")
 		finally:
@@ -361,7 +391,7 @@ class fpgaHandler:
 				print("WARNING: data stream read finished early because of a timeout.")
 			self.dataStreamThread.join()
 			self.dataStreamThread = None
-			return self.dataStreamBuffer
+			return self.dataStreamBuffer, self.slowData
 		print("start the stream first!")
 		return {}
 	
@@ -411,6 +441,7 @@ class bioTweezerController(fpgaHandler):
 		dimLink.addDimension("FPGA_largeCoeffRegister", "bit", bitSize = 26)
 		dimLink.addDimension("FPGA_bitRegister", "bit", bitSize = 1, isSigned = False)
 		dimLink.addDimension("FPGA_timeRegister", "bit", bitSize = 28, isSigned = False)
+		dimLink.addDimension("FPGA_smallTimeRegister", "bit", bitSize = 19, isSigned = False)
 		dimLink.addDimension("FPGA_bf_cfg", bitSize = 1, isSigned = False)
 		dimLink.addDimension("FPGA_bf_transmissionCfg", bitSize = 2, isSigned = False)
 		dimLink.addDimension("control_voltage", "V")
@@ -442,6 +473,7 @@ class bioTweezerController(fpgaHandler):
 		self.dimLink.addConnection("bead_position", "bead_positionSquare", dimensionLinker.squareFunctions())
 		self.dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(self.piezo_V_to_distance))
 		self.dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(self.fpga_controller_clock))
+		self.dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(self.fpga_controller_clock))
 		self.dimLink.checkForLoops()
 	
 	def __init__(self, **kwargs):
@@ -468,6 +500,7 @@ class bioTweezerController(fpgaHandler):
 			# "binFeedback_idleWaitCycles"			: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			# "binFeedback_cyclesForActivation"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			"binFeedback_maxTimeOn_x0"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
+			"binFeedback_preAverageTime"	: fpgaRegister(self.dimLink, "FPGA_smallTimeRegister", "time"),
 			
 			#small parameters
 			"outWhenPiDisabled"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),

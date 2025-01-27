@@ -24,6 +24,7 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 19,Bio Controller,Idle value,binFeedback_valueWhenIn_x0,float,150e-3,volt,generator_current,wallFeedback
 20,Bio Controller,reset config,binFeedback_cfg,option,1,[use timer; use x1],FPGA_bf_cfg,wallFeedback
 21,Bio Controller,max active time,binFeedback_maxTimeOn_x0,float,0,s,time,wallFeedback
+21,Bio Controller,pre-average time,binFeedback_preAverageTime,float,2e-8,s,time,wallFeedback
 22,Bio Controller,transmission config,binFeedback_transmissionCfg,option,0,[x0 to x1;x1 to x0;any transition;every cross],FPGA_bf_transmissionCfg,wallFeedback
 24,Bio Controller Calibration,base current,baseCurrent,float,150e-3,ampere,\none,calibration
 25,Bio Controller Calibration,end current,EndCurrent,float,350e-3,ampere,\none,calibration

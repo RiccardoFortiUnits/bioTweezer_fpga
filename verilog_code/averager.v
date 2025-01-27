@@ -17,7 +17,7 @@ module averager #(
 	
 
     input   run_averaging,
-    output reg  data_valid
+    output  data_valid
 );
 
 wire signed [OUTPUT_DATA_BITS-1:0] data_in_extended;
@@ -52,22 +52,33 @@ localparam IDLE = 0,
 reg [1:0] state = IDLE;
 reg [AVERAGING_POINTS_BITS-1:0] sum_counter;
 
+reg sumFinished;
+localparam clockCyclesForDivision = 3;
+reg [clockCyclesForDivision -1:0] previous_sumFinished;
+
+integer i;
 always @(posedge clock ) begin
 	if (reset) begin
 		state <= IDLE;
-		data_valid <= 1'b0;
+		sumFinished <= 1'b0;
 		sum_counter <= 0;
 		sum <= 0;
+		for(i=0;i<clockCyclesForDivision;i=i+1)begin
+			previous_sumFinished[i] <= 0;
+		end
 	end
 	else begin
 		case (state)
 			IDLE: begin
-				data_valid <= 1'b0;
+				sumFinished <= 1'b0;
 				if (run_averaging) begin
 					sum <= data_in_extended;
 					sum_counter <= 1;					
-					if (averaging_points == 1) data_valid <= 1'b1;
-					else state <= ADD;
+					if ($unsigned(averaging_points) <= 1)begin 
+						sumFinished <= 1'b1;
+					end else begin
+						state <= ADD;
+					end
 				end
 			end
 
@@ -76,7 +87,7 @@ always @(posedge clock ) begin
 					sum_counter <= sum_counter + 1'b1;
 					sum <= $signed(sum) + $signed(data_in_extended);
 					if (sum_counter >= averaging_points - 1) begin
-						data_valid <= 1'b1;
+						sumFinished <= 1'b1;
 						state <= IDLE;
 					end
 				end
@@ -84,15 +95,39 @@ always @(posedge clock ) begin
 
 			default: begin
 				state <= IDLE;
-				data_valid <= 1'b0;
+				sumFinished <= 1'b0;
 				sum_counter <= 0;
 				sum <= 0;
 			end
 		endcase
+
+		previous_sumFinished[0] <= sumFinished;
+		for(i=1;i<clockCyclesForDivision;i=i+1)begin
+			previous_sumFinished[i] <= previous_sumFinished[i - 1];
+		end
 	end
 end
+wire [INPUT_DATA_BITS -1:0] dividedSum;
+
+divider#(
+	.A_WIDTH			(OUTPUT_DATA_BITS),
+	.B_WIDTH			(AVERAGING_POINTS_BITS),
+	.OUTPUT_WIDTH		(INPUT_DATA_BITS),
+	.FRAC_BITS_A		(0),
+	.FRAC_BITS_B		(0),
+	.FRAC_BITS_OUT		(0),
+	.areSignalsSigned	(1)
+)sumDivider(
+	.clk				(clock),
+	.reset				(reset),
+	.a					(sum),
+	.b					(averaging_points ? averaging_points : {{AVERAGING_POINTS_BITS{1'b0}},{1{1'b1}}}),
+	.result				(dividedSum),
+	.remain				()
+);
 
 
-assign data_out = shift? sum_shifted : sum;
+assign data_out = shift? dividedSum : sum;
+assign data_valid = shift? previous_sumFinished[clockCyclesForDivision-1] : sumFinished;
     
 endmodule

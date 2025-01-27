@@ -350,9 +350,10 @@ class NiFrame(Frame):
 			#add some buttons
 			self.bio_reset_button = Button(self.bio_frame, text="Disable all",command=self.bio_controller.reset)
 			self.bio_reset_button.grid(row=1,column=0)
-			# self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
-			self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.plotBioControllerReception)
+			self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
 			self.bio_calibrate_button.grid(row=1,column=1)
+			self.bio_test_button = Button(self.bio_frame, text="Test Acquisition",command=self.plotBioControllerReception)
+			self.bio_test_button.grid(row=1,column=2)
 
 			self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
 			self.bio_set_const_out_button.grid(row=self.bio_UI_frames["general"]["row"]+1,column=0)
@@ -705,7 +706,7 @@ class NiFrame(Frame):
 			self.protocol_start_button_text_var.set('Start wave')
 			self.reset_tasks()
 			if self.bio_controller:
-				self.bio_buffer = self.bio_controller.stopDataStream()
+				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 			self.update_from_ao_sliders()
 		
 		self.event_generate("<<AiReadEventMain>>")
@@ -949,7 +950,7 @@ class NiFrame(Frame):
 			self.update_from_ao_sliders()
 
 			if self.bio_controller:
-				self.bio_buffer = self.bio_controller.stopDataStream()
+				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 
 	def plot_bio_buffer(self:Self):
 		buf = self.bio_buffer
@@ -992,8 +993,11 @@ class NiFrame(Frame):
 
 		#save data from bio controller
 		if hasattr(self, "bio_buffer") and self.bio_buffer is not None:
-			data = self.bio_buffer
-			
+			data = self.bio_buffer			
+			self._saveCsv(data, folder_name, bioControllerName)
+		#save cross timings from bio controller
+		if hasattr(self, "crossTimings") and self.crossTimings is not None:
+			data = self.crossTimings			
 			self._saveCsv(data, folder_name, bioControllerName)
 
 
@@ -1621,7 +1625,7 @@ class NiFrame(Frame):
 		for key in data.keys():
 			if(key != "times"):
 				ax.plot(data["times"], data[key], label=key)
-		ax.plot([i[0] for i in slowData], [i[1]/50e6 for i in slowData], 'o', label = "slow data")
+		ax.plot(slowData["startTimes"], [i/50e6 for i in slowData["timing"]], 'o', label = "slow data")
 		plt.legend()
 		plt.show()
 		#stop the data stream
