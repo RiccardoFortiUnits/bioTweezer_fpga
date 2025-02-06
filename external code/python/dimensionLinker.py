@@ -105,7 +105,7 @@ class dimensionLinker():
 
 		nodeList = shortestPath(self.g, fromDimensions, toDimension)
 		if len(nodeList) == 0 and (toDimension not in fromDimensions):
-			raise Exception("the source dimensions are not connected to the destination dimension.")
+			raise Exception(f"the source dimensions {fromDimensions} are not connected to the destination dimension {toDimension}.")
 		multiNodesInputs = {}
 		for (startNode, endNode) in nodeList:
 			if self.g.nodes[startNode]["mult"]:

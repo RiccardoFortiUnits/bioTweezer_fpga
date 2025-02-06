@@ -66,13 +66,21 @@ module tweezerController#(
 	output	[outputBitSize -1:0]					xSquare,
 	output	[outputBitSize -1:0]					ySquare,
 	output	[outputBitSize -1:0]					zSquare,
-	 
-	input 											disableY,
-	input 											disableZ,
+	
+	input   [1:0]									used_inputs,
 	
 	//debug wires
 	output	[3:0]									leds
 );
+
+
+
+
+//the input of the control system will either be
+localparam  ui_x_only = 0,//only x (can be positive and negative)
+			ui_1D_ray = 1,//only |x| (only positive)
+			ui_2D_ray = 2,//sqrt(x^2 + y^2)
+			ui_3D_ray = 3;//sqrt(x^2 + y^2 + z^2)
 
 wire PI_enable = enable[0];
 wire binFeedback_enable = enable[1];											
@@ -171,8 +179,8 @@ calcRay#
 	.clk				(clk),
 	.reset				(reset),
 	.x					(x_untrimmed),
-	.y					(disableY ? 24'h0 : y_untrimmed),
-	.z					(disableZ ? 24'h0 : z_untrimmed),
+	.y					(used_inputs <= ui_1D_ray ? 24'h0 : y_untrimmed),
+	.z					(used_inputs <= ui_2D_ray ? 24'h0 : z_untrimmed),
 
 	.xSquare			(xSquare_untrimmed),
 	.ySquare			(ySquare_untrimmed),
@@ -181,6 +189,9 @@ calcRay#
 	.r					(r),
 	.outData_valid		(r_valid) 
 );
+
+wire [workingBitSize -1:0] usedInput_untrimmed = used_inputs == ui_x_only ? x_untrimmed : r;//the _valid flag will always remain r_valid, even though x would be valid a few clock cycles before r is valid
+wire [outputBitSize -1:0] usedInput;
 
 reg [coeffBitSize -1:0] PI_kp_reg, PI_ki_reg;
 reg singlePiReset;// used to reset the integral part of the PI when we change the parameter ki
@@ -209,7 +220,7 @@ pi_controller#(
 	.enable_pi			(enableAfterToggle),
 	.pi_limiting		(PI_freeze),
 	.pi_setpoint		(setpoint_shifted),
-	.pi_input			(r),
+	.pi_input			(usedInput_untrimmed),
 	.pi_input_valid		(r_valid),
 	.pi_kp_coefficient	(PI_kp_reg),
 	.pi_ti_coefficient	(PI_ki_reg),
@@ -257,7 +268,7 @@ averager #(
     .run_averaging          (r_valid),
     .shift                  (1'b1),
     .averaging_points       (binFeedback_preAverageTime),
-    .data_in                (ray),
+    .data_in                (usedInput),
     .data_out               (averagedData_uncropped),
     .data_valid             (averagedData_valid)
 );
@@ -323,9 +334,10 @@ always @(posedge clk)begin
 end
 
 	
-
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	r_to_ray(r, ray);
+fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
+	trimUsedInput(usedInput_untrimmed, usedInput);
 
 	 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 

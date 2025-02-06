@@ -206,7 +206,7 @@ class fpgaHandler:
 					responses[i] = transmitCommand(sock, self.fpga_ip, self.parameterPort, command, waitForResponse)
 				return responses
 			return transmitCommand(sock, self.fpga_ip, self.parameterPort, commands, waitForResponse)
-	
+	slowDataWordSize = 32
 	def getSlowDataDictionaryAndSize(self):
 		#returns an empty dictionary for the slow data reception, and the length of the expected slow words
 		slowData = {
@@ -215,9 +215,9 @@ class fpgaHandler:
 			"reachedThreshold": [],
 			"timing": [],
 		}
-		return slowData, 31
+		return slowData, self.slowDataWordSize
 	def addValueToSlowData(self, slowData, startTime, val):
-		word_size = 31
+		word_size = self.slowDataWordSize
 		reachedThreshold = (val >> 28) & 1
 		currentConfig = val >> 29 & 0x3
 		val = val & 0x0fffffff
@@ -408,7 +408,7 @@ class fpgaHandler:
 		
 	def plotReceivedData(self, time = 3, elementsToShow = None, elementsToRemove = None, **dimensions):
 		#receive a dataStream and print the values (or some of the values) received.
-		data = self.getDataStream(time, **dimensions)
+		data = self.getDataStream(time, **dimensions)[0]
 		plt.figure()
 		x=data["times"]
 		if(elementsToShow is None):
@@ -444,6 +444,7 @@ class bioTweezerController(fpgaHandler):
 		dimLink.addDimension("FPGA_smallTimeRegister", "bit", bitSize = 19, isSigned = False)
 		dimLink.addDimension("FPGA_bf_cfg", bitSize = 1, isSigned = False)
 		dimLink.addDimension("FPGA_bf_transmissionCfg", bitSize = 2, isSigned = False)
+		dimLink.addDimension("FPGA_usedInputCfg", bitSize = 2, isSigned = False)
 		dimLink.addDimension("control_voltage", "V")
 		dimLink.addDimension("generator_input", "V")
 		dimLink.addDimension("generator_current", "I")
@@ -512,8 +513,7 @@ class bioTweezerController(fpgaHandler):
 			"x_offset"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"y_offset"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"useToggleEnable"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
-			"disableY"						: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
-			"disableZ"						: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"usedInput"						: fpgaRegister(self.dimLink, "FPGA_usedInputCfg", "FPGA_usedInputCfg"),
 			"xDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
 			"yDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),			
 			"binFeedback_valueWhenIn_x1"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
@@ -600,7 +600,7 @@ class bioTweezerController(fpgaHandler):
 	
 	def calcStiffness(self, time = 3, temperature = 300, directions = ["x", "y"]):
 		#calculate the stiffness of the trap based on the variation on the bead position
-		dataFromFPGA = self.getDataStream(time)
+		dataFromFPGA = self.getDataStream(time)[0]
 		kBoltzman = 1.3806504e-23
 		stiffnesses = [0] * len(directions)
 		for i,direction in enumerate(directions):
@@ -618,7 +618,7 @@ class bioTweezerController(fpgaHandler):
 			SUM_offsetFor_z = (0, "FPGA_floatValue"),
 			SUM_offsetFor_div = (0, "FPGA_floatValue"),
 		)
-		z = - np.mean(self.getDataStream(time)["z"])
+		z = - np.mean(self.getDataStream(time)[0]["z"])
 		self.reset()
 		z = self.dimLink.convert(z, self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_signalRegister")
 		z = self.dimLink.convert(z, "FPGA_SUMsignalRegister", "QPD_output")
@@ -664,7 +664,7 @@ class bioTweezerController(fpgaHandler):
 				self.EnableConstantOutput(intensity)
 				
 				t.sleep(0.01)#wait for the system to stabilize
-				data = self.getDataStream(singleCalibrationTime)
+				data = self.getDataStream(singleCalibrationTime)[0]
 				
 				SUM[i] = - np.mean(data["z"])
 				SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
@@ -756,8 +756,6 @@ class bioTweezerController(fpgaHandler):
 						print(f"transmission is too slow for the toggling time! (taken {currentTime - (nextTime - toggleTime)} instead of {toggleTime})")
 					nextTime = currentTime
 			
-	def disable_yz_Dimensions(self, disableY, disableZ):
-		self.setParameters(disableY = disableY, disableZ = disableZ)
 	
 	def updateGeneratorBaseCurrent(self, newCurrent_Ampere):
 		self.currentGenerator_baseCurrent = float(newCurrent_Ampere)
@@ -768,7 +766,6 @@ if __name__ == "__main__":
 	q = bioTweezerController()
 	# print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
 	# q.initiateTweezers(useXYDIFF_offset = False, useSUM_offset = False)
-	# q.disable_yz_Dimensions(True, True)
 	
 	#q.EnableConstantOutput((0.0, "generator_input"))
 	

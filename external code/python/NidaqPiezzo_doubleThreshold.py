@@ -1688,6 +1688,7 @@ class NiFrame(Frame):
 				refreshFunction = self.refreshCheckboxFromFPGA
 			el.refreshValue = partial(refreshFunction, el)
 		elif valuesFromCsvFile["Parameter type"] == "option":
+			el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']}")
 			optionString = valuesFromCsvFile['Parameter measure unit']			
 			formatted_string = optionString.replace('; ', '","')
 			formatted_string = formatted_string.replace(';', '","')
@@ -1700,7 +1701,8 @@ class NiFrame(Frame):
 			el.menu.current(int(valuesFromCsvFile["Parameter value"]))
 			fakeEvent = SimpleNamespace(widget = el.menu, parent = el)
 			bindingFunction(fakeEvent)
-			el.menu.pack(side=BOTTOM)
+			el.label.pack(side=LEFT)
+			el.menu.pack(side=LEFT)
 			if refreshFunction is None:
 				refreshFunction = self.refreshComboboxFromFPGA
 			el.refreshValue = partial(refreshFunction, el.menu)

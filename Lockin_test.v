@@ -146,7 +146,7 @@ always @(posedge rx_xcvr_clk) begin
 		TimeBetweenTransmissions <= 'h3D090;//with the 50MHz clock, there's a transmission every 5.0ms;
 	end else begin
 		if(TimeBetweenTransmissions_updated)begin
-			TimeBetweenTransmissions <= TimeBetweenTransmissions_fromNetwork;
+			TimeBetweenTransmissions <= TimeBetweenTransmissions_fromNetwork ? TimeBetweenTransmissions_fromNetwork : 'h3D090;//let's be sure that we don't set the value to 0 when the network starts
 		end
 	end
 end
@@ -198,7 +198,7 @@ wire binFeedback_cfg;
 wire binFeedback_lastActiveDuration_dataValid, binFeedback_lastReachedThreshold;
 wire [1:0] binFeedback_transmissionCfg;
 wire [18:0] binFeedback_preAverageTime;
-wire disableY, disableZ;
+wire [1:0] usedInput;
 	/*How to add custom connections to the network module:
 	
 	reception: parameter setting
@@ -249,11 +249,11 @@ wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
 
 
-parameter nOfsmallRegisters = 19;
+parameter nOfsmallRegisters = 18;
 
-parameter smallRegisterStartIdxs = {32'hE6                     , 32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83  , 32'h82  , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hE6                     , 32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
-assign                             {binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, disableZ, disableY, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
+assign                             {binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
 wire [nOfsmallRegisters -1:0] smallRegisters_update_cmd;
 //assign {...} = smallRegisters_update_cmd;
@@ -264,7 +264,10 @@ wire DAC_running_50_fb; //feedback on the DAC running 125 to be sure the signal 
 wire [31:0] start_fifo_cmd_2_50, stop_dac_cmd_2_50;
 wire reset_DAC;
 wire slowData_rdreq, slowData_rdempty;
-wire [30:0] slowData_rddata;
+
+localparam slowDataLength = 28 + 2 + 1 + 1;//added an extra one bit to arrive to 32
+wire [slowDataLength -1:0] slowData_rddata;
+
 network_wrapper #(
 	.LOCKIN_NUMBER(LOCKIN_NUMBER),
 
@@ -276,7 +279,7 @@ network_wrapper #(
 
 	.fastDataFifoLength			(16),
 	.nOfFastDataFifos			(7),
-	.slowDataFifoLength			(31)
+	.slowDataFifoLength			(slowDataLength)
 ) network_wrapper_0 (
 	.clock_100					(clock_100),
 	.ref_clk_125				(REFCLK_125),
@@ -460,8 +463,7 @@ tweezerController#(
 	.binFeedback_preAverageTime              	(binFeedback_preAverageTime),
 	
 	
-	.disableY								(disableY),
-	.disableZ								(disableZ),
+	.used_inputs							(usedInput),
 	.ray									(ray)
 //	.leds									(LEDR[7:4])
 );
@@ -574,13 +576,13 @@ dataHandlerForTransmission #(
 // end
 // //__________________________________
 dataHandlerForSporadicData #(
-	.dataBitSize				(31),
+	.dataBitSize				(slowDataLength),
 	.fifoSize					(32)
 ) dhft_sporadicData (
 	.dataClk					(ADC_outclock_50),
 	.fifoReadClk				(rx_xcvr_clk),
 	.reset						(reset_50 | reset | SW[9]),
-	.in							({binFeedback_transmissionCfg, binFeedback_lastReachedThreshold, binFeedback_lastActiveDuration}),
+	.in							({1'b1,binFeedback_transmissionCfg, binFeedback_lastReachedThreshold, binFeedback_lastActiveDuration}),
 	.in_valid					(binFeedback_lastActiveDuration_dataValid),
 	.readRequest				(slowData_rdreq),
 	.dataRead					(slowData_rddata),
@@ -597,6 +599,14 @@ onOffDisplay ood(
 );
 assign HEX3 = 'hFF;
 
+blinker #(
+	.blinkClockCycles(10_000_000)
+) blinkForBinFeedbackTransition(
+	.clk			(ADC_outclock_50),
+	.enable			(binFeedback_lastActiveDuration_dataValid),
+	.reset			(reset_50),
+	.out			(LEDR[9])
+);
 
 assign LEDG[0] = pll_locked;
 assign LEDG[1] = reset_n;
