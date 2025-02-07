@@ -6,6 +6,7 @@ tmp-clearbox/
 output_files/*
 !output_files/Lockin_test.sof
 !output_files/output_file.cof
+!output_files/sof_to_jic.tcl
 greybox_tmp/
 reconfig_mif/
 *.bak

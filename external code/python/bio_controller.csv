@@ -19,8 +19,8 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 16,Bio Controller,Gain z,SUM_multiplierFor_z,float,0,none,FPGA_floatValue,general
 17,Bio Controller,x0,binFeedback_x0,float,0.01,none,FPGA_floatValue,wallFeedback
 18,Bio Controller,x1,binFeedback_x1,float,0.4,none,FPGA_floatValue,wallFeedback
-19,Bio Controller,value after passing for x0,binFeedback_valueWhenIn_x0,float,150e-3,ampere,generator_current,wallFeedback
-20,Bio Controller,value after passing for x1,binFeedback_valueWhenIn_x1,float,250e-3,ampere,generator_current,wallFeedback
+19,Bio Controller,output after x0,binFeedback_valueWhenIn_x0,float,150e-3,ampere,generator_current,wallFeedback
+20,Bio Controller,output after x1,binFeedback_valueWhenIn_x1,float,250e-3,ampere,generator_current,wallFeedback
 21,Bio Controller,reset config,binFeedback_cfg,option,1,[use timer; use x1],FPGA_bf_cfg,wallFeedback
 22,Bio Controller,max active time,binFeedback_maxTimeOn_x0,float,0,s,time,wallFeedback
 23,Bio Controller,pre-average time,binFeedback_preAverageTime,float,2e-8,s,time,wallFeedback

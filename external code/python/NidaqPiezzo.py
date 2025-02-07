@@ -34,6 +34,7 @@ try:
 	from bioTweezerController import bioTweezerController
 except:
 	print('Could not import bio controller library')
+import ast
 	
 
 class ProtocolNode:
@@ -351,6 +352,8 @@ class NiFrame(Frame):
 			self.bio_reset_button.grid(row=1,column=0)
 			self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
 			self.bio_calibrate_button.grid(row=1,column=1)
+			self.bio_test_button = Button(self.bio_frame, text="Test Acquisition",command=self.plotBioControllerReception)
+			self.bio_test_button.grid(row=1,column=2)
 
 			self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
 			self.bio_set_const_out_button.grid(row=self.bio_UI_frames["general"]["row"]+1,column=0)
@@ -703,7 +706,7 @@ class NiFrame(Frame):
 			self.protocol_start_button_text_var.set('Start wave')
 			self.reset_tasks()
 			if self.bio_controller:
-				self.bio_buffer = self.bio_controller.stopDataStream()
+				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 			self.update_from_ao_sliders()
 		
 		self.event_generate("<<AiReadEventMain>>")
@@ -903,7 +906,7 @@ class NiFrame(Frame):
 			#    self.ai_line_handles.append(obj[0])
 
 		self.fig.canvas.draw()
-
+		
 	def start_button_cb(self:Self):	
 		if self.protocol_start_button_text_var.get() == 'Start wave':
 			#self.stop_tasks()
@@ -916,23 +919,23 @@ class NiFrame(Frame):
 				k = 4.0
 		
 			self.ai_chunk_size = int(self.data_rate / k)
+			if self.nidaq_status != 'no board':
+				self._ai_task.in_stream.input_buf_size = 4 * self.ai_chunk_size
 
-			self._ai_task.in_stream.input_buf_size = 4 * self.ai_chunk_size
+				if (self.output_protocol is None) or (len(self.output_protocol) < 1):
+					buf = self.compute_ao_buffer_from_wave_parameters()
+				else:
+					print(f'Computing output buffer from protocol')
+					buf = self.compute_ao_buffer_from_protocol()
 
-			if (self.output_protocol is None) or (len(self.output_protocol) < 1):
-				buf = self.compute_ao_buffer_from_wave_parameters()
-			else:
-				print(f'Computing output buffer from protocol')
-				buf = self.compute_ao_buffer_from_protocol()
+				self.ao_plot(buf)
+				self.ao_buffer = buf
 
-			self.ao_plot(buf)
-			self.ao_buffer = buf
-
-			#print(self.data_rate)
-			self.configure_tasks_timing_continous_ai_master_ao_slave()
-			#self.configure_tasks_timing_continous_ao_ai_separate()
-			self.attach_stream_writers()
-			self.attach_stream_readers()
+				#print(self.data_rate)
+				self.configure_tasks_timing_continous_ai_master_ao_slave()
+				#self.configure_tasks_timing_continous_ao_ai_separate()
+				self.attach_stream_writers()
+				self.attach_stream_readers()
 
 			if self.bio_controller:
 				self.storeConfigurations()
@@ -947,7 +950,7 @@ class NiFrame(Frame):
 			self.update_from_ao_sliders()
 
 			if self.bio_controller:
-				self.bio_buffer = self.bio_controller.stopDataStream()
+				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 
 	def plot_bio_buffer(self:Self):
 		buf = self.bio_buffer
@@ -974,6 +977,7 @@ class NiFrame(Frame):
 		name, extension = fname.rsplit('.', 1)
 		confName = f"{name}_conf.{extension}"
 		bioControllerName = f"{name}_bioControllerAcquisition.{extension}"
+		bioCrossTimingsName = f"{name}_bioControllerTimings.{extension}"
 
 		folder_name = self.autosaveFolder.get()
 
@@ -990,9 +994,12 @@ class NiFrame(Frame):
 
 		#save data from bio controller
 		if hasattr(self, "bio_buffer") and self.bio_buffer is not None:
-			data = self.bio_buffer
-			
+			data = self.bio_buffer			
 			self._saveCsv(data, folder_name, bioControllerName)
+		#save cross timings from bio controller
+		if hasattr(self, "crossTimings") and self.crossTimings is not None:
+			data = self.crossTimings			
+			self._saveCsv(data, folder_name, bioCrossTimingsName)
 
 
 		self.advance_autosave_file_name()
@@ -1550,15 +1557,18 @@ class NiFrame(Frame):
 		parent = entry.nametowidget(entry.winfo_parent())
 		entry.delete(0, END)
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
-		
-		if isinstance(entry.get(), DoubleVar):
-			entry.insert(0, f"{readvalue:.3e}")
+		if parent.numberType == "float":
+			entry.insert(0, f"{readvalue:.2e}")
 		else:
 			entry.insert(0, f"{readvalue}")
 
 	def refreshCheckboxFromFPGA(self, parent):
 		parent.var.set(self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit)))
-		
+	
+	def refreshComboboxFromFPGA(self, entry):
+		parent = entry.nametowidget(entry.winfo_parent())
+		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
+		entry.current(readvalue)
 
 	def updateBioControllerParameterFromEntry(self, event):
 		entry = event.widget
@@ -1570,6 +1580,12 @@ class NiFrame(Frame):
 	def updateBioControllerParameterFromCheckbox(self, parent):
 		self.bio_controller.setParameters(**{parent.internalName : parent.var.get()})
 		
+	def updateBioControllerParameterFromCombobox(self, event):
+		entry = event.widget
+		parent = entry.nametowidget(entry.winfo_parent())
+		print(parent.internalName , entry.current(),parent.internalUnit)
+		self.bio_controller.setParameters(**{parent.internalName : entry.current()})
+
 	def calibrateBioController(self):
 		#depending on if we want to use all the offsets or not, do different calibrations
 		useXdiff = self.bio_calib_enableXdiff_entry.var.get() == 1
@@ -1600,6 +1616,21 @@ class NiFrame(Frame):
 
 		#after calibration, refresh the tab, to see the new offset values
 		self.bio_notebook.event_generate('<<NotebookTabChanged>>')
+	def plotBioControllerReception(self, time = 1):
+		#plot the data received from the bio controller for a certain amount of time
+		#this is useful to see if the data is coming in correctly
+		self.bio_controller.initializeTweezers_noCalibration()
+		data, slowData = self.bio_controller.getDataStream(time=time, x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue", **{"x^2" : "FPGA_floatValue", "y^2" : "FPGA_floatValue", "z^2" : "FPGA_floatValue"})
+		#plot the data
+		fig, ax = plt.subplots(1,1)
+		for key in data.keys():
+			if(key != "times"):
+				ax.plot(data["times"], data[key], label=key)
+		ax.plot(slowData["startTimes"], [i/50e6 for i in slowData["timing"]], 'o', label = "slow data")
+		plt.legend()
+		plt.show()
+		#stop the data stream
+		self.bio_controller.stopDataStream()
 
 	def createUIElement(self, root, valuesFromCsvFile, bindingFunction = None, refreshFunction = None):
 		#create a basic entry or checkButton for the property extracted from a CSV file. This function returns a frame
@@ -1625,8 +1656,10 @@ class NiFrame(Frame):
 				el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']}")
 			if(valuesFromCsvFile["Parameter type"] == "float"):
 				el.entry = Entry(el, textvariable=DoubleVar(value=valuesFromCsvFile["Parameter value"]))
+				el.numberType = "float"
 			else:
 				el.entry = Entry(el, textvariable=IntVar(value=int(valuesFromCsvFile["Parameter value"])))
+				el.numberType = "int"
 			el.get = el.entry.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromEntry
@@ -1655,6 +1688,28 @@ class NiFrame(Frame):
 			if refreshFunction is None:
 				refreshFunction = self.refreshCheckboxFromFPGA
 			el.refreshValue = partial(refreshFunction, el)
+		elif valuesFromCsvFile["Parameter type"] == "option":
+			el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']}")
+			optionString = valuesFromCsvFile['Parameter measure unit']			
+			formatted_string = optionString.replace('; ', '","')
+			formatted_string = formatted_string.replace(';', '","')
+			formatted_string = formatted_string.replace('[', '["')
+			formatted_string = formatted_string.replace(']', '"]')
+			el.menu = ttk.Combobox(el, values = ast.literal_eval(formatted_string))
+			if bindingFunction is None:
+				bindingFunction = self.updateBioControllerParameterFromCombobox
+			el.menu.bind("<<ComboboxSelected>>", bindingFunction)
+			el.menu.current(int(valuesFromCsvFile["Parameter value"]))
+			fakeEvent = SimpleNamespace(widget = el.menu, parent = el)
+			bindingFunction(fakeEvent)
+			el.label.pack(side=LEFT)
+			el.menu.pack(side=LEFT)
+			if refreshFunction is None:
+				refreshFunction = self.refreshComboboxFromFPGA
+			el.refreshValue = partial(refreshFunction, el.menu)
+			el.get = el.menu.current
+			
+			
 		return el              
 
 
