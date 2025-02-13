@@ -304,7 +304,7 @@ class fpgaHandler:
 						self.addValueToSlowData(slowData, currentTime, val)
 			return fastData, slowData
 		
-	def startDataStream(self, maxTime = 70, updateFunction = None, **dimensions):
+	def startDataStream(self, maxTime = 70, updateFunction = None, dataStreamPeriod = None, **dimensions):
 		#start a thread dedicated to reading the datastream from the FPGA. It works
 			#similarly to getDataStream, but it is not a blocking procedure, and you
 			#don't have to specify the duration of the reading.Remember  that you're
@@ -312,9 +312,12 @@ class fpgaHandler:
 			#stopDataStream, which also returns the read data.
 			#you can execute a function at every reception of data (example, to update a
 			#scatter plot in real time)
+		if dataStreamPeriod is None:
+			#default value
+			dataStreamPeriod = 0x40000 / self.fpga_controller_clock
 		sock = setupReception(self.self_ip, self.dataPort)
 		try:
-			self.dataStreamThread = Thread(target=self._dataStreamThreadRun, args=(sock,maxTime, updateFunction),kwargs= dimensions)
+			self.dataStreamThread = Thread(target=self._dataStreamThreadRun, args=(sock,dataStreamPeriod,maxTime,updateFunction),kwargs= dimensions)
 			self.dataStreamRunning = True
 			self.dataStreamBuffer = {}
 			self.slowData = {}
@@ -326,20 +329,20 @@ class fpgaHandler:
 				pass
 	#FPGA controller clock
 	fpga_controller_clock = 50e6																							#	Hz
-	fpga_controller_streamPeriod = 0x40000 / fpga_controller_clock															#	s
-	def _dataStreamThreadRun(self, sock, maxTime = 70, updateFunction = None, useFixedTimings = True, **dimensions):
+	def _dataStreamThreadRun(self, sock, dataStreamPeriod, maxTime = 70, updateFunction = None, useFixedTimings = True, **dimensions):
 		try:
 			for name in self.dataValuesFromFPGA.keys():
 				self.dataStreamBuffer[name] = []
 
 			self.dataStreamBuffer["times"] = []
 			self.slowData, slowWordSize = self.getSlowDataDictionaryAndSize()
-			startTime = t.time()
-			maxendTime = startTime + maxTime
+			absoluteTime = t.time()
+			startTime = 0
+			maxendTime = absoluteTime + maxTime
 			while self.dataStreamRunning:
 				received, address = sock.recvfrom(2048)
 				
-				currentTime = t.time()#we'll add it to fastData["times"] only if we received some fast data
+				currentTime = t.time() - absoluteTime#we'll add it to fastData["times"] only if we received some fast data
 				#received[0] tells if fast/slow data is present, and how many slow words are present
 				isThereFastData = received[0] & 0x1
 				isThereSlowData = received[0] & 0x2
@@ -348,7 +351,7 @@ class fpgaHandler:
 				if(isThereFastData):
 					if useFixedTimings:
 						self.dataStreamBuffer["times"].append(startTime)
-						startTime += self.fpga_controller_streamPeriod
+						startTime += dataStreamPeriod
 					else:
 						self.dataStreamBuffer["times"].append(currentTime)
 					for name, register in self.dataValuesFromFPGA.items():

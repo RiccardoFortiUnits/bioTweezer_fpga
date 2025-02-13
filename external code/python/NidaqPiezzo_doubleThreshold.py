@@ -2,6 +2,18 @@ from tkinter import *
 from tkinter import filedialog, ttk
 import matplotlib.lines
 import matplotlib.pyplot as plt
+
+# def install_and_import(package):
+# 	import subprocess
+# 	import sys
+# 	try:
+# 		__import__(package)
+# 	except ImportError:
+# 		try:
+# 			subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+# 		except:
+# 			subprocess.check_call([sys.executable, "-m", "pip", "install", f"py{package}"])
+# 		__import__(package)
 try:
 	import nidaqmx
 	from nidaqmx.constants import (
@@ -149,13 +161,14 @@ class NiFrame(Frame):
 		try:
 			self.bio_controller = self.init_bioTweezerController()
 		except:
+			self.bio_controller = None
 			self.status = 'no bio controller'
 
 		self.init_ni_data()
 		self.init_widgets()
 
 		
-		if self.status != 'no board':
+		if self.dev is not None:
 			self.bind("<<AiReadEventMain>>", self.aiReadEventInGuiThread)
 			tb = np.zeros((2,1), dtype=np.float64)
 			tb[:,0] = self.ao_buffer[:,0]
@@ -165,7 +178,7 @@ class NiFrame(Frame):
 			#hide unusefull widgets
 			self.ao_frame.pack_forget()
 
-		if self.status != 'no bio controller':
+		if self.bio_controller is not None:
 			pass
 
 
@@ -187,7 +200,7 @@ class NiFrame(Frame):
 
 		self.task_status = 'none'
 
-		if self.status != 'no board':
+		if self.dev is not None:
 			self.reset_tasks()
 		else:
 			self.ao_buffer = np.zeros((self._ao_n_channels, self.ao_chunk_size), dtype=np.float64)
@@ -285,7 +298,7 @@ class NiFrame(Frame):
 		
 		self.ao_frame.pack(expand=True, fill='both', side='left')
 
-		if self.status != 'no bio controller':
+		if self.bio_controller is not None:
 
 			self.bio_frame = LabelFrame(self.ao_bio_frame, text="Bio controller")
 			self.bio_notebook = ttk.Notebook(self.bio_frame)
@@ -535,7 +548,8 @@ class NiFrame(Frame):
 		self.ao_buffer[:,1] = self.ao_desired_values[1].get() / 2.0
 
 	def update_from_ao_sliders(self:Self):
-		
+		if self.dev is None:
+			return
 		self.ao_buffer[0,:] = self.ao_desired_values[0].get() / 2.0
 		self.ao_buffer[1,:] = self.ao_desired_values[1].get() / 2.0
 
@@ -551,10 +565,9 @@ class NiFrame(Frame):
 		return task
 	
 	def add_ao_channels(self:Self, n:int):
-		if self._ao_task is None:
+		if self._ao_task is None or self.dev is None:
 			self.status = 'ao task is none'
-			return
-		
+			return		
 		
 		self.ao_buffer = np.zeros((self._ao_n_channels, self.ao_chunk_size), dtype=np.float64)
 
@@ -565,7 +578,7 @@ class NiFrame(Frame):
 		return task
 	
 	def add_ai_channels(self:Self, n:int):
-		if self._ai_task is None:
+		if self._ai_task is None or self.dev is None:
 			self.status = 'ao task is none'
 			return
 		
@@ -576,8 +589,6 @@ class NiFrame(Frame):
 		
 
 	def cleanup(self:Self):
-			if self.status == 'no board':
-				return
 
 			if self._ao_task is not None:
 				self._ao_task.stop()
@@ -588,6 +599,8 @@ class NiFrame(Frame):
 				self._ai_task.stop()
 				self._ai_task.close()
 				self._ai_task = None
+			if self.dev is None:
+				return
 			
 			local_system = nidaqmx.system.System.local()
 			for device in local_system.devices:
@@ -758,7 +771,7 @@ class NiFrame(Frame):
 		#pass
 
 	def start_tasks(self:Self):
-		if self._ao_task is not None:
+		if self._ao_task is not None and self._ao_streams is not None:
 			self.ao_written_samples = int(self.ao_chunk_size)
 			self.ai_buffer_times = None
 			self.ai_line_handles = None
@@ -806,9 +819,6 @@ class NiFrame(Frame):
 
 		self._ao_task = self.create_ao_task("AOTask")
 		self._ai_task = self.create_ai_task('AITask')
-
-		
-		
 
 		self.ao_chunk_size = int(self.data_rate / 2.0)
 
@@ -919,7 +929,7 @@ class NiFrame(Frame):
 				k = 4.0
 		
 			self.ai_chunk_size = int(self.data_rate / k)
-			if self.nidaq_status != 'no board':
+			if self.dev is not None:
 				self._ai_task.in_stream.input_buf_size = 4 * self.ai_chunk_size
 
 				if (self.output_protocol is None) or (len(self.output_protocol) < 1):
@@ -939,7 +949,10 @@ class NiFrame(Frame):
 
 			if self.bio_controller:
 				self.storeConfigurations()
-				self.bio_controller.startDataStream(x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue", **{"x^2" : "FPGA_floatValue", "y^2" : "FPGA_floatValue", "z^2" : "FPGA_floatValue"})
+				self.bio_controller.startDataStream(x = "FPGA_floatValue", y = "FPGA_floatValue", z = "FPGA_floatValue", 
+										dataStreamPeriod = self.bio_controller.readBackParameter("transmissionTime"),
+										maxTime = self.wdg_wave_time_entry_var.get() + 1,
+										**{"x^2" : "FPGA_floatValue", "y^2" : "FPGA_floatValue", "z^2" : "FPGA_floatValue"})
 
 			self.start_tasks()
 
@@ -977,6 +990,7 @@ class NiFrame(Frame):
 		name, extension = fname.rsplit('.', 1)
 		confName = f"{name}_conf.{extension}"
 		bioControllerName = f"{name}_bioControllerAcquisition.{extension}"
+		bioCrossTimingsName = f"{name}_bioControllerTimings.{extension}"
 
 		folder_name = self.autosaveFolder.get()
 
@@ -998,8 +1012,7 @@ class NiFrame(Frame):
 		#save cross timings from bio controller
 		if hasattr(self, "crossTimings") and self.crossTimings is not None:
 			data = self.crossTimings			
-			self._saveCsv(data, folder_name, bioControllerName)
-
+			self._saveCsv(data, folder_name, bioCrossTimingsName)
 
 		self.advance_autosave_file_name()
 
@@ -1442,12 +1455,19 @@ class NiFrame(Frame):
 		buf = pf.to_numpy(dtype=np.float64)
 		(pts, self._ai_n_channels) = buf.shape
 		self._ai_n_channels -= 1
-		t = buf[:,0]
+		
+		# Set the first column as the index (times)
+		if "time" in str.lower(pf.columns[-1]):
+			t = buf[:,-1]
+			buf = buf[:,:-1]
+		else:
+			t = buf[:,0]
+			buf = buf[:,1:]
 
 		self.data_rate = int(1.0/np.mean(np.diff(t)))
 		self.data_rate_entry_var.set(self.data_rate)
 
-		self.ai_buffer = np.transpose(buf[:, 1:])
+		self.ai_buffer = np.transpose(buf)
 		self.ai_buffer_times = self.data_rate * t
 
 		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer))
@@ -1522,7 +1542,7 @@ class NiFrame(Frame):
 			plt.show()
 		
 	def bio_setpoint_entry_callback(self:Self, event=None):
-		if self.status != 'no bio controller':
+		if self.bio_controller is not None:
 			sp = self.bio_setpoint_var.get()
 			print(f'Setting setpoint {sp} to bio controller!')
 			self.bio_controller.setParameters(setpoint=sp)
@@ -1706,6 +1726,7 @@ class NiFrame(Frame):
 			if refreshFunction is None:
 				refreshFunction = self.refreshComboboxFromFPGA
 			el.refreshValue = partial(refreshFunction, el.menu)
+			el.get = el.menu.current
 			
 			
 			
