@@ -2,18 +2,6 @@ from tkinter import *
 from tkinter import filedialog, ttk
 import matplotlib.lines
 import matplotlib.pyplot as plt
-
-# def install_and_import(package):
-# 	import subprocess
-# 	import sys
-# 	try:
-# 		__import__(package)
-# 	except ImportError:
-# 		try:
-# 			subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-# 		except:
-# 			subprocess.check_call([sys.executable, "-m", "pip", "install", f"py{package}"])
-# 		__import__(package)
 try:
 	import nidaqmx
 	from nidaqmx.constants import (
@@ -31,6 +19,8 @@ import time
 from datetime import datetime
 from typing import List, Tuple, Self
 #from typing_extensions import Self
+import numba
+from numba import jit, njit
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -129,6 +119,44 @@ class ProtocolNode:
 
 		return buf
 
+@njit(numba.types.Tuple((numba.types.float64[:,:], numba.types.float64[:], numba.types.float64[:], numba.types.float64[:]))(numba.types.float64[:,:], numba.types.float64[:,:], numba.types.int32, numba.types.float64[:], numba.types.int32, numba.types.float64))
+def add_ai_read_data(buf:np.ndarray, sample_buf:np.ndarray, samples_before:int, time_buf:np.ndarray, new_samples:int, last_time:float):
+	#mn = buf.min(axis=1)
+	#numba lacks support for axis keyword
+	pts = buf.shape[1]
+	chans = buf.shape[0]
+	mn = np.zeros((chans,), dtype=buf.dtype)
+	mx = mn.copy()
+
+	for i in np.arange(chans):
+		mn[i] = np.min(buf[i,:])
+		mx[i] = np.max(buf[i,:])
+
+	if samples_before > 0:
+		out_buf = np.concatenate((sample_buf, buf), axis=1)
+		current_times = np.arange(1.0, new_samples+1.0,1.0)
+		current_times += last_time
+		out_times = np.concatenate((time_buf,  current_times))
+	else:
+		out_buf = buf
+		out_times = np.arange(0.0, new_samples, 1.0)
+
+	return(out_buf, out_times, mn, mx)
+
+#@njit(numba.types.Tuple((numba.types.float64, numba.types.float64))(numba.types.float64[:,:]))
+def numba_min_max_axis1(buf:np.ndarray):
+	(h,w) = buf.shape
+	mn = buf[0,0]
+	mx = buf[0,0]
+	for i in np.arange(h):
+		for j in np.arange(w):
+			if mn > buf[i,j]:
+				mn = buf[i,j]
+
+			if mx < buf[i,j]:
+				mx = buf[i,j]
+	
+	return (mn, mx)
 
 class NiFrame(Frame):
 	def __init__(self:Self, parent, dev='Dev2'):
@@ -141,6 +169,7 @@ class NiFrame(Frame):
 		self._ai_task = None
 		self._ao_streams = None
 		self._ai_streams = None
+		self.ai_temp_buf = np.zeros((1,1))
 		self.protocol_save_last_folder = None
 		self.ni_start_acquisition_time = None
 		self.ni_acquisition_time_offset = 0.0 # in seconds
@@ -181,6 +210,8 @@ class NiFrame(Frame):
 		if self.bio_controller is not None:
 			pass
 
+		#self.jit_prepare_ai_data = njit(add_ai_read_data)
+
 
 	def init_ni_data(self:Self):
 
@@ -193,6 +224,7 @@ class NiFrame(Frame):
 		
 		self._ao_n_channels = 2 #we'll be using 2 channels
 		self._ai_n_channels = 7
+		self.ai_hide = [False] * self._ai_n_channels
 		self.ai_buffer = None
 		self.ai_buffer_times = None
 		self.ai_buffer_min = np.zeros((self._ai_n_channels, 1), dtype=np.float64) + 100.0
@@ -214,7 +246,7 @@ class NiFrame(Frame):
 		
 	def init_bioTweezerController(self:Self):
 		q = bioTweezerController()
-
+		self.bio_hide = [False] * 3
 		return q
 
 	def init_widgets(self:Self):
@@ -223,7 +255,13 @@ class NiFrame(Frame):
 
 		self.ao_bio_frame = LabelFrame(self, text='Controls')
 
-		self.ao_frame = LabelFrame(self.ao_bio_frame, text='Analog out')
+		self.ao_plus_plotSelectors_notebook = ttk.Notebook(self.ao_bio_frame)
+		self.ao_frame = ttk.Frame(self.ao_plus_plotSelectors_notebook)		
+		self.ao_plus_plotSelectors_notebook.add(self.ao_frame, text='Analog out')
+
+		self.plotSelectors_frame = ttk.Frame(self.ao_plus_plotSelectors_notebook)		
+		self.ao_plus_plotSelectors_notebook.add(self.plotSelectors_frame, text='signals to show')
+		self.addPlotSelectors()
 		self.ao_channel_number_label = list()
 		self.ao_value_edit = list()
 		self.ao_sliders = list()
@@ -295,8 +333,9 @@ class NiFrame(Frame):
 
 			fr.pack(expand=True, fill='x')
 
+
 		
-		self.ao_frame.pack(expand=True, fill='both', side='left')
+		self.ao_plus_plotSelectors_notebook.pack(expand=True, fill='both', side='left')
 
 		if self.bio_controller is not None:
 
@@ -345,8 +384,10 @@ class NiFrame(Frame):
 			self.bio_notebook.add(self.bio_calib_frame, text='calibration')
 			
 			bioControllerCalibrationSettings = self.getBaseSettingsFromFile(device = "Bio Controller Calibration", returnType=dict)
+			self.bio_calib_calibrateOnRecordingStart_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["calibrateOnRecordingStart"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+			self.bio_calib_calibrateOnRecordingStart_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
 			self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-			self.bio_calib_sampleTime_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
+			self.bio_calib_sampleTime_entry.pack()
 			self.bio_calib_nOfSamples_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["nOfSamples"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
 			self.bio_calib_nOfSamples_entry.pack()
 			self.bio_calib_baseCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["baseCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
@@ -540,9 +581,9 @@ class NiFrame(Frame):
 		self.custom_canvas = FigureCanvasTkAgg(self.fig, master=self.ai_frame)
 		self.custom_canvas.get_tk_widget().pack(fill='both', expand=True)
 		self.plot_nav = NavigationToolbar2Tk(self.custom_canvas, self, pack_toolbar=False)
-		# self.plot_nav.update()
-		# self.plot_nav.pack(side='bottom')
-		# self.ai_frame.pack(expand=True, fill='both', side='bottom')
+		self.plot_nav.update()
+		self.plot_nav.pack(side='bottom')
+		self.ai_frame.pack(expand=True, fill='both', side='bottom')
 
 		self.ao_buffer[:,0] = self.ao_desired_values[0].get() / 2.0
 		self.ao_buffer[:,1] = self.ao_desired_values[1].get() / 2.0
@@ -586,6 +627,16 @@ class NiFrame(Frame):
 
 		return self._ai_task.ai_channels.add_ai_voltage_chan(f'{self.dev}/ai0:{n-1}', 
 					terminal_config=nidaqmx.constants.TerminalConfiguration.DIFF, min_val=-10.0, max_val=10.0)
+	
+	def add_ai_current_channels(self:Self, n:int):
+		if self._ai_task is None:
+			self.status = 'ao task is none'
+			return
+		
+		#self.ai_buffer = np.zeros((self._ai_n_channels, self.ai_chunk_size), dtype=np.float64)
+
+		return self._ai_task.ai_channels.add_ai_current_chan(f'{self.dev}/ai0:{n-1}', 
+					terminal_config=nidaqmx.constants.TerminalConfiguration.DIFF, min_val=-0.01, max_val=0.01)
 		
 
 	def cleanup(self:Self):
@@ -674,45 +725,82 @@ class NiFrame(Frame):
 		self._ai_task.register_every_n_samples_acquired_into_buffer_event(self.ai_chunk_size, None)
 		self._ao_task.register_every_n_samples_transferred_from_buffer_event(self.ao_chunk_size, None)
 
+	#def process_ai_read_data(self:Self, )
+
 	def ai_read_event(self:Self, task_idx, event_type, num_samples, callback_data):
 		#print (f'aiReadEvent on task {task_idx} with {num_samples} samples')
+
+		
 
 		if num_samples != self.ai_chunk_size:
 			print(f'ai_read_event expected {self.ai_chunk_size} samples, recieved {num_samples}')
 			return
 
-		buf = np.zeros((self._ai_n_channels, num_samples), dtype=np.float64)
-		read_samples = self._ai_streams.read_many_sample(buf, num_samples)
+		(tchan, tpts) = self.ai_temp_buf.shape
+		if tpts != num_samples:
+			self.ai_temp_buf = np.zeros((self._ai_n_channels, num_samples), dtype=np.float64)
+		#buf = np.zeros((self._ai_n_channels, num_samples), dtype=np.float64)
+		read_samples = self._ai_streams.read_many_sample(self.ai_temp_buf, num_samples)
 
-		
+		t1 = time.perf_counter()
 		if read_samples != num_samples:
 			print(f'Error reading samples: to read {num_samples}, actually read {read_samples}')
+			return 1
 
-		#print(self.ai_buffer.shape)
-		#print(buf.shape)
+
+		#print(f'{self.ai_buffer}, {self.ai_buffer_times}, available samples {self.ai_read_samples}, time_buf {self.ai_buffer_times}')
+		#trying to use numba to speed up processing
+		
+		(mn, mx) = numba_min_max_axis1(self.ai_temp_buf)
+
+		#mn = buf.min(axis=1)
+		#mx = buf.max(axis=1)
+
 		if self.ai_read_samples > 0:
-			self.ai_buffer = np.concatenate((self.ai_buffer, buf), axis=1)
-			self.ai_buffer_times = np.concatenate((self.ai_buffer_times, 
-												self.ai_buffer_times[-1] + np.arange(1.0, read_samples+1,1.0)))# / self.data_rate))
+			self.ai_buffer = np.concatenate((self.ai_buffer, self.ai_temp_buf), axis=1)
+			#np.concatenate((self.ai_buffer, buf), axis=1, out=self.ai_buffer)
+			self.ai_buffer_times = np.concatenate((self.ai_buffer_times, self.ai_buffer_times[-1] + np.arange(1.0, read_samples+1,1.0)))# / self.data_rate))
+			#np.concatenate((self.ai_buffer_times, self.ai_buffer_times[-1] + np.arange(1.0, read_samples+1,1.0)), out=self.ai_buffer_times)
 		else:
-			t = time.perf_counter() #+ read_samples / self.data_rate
-			self.ni_acquisition_time_offset = t-self.ni_start_acquisition_time
-			self.ai_buffer = buf
+			self.ai_buffer = self.ai_temp_buf.copy()
 			self.ai_buffer_times = np.arange(0.0, read_samples, 1.0)# / self.data_rate
+		
+
+		if self.ai_read_samples == 0:
+			t = time.perf_counter() - read_samples / self.data_rate
+			self.ni_acquisition_time_offset = t
+			last_read_time = 0.0
+			#self.ai_buffer_times = np.zeros((1,))
+		else:
+			last_read_time = self.ai_buffer_times[-1]
+
+		
+		
+		#(self.ai_buffer, self.ai_buffer_times, mn, mx) = add_ai_read_data(buf, self.ai_buffer, self.ai_read_samples, self.ai_buffer_times, read_samples, last_read_time)
+		
+		
 
 		self.ai_read_samples += read_samples
-
-		mn = buf.min(axis=1)
-		mx = buf.max(axis=1)
 
 		stop = time.perf_counter()
 		#print(f"Read event after {(stop-self.start_time) * 1000} msec, read {self.ai_read_samples} samples")
 		self.start_time = stop
 
 		#print(mx)
+		
 
-		self.ai_buffer_max = np.maximum(self.ai_buffer_max, mx)
-		self.ai_buffer_min = np.minimum(self.ai_buffer_min, mn)
+		#print(f'({mn}, {mx})')
+
+		if self.ai_buffer_min > mn:
+			self.ai_buffer_min = mn
+
+		if self.ai_buffer_max < mx:
+			self.ai_buffer_max = mx
+
+		#print(f'global ({self.ai_buffer_min}, {self.ai_buffer_max})')
+
+		#self.ai_buffer_max = np.maximum(self.ai_buffer_max, mx.max())
+		#self.ai_buffer_min = np.minimum(self.ai_buffer_min, mn.min())
 
 		if self.ai_read_samples >= self.ao_buffer.shape[1]:
 			print('read finished, resetting task')
@@ -722,9 +810,12 @@ class NiFrame(Frame):
 				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 			self.update_from_ao_sliders()
 		
+		t3 = time.perf_counter()
+
 		self.event_generate("<<AiReadEventMain>>")
 		
-
+		t2 = time.perf_counter()
+		#print(f"process read data time: {(t2-stop) * 1000} msec")
 		#must get out of Nidaq callback as soon as possible.
 		#all gui updates are done in the event callback aiReadEventInGuiThread
 
@@ -777,8 +868,8 @@ class NiFrame(Frame):
 			self.ai_line_handles = None
 			self.ai_buffer = np.zeros((self._ai_n_channels, self.ai_chunk_size), dtype=np.float64)
 			self.ai_read_samples = 0
-			self.ai_buffer_min = np.zeros((self._ai_n_channels, 1), dtype=np.float64) + 100.0
-			self.ai_buffer_max = np.zeros((self._ai_n_channels, 1), dtype=np.float64) - 100.0
+			self.ai_buffer_min = 10.0
+			self.ai_buffer_max = -10.0
 			#print(f'ao_written_smples is {self.ao_written_samples}')
 			self.ao_written_samples = self._ao_streams.write_many_sample(np.ascontiguousarray(self.ao_buffer[:, :self.ao_written_samples]))
 			
@@ -787,8 +878,8 @@ class NiFrame(Frame):
 			
 			self._ao_task.start()
 			self._ai_task.start()
-			self.start_time = time.perf_counter()
-			self.ni_start_acquisition_time = self.start_time
+			# self.start_time = time.perf_counter()
+			# self.ni_start_acquisition_time = self.start_time
 			
 			#self._ao_streams.write_many_sample(np.ascontiguousarray(self.ao_buffer[:, 
 			#                                     self.ao_written_samples : self.ao_written_samples + self.ao_chunk_size]))
@@ -852,13 +943,26 @@ class NiFrame(Frame):
 
 		self.fig.canvas.draw()
 
+	def hidePlots(self, ai_hide:List[bool] = None, bio_hide:List[bool] = None):
+		if ai_hide is None:
+			ai_hide = self.ai_hide
+		if self.ai_line_handles is not None:
+			for i in range(len(ai_hide)):
+				self.ai_line_handles[i].set_visible(not ai_hide[i])
+		if self.bio_controller is not None:
+			if bio_hide is None:
+				bio_hide = self.bio_hide
+			if self.bio_line_handles is not None:
+				for i in range(len(bio_hide)):
+					self.bio_line_handles[i].set_visible(not bio_hide[i])
+
 	def ai_plot(self:Self, x:np.ndarray, y:np.ndarray, mny:np.ndarray, mxy:np.ndarray):
 		#x = self.ai_buffer_times
-
+		x = x - x[0]
 		(chans, pts) = y.shape
 		if pts > 10000:
 			step = pts // 10000
-			x = x[::step]
+			x = x[::step] 
 			y = y[:, ::step]
 			#print(step)
 
@@ -898,7 +1002,8 @@ class NiFrame(Frame):
 					self.bio_line_handles[i].set_ydata(bio_y[:,i])
 
 			self.sub_plot.set_xlim(x[0], x[-1])
-			#self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
+			#self.sub_plot.set_ylim(mny, mxy)
+			#self.sub_plot.set_ylim(-10.0, 10.0)
 			#self.sub_plot.set_ylim(-0.5, 10.0)
 		else:
 			self.sub_plot.cla()
@@ -906,7 +1011,7 @@ class NiFrame(Frame):
 			self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
 			if t is not None:
 				self.bio_line_handles = self.sub_plot.plot(t, bio_y)
-
+				
 			self.sub_plot.set_xlim(x[0], x[-1])
 			#self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
 			self.sub_plot.set_ylim(-10.0, 10.0)
@@ -914,9 +1019,9 @@ class NiFrame(Frame):
 			#for i in range(self._ai_n_channels):
 			#    obj = self.sub_plot.plot(x, y[i,:])
 			#    self.ai_line_handles.append(obj[0])
-
+		self.hidePlots()
 		self.fig.canvas.draw()
-		
+
 	def start_button_cb(self:Self):	
 		if self.protocol_start_button_text_var.get() == 'Start wave':
 			#self.stop_tasks()
@@ -924,12 +1029,13 @@ class NiFrame(Frame):
 
 			self.data_rate = int(self.wdg_data_rate_entry.get())
 			self.reset_tasks()
-			k = 8.0
+			k = 4.0
 			if self.data_rate >= 5000.0:
-				k = 4.0
-		
-			self.ai_chunk_size = int(self.data_rate / k)
+				k = 2.0
+
 			if self.dev is not None:
+				self.ai_chunk_size = int(self.data_rate / k)
+
 				self._ai_task.in_stream.input_buf_size = 4 * self.ai_chunk_size
 
 				if (self.output_protocol is None) or (len(self.output_protocol) < 1):
@@ -953,7 +1059,6 @@ class NiFrame(Frame):
 										dataStreamPeriod = self.bio_controller.readBackParameter("transmissionTime"),
 										maxTime = self.wdg_wave_time_entry_var.get() + 1,
 										**{"x^2" : "FPGA_floatValue", "y^2" : "FPGA_floatValue", "z^2" : "FPGA_floatValue"})
-
 			self.start_tasks()
 
 			self.protocol_start_button_text_var.set('Stop')
@@ -1454,6 +1559,7 @@ class NiFrame(Frame):
 		pf = pd.read_csv(fname, sep='\t', lineterminator='\n')
 		buf = pf.to_numpy(dtype=np.float64)
 		(pts, self._ai_n_channels) = buf.shape
+		self.ai_hide = [False] * self._ai_n_channels
 		self._ai_n_channels -= 1
 		
 		# Set the first column as the index (times)
@@ -1613,6 +1719,7 @@ class NiFrame(Frame):
 		baseCurrent = float(self.bio_calib_baseCurrent_entry.get())
 		endCurrent = float(self.bio_calib_EndCurrent_entry.get())
 		nOfSamples = int(self.bio_calib_nOfSamples_entry.get())
+		currentActivity = self.bio_controller.mode
 		if useSum or useXdiff:
 			self.bio_controller.initiateTweezers(
 				singleCalibrationTime= sampleTime,
@@ -1628,13 +1735,13 @@ class NiFrame(Frame):
 		else:
 			self.bio_controller.initiateTweezers(
 				singleCalibrationTime=sampleTime,
-				usedLaserPowers=[baseCurrent],
+				usedLaserPowers=[(baseCurrent,"generator_current")],
 				useXYDIFF_offset=useXdiff,
 				useSUM_offset=useSum
 			)
-
 		#after calibration, refresh the tab, to see the new offset values
 		self.bio_notebook.event_generate('<<NotebookTabChanged>>')
+		self.bio_controller.setMode(currentActivity)
 	def plotBioControllerReception(self, time = 1):
 		#plot the data received from the bio controller for a certain amount of time
 		#this is useful to see if the data is coming in correctly
@@ -1730,7 +1837,29 @@ class NiFrame(Frame):
 			
 			
 			
-		return el              
+		return el
+	
+	def addPlotSelectors(self):
+		
+		signals = self.getBaseSettingsFromFile(device = "Signal Names", returnType=dict)
+		for i in range(self._ai_n_channels):
+			signal = signals[f"ai {i}"]
+			var = IntVar(value=signal["Parameter value"])
+			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,
+					   command = lambda i=i, var=var: self.ai_hide.__setitem__(i, var.get() == 0))
+			if var.get() == 1:
+				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
+			check.grid(column=0, row=i)
+
+		for i in range(3):
+			signal = signals[f"bio {i}"]
+			var = IntVar(value=signal["Parameter value"])
+			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,
+					   command = lambda i=i, var=var: self.bio_hide.__setitem__(i, var.get() == 0))
+			if var.get() == 1:
+				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
+			check.grid(column=1, row=i)
+	   
 
 
 if __name__ == '__main__':

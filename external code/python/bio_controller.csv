@@ -1,8 +1,8 @@
 Bio Controller version 1.0,,,,,,,,
 Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parameter value,Parameter measure unit,Parameter internal unit,UI position
-0,Bio Controller,transmission time,transmissionTime,float,5e-3,s,time,general
-1,Current Generator,Base current,currentGenerator_baseCurrent,float,200e-3,ampere,generator_current,general
-2,Bio Controller,Base level,outWhenPiDisabled,float,200e-3,ampere,generator_current,general
+0,Bio Controller,transmission time,transmissionTime,float,1e-2,s,time,general
+1,Current Generator,Base current,currentGenerator_baseCurrent,float,150e-3,ampere,generator_current,general
+2,Bio Controller,Base level,outWhenPiDisabled,float,150e-3,ampere,generator_current,general
 3,Bio Controller,used input,usedInput,option,0,[x; |x|; √x^2+y^2; √x^2+y^2+z^2],FPGA_usedInputCfg,general
 4,Bio Controller,Offset XDiff,xDiff_offset,float,0,volt,QPD_output,general
 5,Bio Controller,Offset YDiff,yDiff_offset,float,0,volt,QPD_output,general
@@ -18,16 +18,27 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 15,Bio Controller,Gain Sum,SUM_multiplierFor_div,float,0,none,FPGA_floatValue,general
 16,Bio Controller,Gain z,SUM_multiplierFor_z,float,0,none,FPGA_floatValue,general
 17,Bio Controller,x0,binFeedback_x0,float,0.01,none,FPGA_floatValue,wallFeedback
-18,Bio Controller,x1,binFeedback_x1,float,0.4,none,FPGA_floatValue,wallFeedback
+18,Bio Controller,x1,binFeedback_x1,float,0.0,none,FPGA_floatValue,wallFeedback
 19,Bio Controller,output after x0,binFeedback_valueWhenIn_x0,float,150e-3,ampere,generator_current,wallFeedback
-20,Bio Controller,output after x1,binFeedback_valueWhenIn_x1,float,250e-3,ampere,generator_current,wallFeedback
+20,Bio Controller,output after x1,binFeedback_valueWhenIn_x1,float,150e-3,ampere,generator_current,wallFeedback
 21,Bio Controller,reset config,binFeedback_cfg,option,1,[use timer; use x1],FPGA_bf_cfg,wallFeedback
 22,Bio Controller,max active time,binFeedback_maxTimeOn_x0,float,0,s,time,wallFeedback
-23,Bio Controller,pre-average time,binFeedback_preAverageTime,float,2e-8,s,time,wallFeedback
-24,Bio Controller,transmission config,binFeedback_transmissionCfg,option,0,[x0 to x1;x1 to x0;any transition;every cross],FPGA_bf_transmissionCfg,wallFeedback
+23,Bio Controller,pre-average time,binFeedback_preAverageTime,float,1e-4,s,time,wallFeedback
+24,Bio Controller,transmission config,binFeedback_transmissionCfg,option,2,[x0 to x1;x1 to x0;any transition;every cross],FPGA_bf_transmissionCfg,wallFeedback
+25,Bio Controller Calibration,calibrate on recording start,calibrateOnRecordingStart,bool,1,none,\none,calibration
 25,Bio Controller Calibration,base current,baseCurrent,float,150e-3,ampere,\none,calibration
 26,Bio Controller Calibration,end current,EndCurrent,float,350e-3,ampere,\none,calibration
 27,Bio Controller Calibration,n of samples,nOfSamples,int,10,none,\none,calibration
-28,Bio Controller Calibration,sample duration,sampleTime,float,0.5,s,\none,calibration
-29,Bio Controller Calibration,enable offset on XDIFF,enableXdiff,bool,1,none,\none,calibration
-30,Bio Controller Calibration,enable offset on SUM,enableSum,bool,1,none,\none,calibration
+28,Bio Controller Calibration,sample duration,sampleTime,float,2,s,\none,calibration
+29,Bio Controller Calibration,enable offset on XDIFF,enableXdiff,bool,0,none,\none,calibration
+30,Bio Controller Calibration,enable offset on SUM,enableSum,bool,0,none,\none,calibration
+31,Signal Names,piezo ,ai 0, visible, 1, /,/,/
+32,Signal Names,SUM,ai 1, visible, 1, /,/,/
+33,Signal Names,XDIFF,ai 2, visible, 1, /,/,/
+34,Signal Names,YDIFF,ai 3, visible, 1, /,/,/
+35,Signal Names,feedback signal,ai 4, visible, 1, /,/,/
+35,Signal Names,piezo 1,ai 5, visible, 1, /,/,/
+36,Signal Names,current signal,ai 6, visible, 1, /,/,/
+37,Signal Names,x,bio 0, visible, 1, /,/,/
+38,Signal Names,y,bio 1, visible, 1, /,/,/
+39,Signal Names,z,bio 2, visible, 1, /,/,/

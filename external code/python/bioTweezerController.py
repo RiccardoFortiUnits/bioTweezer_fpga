@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk
 import numpy as np
 import socket
+import select
 import time as t
 from dimensionLinker import dimensionLinker
 import matplotlib.pyplot as plt
@@ -15,6 +16,7 @@ from typing import Dict
 def setupReception(ip, port):
 	#get a socket for UDP transmission
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	#sock.setblocking(0)
 	try:
 		sock.bind((ip, port))
 	except OSError as e:
@@ -35,6 +37,8 @@ def transmitCommand(sock, ip, port, command, waitForResponse = False, printTrans
 
 def receive(sock, port, printReception = False):
 	#receive a string or byte string  from the selected port. For now, the sender is not returned
+	#ready = select.select([sock], [], [], timeout=1)
+	#if ready[0]:
 	received, address = sock.recvfrom(port)
 	if(printReception):
 		print("Received from", address, ":", received)
@@ -402,9 +406,9 @@ class fpgaHandler:
 		t = np.array(self.dataStreamBuffer["times"])
 		pts = t.shape[0]
 		y = np.zeros((pts, 3), dtype=np.float64)
-		y[:,0] = np.array(self.dataStreamBuffer["x"])
-		y[:,1] = np.array(self.dataStreamBuffer["y"])
-		y[:,2] = np.array(self.dataStreamBuffer["z"])
+		y[:,0] = np.array(self.dataStreamBuffer["x"][:pts])
+		y[:,1] = np.array(self.dataStreamBuffer["y"][:pts])
+		y[:,2] = np.array(self.dataStreamBuffer["z"][:pts])
 		
 		return(t, y)
 
@@ -710,10 +714,14 @@ class bioTweezerController(fpgaHandler):
 	
 	def setReset(self, reset = 1):
 		self.sendCommand([b"PICL0000"+reset.to_bytes(1, 'big')])
-	def setPiEnable(self, enable = 1):
-		self.sendCommand([b"PIEN0000"+enable.to_bytes(1, 'big')])
+	def setMode(self, mode = 1):
+		if isinstance(mode, str):
+			mode = {"constant" : 0, "PI" : 1, "binaryFeedback" : 2}[mode]
+		self.sendCommand([b"PIEN0000"+mode.to_bytes(1, 'big')])
+		self.mode = mode
 	def reset(self):
 		self.sendCommand([b"PICL0001", b"PIEN0000"])
+		self.mode = 0
 	def EnableConstantOutput(self, output = None):
 		self.sendCommand([b"PICL0001"])
 		if output is None:
@@ -721,45 +729,19 @@ class bioTweezerController(fpgaHandler):
 		else:
 			self.setParameters(outWhenPiDisabled = output, useToggleEnable = False)
 		self.sendCommand([b"PICL0000", b"PIEN0000"])
+		self.mode = 0
 	def EnablePI(self, **kwargs):
 		self.sendCommand([b"PICL0001"])
 		self.setParameters(useToggleEnable = False, **kwargs)
 		self.sendCommand([b"PICL0000", b"PIEN0001"])
+		self.mode = 1
 		
 	def EnableBinaryFeedback(self, **kwargs):
 		self.sendCommand([b"PICL0001"])
-		self.setParameters(
-							useToggleEnable = False, **kwargs)
+		self.setParameters(useToggleEnable = False, **kwargs)
 		self.sendCommand([b"PICL0000", b"PIEN0002"])
-		
-	def setToggleOnEnable(self, enable = True, toggleTime = 0.1):
-		self.setParameters(useToggleEnable = int(enable), toggleEnableTime = toggleTime)
-	def toggleEnableDisable(self, toggleTime, totalDuration):
-		start = t.time()
-		nextTime = start
-		warnForTooSlow = True
-		currentToggle = True
-		
-		with setupReception(self.self_ip, self.parameterPort) as sock:
-			while nextTime - start < totalDuration:
-				nextTime += toggleTime
-				if currentToggle:
-					transmitCommand(sock, self.fpga_ip, self.parameterPort, b"PICL0000", True)
-					transmitCommand(sock, self.fpga_ip, self.parameterPort, b"PIEN0001", True)
-				else:
-					transmitCommand(sock, self.fpga_ip, self.parameterPort, b"PICL0001", True)
-					transmitCommand(sock, self.fpga_ip, self.parameterPort, b"PIEN0000", True)
-				currentToggle = not currentToggle
-				currentTime = t.time()
-				if currentTime < nextTime:
-					t.sleep(nextTime - currentTime)
-				else:
-					if(warnForTooSlow):
-						warnForTooSlow = False
-						print(f"transmission is too slow for the toggling time! (taken {currentTime - (nextTime - toggleTime)} instead of {toggleTime})")
-					nextTime = currentTime
-			
-	
+		self.mode = 2
+
 	def updateGeneratorBaseCurrent(self, newCurrent_Ampere):
 		self.currentGenerator_baseCurrent = float(newCurrent_Ampere)
 		self.updateDimensionLinker()

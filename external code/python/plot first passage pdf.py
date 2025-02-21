@@ -54,6 +54,11 @@ def find_value_in_csv(file_path, search_column, search_value, return_column, exp
                 return row[return_column]
     return None
 
+def getValues(baseFile, valueName, type=float):
+    configFile = baseFile.replace('.csv', '_conf.csv')
+    if isinstance(valueName, list) or isinstance(valueName, tuple):
+        return [find_value_in_csv(configFile, 'Parameter name', name, 'Parameter value', type) for name in valueName]
+    return find_value_in_csv(configFile, 'Parameter name', valueName, 'Parameter value', type)
 def getValuesOf_x0_and_x1(baseFile):
     configFile = baseFile.replace('.csv', '_conf.csv')
     x0 = find_value_in_csv(configFile, 'Parameter name', 'x0', 'Parameter value', float)
@@ -89,16 +94,72 @@ def getTimings_x0x1_and_x1x0(baseFile, removeRanges = []):
         p/=50.e6
     
     # timings are alternated between x0x1 and x1x0, sometimes the bit that indicates that gets lost (still don't know how), so to be sure if the timings x0x1 are in the even or odd rows, let's see the sum of all the even and odd bits
-    evenLines = np.sum(q["reachedThreshold"][0::2])
-    oddLines = np.sum(q["reachedThreshold"][1::2])
-    if evenLines > oddLines:
-        x0x1 = np.array(p[0::2])
-        x1x0 = np.array(p[1::2])
+    if max(q["configuration"]) == 2:
+        evenLines = np.sum(q["reachedThreshold"][0::2])
+        oddLines = np.sum(q["reachedThreshold"][1::2])
+        if evenLines > oddLines:
+            x0x1 = np.array(p[0::2])
+            x1x0 = np.array(p[1::2])
+        else:
+            x0x1 = np.array(p[1::2])
+            x1x0 = np.array(p[0::2])
+        return x0x1, x1x0
     else:
-        x0x1 = np.array(p[1::2])
-        x1x0 = np.array(p[0::2])
-    return x0x1, x1x0
-
+        return np.array(p)
+def saveSeparateTimings(baseFile):
+    timingsFile = baseFile.replace('.csv', '_bioControllerTimings.csv')
+    q = pd.read_csv(timingsFile, delimiter='\t', header=0)
+    
+    p = q["timing"].to_numpy().astype(float)
+    t = q["startTimes"].to_numpy()
+    t -= t[0]
+    # raw data is given in clock cycles, not in seconds
+    if min(p) >= 1:
+        p/=50.e6
+    
+    transmissionConfig = getValues(baseFile, 'transmission config')
+    if transmissionConfig == 2:
+        # timings are alternated between x0x1 and x1x0, sometimes the bit that indicates that gets lost (still don't know how), so to be sure if the timings x0x1 are in the even or odd rows, let's see the sum of all the even and odd bits
+        evenLines = np.sum(q["reachedThreshold"][0::2])
+        oddLines = np.sum(q["reachedThreshold"][1::2])
+        if evenLines > oddLines:
+            x0x1 = np.array(p[0::2])
+            x1x0 = np.array(p[1::2])
+            t_x0x1 = np.array(t[0::2])
+            t_x1x0 = np.array(t[1::2])
+        else:
+            x0x1 = np.array(p[1::2])
+            x1x0 = np.array(p[0::2])
+            t_x0x1 = np.array(t[1::2])
+            t_x1x0 = np.array(t[0::2])
+    elif transmissionConfig == 0:
+        x0x1 = p
+        t_x0x1 = t
+        x1x0 = None
+        t_x1x0 = None
+    # Save the timings to a new CSV file
+    output_file_x0x1 = baseFile.replace('.csv', '_x0x1_timings.csv')
+    df_x0x1 = pd.DataFrame({'t': t_x0x1, 'first passage time': x0x1})
+    df_x0x1.to_csv(output_file_x0x1, index=False)
+    if x1x0 is not None:
+        output_file_x1x0 = baseFile.replace('.csv', '_x1x0_timings.csv')
+        df_x1x0 = pd.DataFrame({'t': t_x1x0, 'first passage time': x1x0})
+        df_x1x0.to_csv(output_file_x1x0, index=False)
+def saveAllSeparateTimings(folderPath):
+    csv_files = getBaseFiles(folderPath)
+    for file in csv_files:
+        saveSeparateTimings(file)
+def saveAllTrajectories(folderPath):
+    csv_files = getBaseFiles(folderPath)
+    for file in csv_files:
+        bioAcqFile = file.replace('.csv', '_bioControllerAcquisition.csv')
+        q = pd.read_csv(bioAcqFile, delimiter='\t', header=0)
+        new_df = pd.DataFrame()
+        new_df['t'] = q['times']
+        new_df['x'] = q['x']
+        output_file = bioAcqFile.replace('_bioControllerAcquisition.csv', '_trajectory.csv')
+        new_df.to_csv(output_file, index=False)
+        
 def getPFD(values, bins = 100, max = .075):
     values = np.sort(values)
     if bins is not None:
@@ -119,23 +180,57 @@ def getPFD(values, bins = 100, max = .075):
 
 def plotTimingsProbabilities(baseFile, showPlot = True, saveImage = False, removeRanges = []):
     x0, x1 = getValuesOf_x0_and_x1(baseFile)
-    x0x1, x1x0 = getTimings_x0x1_and_x1x0(baseFile, removeRanges)
+    q = getTimings_x0x1_and_x1x0(baseFile, removeRanges)
+    if isinstance(q, tuple):
+        x0x1, x1x0 = q
+    else:
+        x0x1 = q
+        x1x0 = None
     outputAfter_x0, outputAfter_x1 = getValuesOf_outputs(baseFile)
     plt.figure()
     x,y=getPFD(x0x1)
     plt.plot(x,y, label=f"{x0} to {x1}, intensity from {outputAfter_x0}A to {outputAfter_x1}A")
-    x,y=getPFD(x1x0)
-    plt.plot(x,y, label=f"{x1} to {x0}, intensity from {outputAfter_x1}A to {outputAfter_x0}A")
+    if x1x0 is not None:
+        x,y=getPFD(x1x0)
+        plt.plot(x,y, label=f"{x1} to {x0}, intensity from {outputAfter_x1}A to {outputAfter_x0}A")
     plt.legend()
     plt.xlabel('Time (seconds)')
     plt.ylabel('Density')
+    output_file = baseFile.replace('.csv', '_FPT_probabilityDensity.png')
     if showPlot:
+        def on_close(event):
+            plt.savefig(output_file)
+            # input("Press Enter after resizing the plot window to save the image...")
+        plt.gcf().canvas.mpl_connect('close_event', on_close)
         plt.show()
-    if saveImage:
-        output_file = baseFile.replace('.csv', '_FPT_probabilityDensity.png')
+    elif saveImage:
         plt.savefig(output_file)
-    plt.close()
-    
+        plt.close()
+def plotAllx0x1(folderPath):    
+    csv_files = getBaseFiles(folderPath)
+    plt.figure()
+    for baseFile in csv_files:
+        x0, x1 = getValuesOf_x0_and_x1(baseFile)
+        q = getTimings_x0x1_and_x1x0(baseFile, [])
+        if isinstance(q, tuple):
+            x0x1, _ = q
+        else:
+            x0x1 = q
+        outputAfter_x0, outputAfter_x1 = getValuesOf_outputs(baseFile)
+        x,y=getPFD(x0x1)
+        plt.plot(x,y, label=f"{x0} to {x1}, intensity from {outputAfter_x0}A to {outputAfter_x1}A")
+    plt.legend()
+    plt.show()
+    for baseFile in csv_files:
+        x0, x1 = getValuesOf_x0_and_x1(baseFile)
+        q = getTimings_x0x1_and_x1x0(baseFile, [])
+        if isinstance(q, tuple):
+            _, x1x0 = q
+            outputAfter_x0, outputAfter_x1 = getValuesOf_outputs(baseFile)
+            x,y=getPFD(x1x0)
+            plt.plot(x,y, label=f"{x0} to {x1}, intensity from {outputAfter_x1}A to {outputAfter_x0}A")
+    plt.legend()
+    plt.show()
 def get_csv_files(folderPath):
     csv_files = [f for f in os.listdir(folderPath) if f.endswith('.csv')]
     return csv_files
@@ -145,14 +240,63 @@ def getBaseFiles(folderPath):
     csv_files = [(folderPath+"/"+f) for f in csv_files if (
         'bioControllerAcquisition' not in f and
         'bioControllerTimings' not in f and
-        'conf.csv' not in f)]
+        'conf.csv' not in f and
+        'x0x1_timings.csv' not in f and
+        'x1x0_timings.csv' not in f and
+        'trajectory.csv' not in f)]
     return csv_files
 
-def saveAllProbabilities(folderPath):
+def saveAllProbabilities(folderPath, showPlot = False):
     csv_files = getBaseFiles(folderPath)
     for file in csv_files:
-        plotTimingsProbabilities(file, saveImage=True)
-# folder_path = 'C:/Users/lastline/Documents/bioTweezers/6_2_25'
-# saveAllProbabilities(folder_path)
-baseFile = 'C:/Users/lastline/Documents/bioTweezers/6_2_25/biglia2um_activeFeedback_higherSampling_interruptedByGerm_009.csv'
-plotTimingsProbabilities(baseFile, removeRanges=[])
+        plotTimingsProbabilities(file, saveImage=True, showPlot = showPlot)
+
+def getAllInfos(folderPath):
+    csv_files = getBaseFiles(folderPath)
+    for file in csv_files:
+        print(file+str(getValues(file, ['x0', 'transmission config', 'output after x1', 'pre-average time'])))
+
+def changeFileNames(folderPath, nameReplacements):
+    #nameReplacements of type [[oldName, newName], ...]
+    csv_files = get_csv_files(folderPath)
+    for file in csv_files:
+        for oldName, newName in nameReplacements:
+            if oldName in file:
+                os.rename(folderPath+'/'+file, folderPath+'/'+file.replace(oldName, newName))
+
+
+
+# folder_path = 'C:/Users/lastline/Documents/bioTweezers/20_2_5'
+# saveAllProbabilities(folder_path, showPlot = True)
+# getAllInfos(folder_path)
+# saveAllSeparateTimings(folder_path)
+# saveAllTrajectories(folder_path)
+# baseFile = 'test_002.csv'
+# plotTimingsProbabilities(baseFile, removeRanges=[])
+
+# folder_path = 'D:/elaborated data'
+# changeFileNames(folder_path,[
+# ['constantIntensity_004', 									'bead 1_setpoint 0.015_constant stiffness 0.15_004'],
+# ['constantIntensity_005', 									'bead 1_setpoint 0.01_constant stiffness 0.15_offset around -0.01_005'],
+# ['constantIntensity_disruptedByGerm_003', 					'bead 1_setpoint 0.025_constant stiffness 0.15_disruption at 63s_higherSampling_003'],
+# ['constantStiffness_bothTransitions_007', 					'bead 1_setpoint 0.015_constant stiffness 0.15_007'],
+# ['constantStiffness_bothTransitions_008', 					'bead 1_setpoint -0.015_constant stiffness 0.15_008'],
+# ['newBead_constantStiffness_009', 							'bead 2_setpoint 0.015_constant stiffness 0.15_009'],
+# ['newBead_constantStiffness_012', 							'bead 2_setpoint 0.01_constant stiffness 0.15_012'],
+# ['newBead_constantStiffness_013', 							'bead 2_setpoint 0.005_constant stiffness 0.15_013'],
+# ['newBead_constantStiffness_014', 							'bead 2_setpoint 0.005_constant stiffness 0.15_014'],
+# ['newBead_constantStiffness_015', 							'bead 2_setpoint 0.02_constant stiffness 0.15_015'],
+# ['newBead_constantStiffness_interruptedByBead_011', 		'bead 2_setpoint 0.01_constant stiffness 0.15_disruption at 40s_011'],
+# ['newBead_constantStiffness_offsetStillShiftingALot_017', 	'bead 2_setpoint -0.015_constant stiffness 0.15_lots of drifts_017'],
+# ['newBead_constantStiffness_offsetStillShiftingALot_018', 	'bead 2_setpoint -0.015_constant stiffness 0.15_offset drifts to 0.01_018'],
+# ['newBead_constantStiffness_setpointShifted_010', 			'bead 2_setpoint 0.01_constant stiffness 0.15_offset drifts to 0.02_010'],
+# ['newBead_constantStiffness_setpointShiftsTooMuch_016', 	'bead 2_setpoint -0.015_constant stiffness 0.15_016'],
+# ['test_001', 												'bead 1_setpoint 0.025_constant stiffness 0.15_001'],
+# ['test_002', 												'bead 1_setpoint 0.025_constant stiffness 0.15_002'],
+# ['constantStiffness_006', 									'bead 1_setpoint 0.015_feedback stiffness 0.15-0.2_offset around 0.07_006'],
+# ['newBead_feedbackStiffness_019', 							'bead 2_setpoint 0.02_feedback stiffness 0.15-0.3_offset around 0.01_019'],
+
+# 			])
+
+folder_path = 'D:/elaborated data - Copia'
+plotAllx0x1(folder_path)
