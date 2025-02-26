@@ -10,8 +10,8 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 7,Bio Controller,Offset z,SUM_offsetFor_z,float,0,volt,QPD_output,general
 8,Bio Controller,Offset x,x_offset,float,0,none,FPGA_floatValue,general
 9,Bio Controller,Offset y,y_offset,float,0,none,FPGA_floatValue,general
-10,Bio Controller,Setpoint,setpoint,float,0.2,none,FPGA_floatValue,PI
-11,Bio Controller,Proportional control coefficient,kp,float,0,none,FPGA_floatValue,PI
+10,Bio Controller,Setpoint,setpoint,float,0,none,FPGA_floatValue,PI
+11,Bio Controller,Proportional control coefficient,kp,float,-1,none,FPGA_floatValue,PI
 12,Bio Controller,Integral control coefficient,ki,float,0,none,FPGA_floatValue,PI
 13,Bio Controller,Ouput low limit,limitLow,float,150e-3,ampere,generator_current,PI
 14,Bio Controller,Output high limit,limitHigh,float,350e-3,ampere,generator_current,PI

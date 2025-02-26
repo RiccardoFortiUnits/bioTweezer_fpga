@@ -37,6 +37,7 @@ try:
 except:
 	print('Could not import bio controller library')
 import ast
+import threading
 	
 
 class ProtocolNode:
@@ -167,6 +168,7 @@ class NiFrame(Frame):
 
 		self._ao_task = None
 		self._ai_task = None
+		self._bioPlot_thread = None
 		self._ao_streams = None
 		self._ai_streams = None
 		self.ai_temp_buf = np.zeros((1,1))
@@ -650,6 +652,14 @@ class NiFrame(Frame):
 				self._ai_task.stop()
 				self._ai_task.close()
 				self._ai_task = None
+
+			if self._bioPlot_thread is not None:
+				if self.bio_controller.dataStreamRunning:
+					#should never happen, because the thread should be already stopped. But in case...
+					self.bio_controller.stopDataStream()
+				self._bioPlot_thread.join()
+				self._bioPlot_thread = None
+			
 			if self.dev is None:
 				return
 			
@@ -805,9 +815,9 @@ class NiFrame(Frame):
 		if self.ai_read_samples >= self.ao_buffer.shape[1]:
 			print('read finished, resetting task')
 			self.protocol_start_button_text_var.set('Start wave')
-			self.reset_tasks()
 			if self.bio_controller:
 				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
+			self.reset_tasks()
 			self.update_from_ao_sliders()
 		
 		t3 = time.perf_counter()
@@ -884,6 +894,19 @@ class NiFrame(Frame):
 			#self._ao_streams.write_many_sample(np.ascontiguousarray(self.ao_buffer[:, 
 			#                                     self.ao_written_samples : self.ao_written_samples + self.ao_chunk_size]))
 			#self.ao_written_samples += self.ao_chunk_size
+		else:
+			#let's use a task that only plots the biocontroller signals
+			def periodic_ai_plot(self:Self, interval:float):
+				time.sleep(interval)
+				while self.bio_controller.dataStreamRunning:
+					self.ai_plot(None, None, None, None)
+					time.sleep(interval)
+
+			# Start the thread to call ai_plot every t seconds
+			t = .25  # Set the interval time in seconds
+			self._bioPlot_thread = threading.Thread(target=periodic_ai_plot, args=(self, t))
+			# self._bioPlot_thread.daemon = True
+			self._bioPlot_thread.start()
 
 
 	def stop_tasks(self:Self):
@@ -907,6 +930,12 @@ class NiFrame(Frame):
 
 			self._ai_streams = None
 			self._ao_streams = None
+		if self._bioPlot_thread is not None:
+			if self.bio_controller.dataStreamRunning:
+				#should never happen, because the thread should be already stopped. But in case...
+				self.bio_controller.stopDataStream()
+			self._bioPlot_thread.join()
+			self._bioPlot_thread = None
 
 		self._ao_task = self.create_ao_task("AOTask")
 		self._ai_task = self.create_ai_task('AITask')
@@ -958,21 +987,22 @@ class NiFrame(Frame):
 
 	def ai_plot(self:Self, x:np.ndarray, y:np.ndarray, mny:np.ndarray, mxy:np.ndarray):
 		#x = self.ai_buffer_times
-		x = x - x[0]
-		(chans, pts) = y.shape
-		if pts > 10000:
-			step = pts // 10000
-			x = x[::step] 
-			y = y[:, ::step]
-			#print(step)
+		if x is not None:
+			x = x - x[0]
+			(chans, pts) = y.shape
+			if pts > 10000:
+				step = pts // 10000
+				x = x[::step] 
+				y = y[:, ::step]
+				#print(step)
 
-		y = np.transpose(y)
+			y = np.transpose(y)
 
-		qpd_norm = self.protocol_qpd_xynorm_var.get()
+			qpd_norm = self.protocol_qpd_xynorm_var.get()
 
-		if qpd_norm == 1:
-			reference_signal = y[:,1]
-			sum_average = np.mean(reference_signal)
+			if qpd_norm == 1:
+				reference_signal = y[:,1]
+				sum_average = np.mean(reference_signal)
 
 		#print(f'y min is {np.min(mny)}, y max is {np.max(mxy)}')
 		if self.bio_controller is not None:
@@ -995,24 +1025,30 @@ class NiFrame(Frame):
 							self.ai_line_handles[i].set_ydata(y[:,i])
 					else:
 						self.ai_line_handles[i].set_ydata(y[:,i])
-
-			if self.bio_line_handles is not None:
-				for i in range(3):
-					self.bio_line_handles[i].set_xdata(t)
-					self.bio_line_handles[i].set_ydata(bio_y[:,i])
-
 			self.sub_plot.set_xlim(x[0], x[-1])
+		elif self.bio_line_handles is not None:
+			self.sub_plot.set_xlim(t[0], t[-1])
+
+		if self.bio_line_handles is not None:
+			for i in range(3):
+				self.bio_line_handles[i].set_xdata(t)
+				self.bio_line_handles[i].set_ydata(bio_y[:,i])
+
+			
 			#self.sub_plot.set_ylim(mny, mxy)
 			#self.sub_plot.set_ylim(-10.0, 10.0)
 			#self.sub_plot.set_ylim(-0.5, 10.0)
 		else:
 			self.sub_plot.cla()
 			
-			self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
+			if x is not None:
+				self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
+				self.sub_plot.set_xlim(x[0], x[-1])
+			elif t is not None:
+				self.sub_plot.set_xlim(t[0], t[-1])
 			if t is not None:
 				self.bio_line_handles = self.sub_plot.plot(t, bio_y)
 				
-			self.sub_plot.set_xlim(x[0], x[-1])
 			#self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
 			self.sub_plot.set_ylim(-10.0, 10.0)
 
@@ -1063,12 +1099,12 @@ class NiFrame(Frame):
 
 			self.protocol_start_button_text_var.set('Stop')
 		else:
+			if self.bio_controller:
+				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 			self.reset_tasks()
 			self.protocol_start_button_text_var.set('Start wave')
 			self.update_from_ao_sliders()
 
-			if self.bio_controller:
-				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 
 	def plot_bio_buffer(self:Self):
 		buf = self.bio_buffer
