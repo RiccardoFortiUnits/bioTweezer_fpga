@@ -65,18 +65,17 @@ def getFPTFromJuliaScript(maxTime_s, nOfPoints, x0_m, stiffness_N_m, drag_Ns_m, 
     df = pd.read_csv("C:/Git/bioTweezer_fpga/external code/python/result.csv", delimiter=',', header=0)
     data = df.to_numpy()
     times = data[:,0]
-    fpts = data[:,1:]
-    return times, fpts
+    pdf = data[:,1:]
+    pdf[0,:] = 0
+    return times, pdf
 
 if __name__ == "__main__":
-    # for x0 in np.linspace(0.5e-9,2e-9,10):
     x0=np.linspace(0.5e-9,2e-9,4)
-    stiffness = np.linspace(10e-6, 200e-6, 4)
-    X0,S = np.meshgrid(x0, stiffness)
+    viscosity = np.linspace(28.3e-9, 1.3e-7, 4)
+    X0,S = np.meshgrid(x0, viscosity)
     x0 = X0.flatten()
-    stiffness = S.flatten()
-    t,x = getFPTFromJuliaScript(0.2, 5000, x0, 13e-6, stiffness)
-    x[0,:] = 0
+    viscosity = S.flatten()
+    t,x = getFPTFromJuliaScript(0.2, 5000, x0,13e-6, viscosity)
     plt.plot(t,x, label = [i for i in range(len(x[0]))], alpha = 0.5)
     plt.legend()
     plt.show()

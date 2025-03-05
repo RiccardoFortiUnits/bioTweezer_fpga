@@ -16,6 +16,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+from scipy import signal
 from scipy.interpolate import interp1d
 from scipy.signal import butter, filtfilt
 import os
@@ -285,39 +286,40 @@ def getAllStiffnesses(folderPath):
 		stiffness = bioTweezerController.laserStiffnessFromPositionSignal(x, x_2, 300)
 		print(f"{file}: {stiffness}")
 
-# folder_path = 'C:/Users/lastline/Documents/bioTweezers/20_2_5'
-# saveAllProbabilities(folder_path, showPlot = True)
-# getAllInfos(folder_path)
-# saveAllSeparateTimings(folder_path)
-# saveAllTrajectories(folder_path)
-# baseFile = 'test_002.csv'
-# plotTimingsProbabilities(baseFile, removeRanges=[])
+if __name__ == "__main__":
+	# folder_path = 'C:/Users/lastline/Documents/bioTweezers/20_2_5'
+	# saveAllProbabilities(folder_path, showPlot = True)
+	# getAllInfos(folder_path)
+	# saveAllSeparateTimings(folder_path)
+	# saveAllTrajectories(folder_path)
+	
 
-# getAllStiffnesses(folder_path)
+	# getAllStiffnesses(folder_path)
 
-# folder_path = 'D:/elaborated data'
-# changeFileNames(folder_path,[
-# ['constantIntensity_004', 									'bead 1_setpoint 0.015_constant stiffness 0.15_004'],
-# ['constantIntensity_005', 									'bead 1_setpoint 0.01_constant stiffness 0.15_offset around -0.01_005'],
-# ['constantIntensity_disruptedByGerm_003', 					'bead 1_setpoint 0.025_constant stiffness 0.15_disruption at 63s_higherSampling_003'],
-# ['constantStiffness_bothTransitions_007', 					'bead 1_setpoint 0.015_constant stiffness 0.15_007'],
-# ['constantStiffness_bothTransitions_008', 					'bead 1_setpoint -0.015_constant stiffness 0.15_008'],
-# ['newBead_constantStiffness_009', 							'bead 2_setpoint 0.015_constant stiffness 0.15_009'],
-# ['newBead_constantStiffness_012', 							'bead 2_setpoint 0.01_constant stiffness 0.15_012'],
-# ['newBead_constantStiffness_013', 							'bead 2_setpoint 0.005_constant stiffness 0.15_013'],
-# ['newBead_constantStiffness_014', 							'bead 2_setpoint 0.005_constant stiffness 0.15_014'],
-# ['newBead_constantStiffness_015', 							'bead 2_setpoint 0.02_constant stiffness 0.15_015'],
-# ['newBead_constantStiffness_interruptedByBead_011', 		'bead 2_setpoint 0.01_constant stiffness 0.15_disruption at 40s_011'],
-# ['newBead_constantStiffness_offsetStillShiftingALot_017', 	'bead 2_setpoint -0.015_constant stiffness 0.15_lots of drifts_017'],
-# ['newBead_constantStiffness_offsetStillShiftingALot_018', 	'bead 2_setpoint -0.015_constant stiffness 0.15_offset drifts to 0.01_018'],
-# ['newBead_constantStiffness_setpointShifted_010', 			'bead 2_setpoint 0.01_constant stiffness 0.15_offset drifts to 0.02_010'],
-# ['newBead_constantStiffness_setpointShiftsTooMuch_016', 	'bead 2_setpoint -0.015_constant stiffness 0.15_016'],
-# ['test_001', 												'bead 1_setpoint 0.025_constant stiffness 0.15_001'],
-# ['test_002', 												'bead 1_setpoint 0.025_constant stiffness 0.15_002'],
-# ['constantStiffness_006', 									'bead 1_setpoint 0.015_feedback stiffness 0.15-0.2_offset around 0.07_006'],
-# ['newBead_feedbackStiffness_019', 							'bead 2_setpoint 0.02_feedback stiffness 0.15-0.3_offset around 0.01_019'],
+	# folder_path = 'D:/elaborated data'
+	# changeFileNames(folder_path,[
+	# ['constantIntensity_004', 									'bead 1_setpoint 0.015_constant stiffness 0.15_004'],
+	# ['constantIntensity_005', 									'bead 1_setpoint 0.01_constant stiffness 0.15_offset around -0.01_005'],
+	# ['constantIntensity_disruptedByGerm_003', 					'bead 1_setpoint 0.025_constant stiffness 0.15_disruption at 63s_higherSampling_003'],
+	# ['constantStiffness_bothTransitions_007', 					'bead 1_setpoint 0.015_constant stiffness 0.15_007'],
+	# ['constantStiffness_bothTransitions_008', 					'bead 1_setpoint -0.015_constant stiffness 0.15_008'],
+	# ['newBead_constantStiffness_009', 							'bead 2_setpoint 0.015_constant stiffness 0.15_009'],
+	# ['newBead_constantStiffness_012', 							'bead 2_setpoint 0.01_constant stiffness 0.15_012'],
+	# ['newBead_constantStiffness_013', 							'bead 2_setpoint 0.005_constant stiffness 0.15_013'],
+	# ['newBead_constantStiffness_014', 							'bead 2_setpoint 0.005_constant stiffness 0.15_014'],
+	# ['newBead_constantStiffness_015', 							'bead 2_setpoint 0.02_constant stiffness 0.15_015'],
+	# ['newBead_constantStiffness_interruptedByBead_011', 		'bead 2_setpoint 0.01_constant stiffness 0.15_disruption at 40s_011'],
+	# ['newBead_constantStiffness_offsetStillShiftingALot_017', 	'bead 2_setpoint -0.015_constant stiffness 0.15_lots of drifts_017'],
+	# ['newBead_constantStiffness_offsetStillShiftingALot_018', 	'bead 2_setpoint -0.015_constant stiffness 0.15_offset drifts to 0.01_018'],
+	# ['newBead_constantStiffness_setpointShifted_010', 			'bead 2_setpoint 0.01_constant stiffness 0.15_offset drifts to 0.02_010'],
+	# ['newBead_constantStiffness_setpointShiftsTooMuch_016', 	'bead 2_setpoint -0.015_constant stiffness 0.15_016'],
+	# ['test_001', 												'bead 1_setpoint 0.025_constant stiffness 0.15_001'],
+	# ['test_002', 												'bead 1_setpoint 0.025_constant stiffness 0.15_002'],
+	# ['constantStiffness_006', 									'bead 1_setpoint 0.015_feedback stiffness 0.15-0.2_offset around 0.07_006'],
+	# ['newBead_feedbackStiffness_019', 							'bead 2_setpoint 0.02_feedback stiffness 0.15-0.3_offset around 0.01_019'],
 
-# 			])
+	# 			])
 
-# folder_path = 'D:/elaborated data - Copia'
-# plotAllx0x1(folder_path)
+	# folder_path = 'D:/elaborated data - Copia'
+	# plotAllx0x1(folder_path)
+	pass
