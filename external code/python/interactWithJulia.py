@@ -42,20 +42,41 @@ import matplotlib.pyplot as plt
 import numpy as np
 # p=os.system('D:/lastline/Julia-1.11.3/bin/julia.exe "C:/Git/bioTweezer_fpga/external code/python/test.jl" a b c')
 def getFPTFromJuliaScript(maxTime_s, nOfPoints, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
+    inputList = [x0_m, stiffness_N_m, drag_Ns_m, T_K]
+    maxLength = max(map(lambda l: len(l) if isinstance(l, (list, np.ndarray)) else 1, inputList))
+    for i in range(len(inputList)):
+        if isinstance(inputList[i], list):
+            inputList[i] = np.array(inputList[i])
+        elif not isinstance(inputList[i], np.ndarray):
+            inputList[i] = np.repeat(inputList[i], maxLength)
+    (x0_m, stiffness_N_m, drag_Ns_m, T_K) = tuple(inputList)
+
     kBoltzman = 1.3806504e-23
     A = drag_Ns_m/(2*kBoltzman*T_K)
     omega = stiffness_N_m/drag_Ns_m
     #execute the julia script. It will create a csv file that we can read
-    os.system(f'D:/lastline/Julia-1.11.3/bin/julia.exe "C:/Git/bioTweezer_fpga/external code/julia/Scripts_FPT/script_FPT_dir.jl" {maxTime_s} {nOfPoints} {A} {x0_m} Constant {omega}')
+    A_str = ",".join(map(str, A))
+    x0_m_str = ",".join(map(str, x0_m))
+    omega_str = ",".join(map(str, omega))
+    command = f'D:/lastline/Julia-1.11.3/bin/julia.exe "C:/Git/bioTweezer_fpga/external code/julia/Scripts_FPT/script_FPT_dir.jl" {maxTime_s} {nOfPoints} {A_str} {x0_m_str} Constant {omega_str}'
+    print(command)
+    os.system(command)
     #read the csv file
     df = pd.read_csv("C:/Git/bioTweezer_fpga/external code/python/result.csv", delimiter=',', header=0)
     data = df.to_numpy()
     times = data[:,0]
-    fpts = data[:,1]
+    fpts = data[:,1:]
     return times, fpts
 
 if __name__ == "__main__":
-    for x0 in np.linspace(0.5e-9,2e-9,10):
-        t,x = getFPTFromJuliaScript(0.02, 5000, x0, 13e-6, 28.3e-6)
-        plt.plot(t,x)
+    # for x0 in np.linspace(0.5e-9,2e-9,10):
+    x0=np.linspace(0.5e-9,2e-9,4)
+    stiffness = np.linspace(10e-6, 200e-6, 4)
+    X0,S = np.meshgrid(x0, stiffness)
+    x0 = X0.flatten()
+    stiffness = S.flatten()
+    t,x = getFPTFromJuliaScript(0.2, 5000, x0, 13e-6, stiffness)
+    x[0,:] = 0
+    plt.plot(t,x, label = [i for i in range(len(x[0]))], alpha = 0.5)
+    plt.legend()
     plt.show()
