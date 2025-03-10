@@ -55,6 +55,30 @@ def find_value_in_csv(file_path, search_column, search_value, return_column, exp
 				return row[return_column]
 	return None
 
+def getAllTimingProbabilities(baseFile):
+	timingsFile = baseFile.replace('.csv', '_bioControllerTimings.csv')
+	q = pd.read_csv(timingsFile, delimiter='\t', header=0)
+	
+	t = q["timing"].to_numpy().astype(float)
+	# raw data is given in clock cycles, not in seconds
+	if min(t) >= 1:
+		t/=50.e6
+	
+	reachedThresholds = q["reachedThreshold"].to_numpy()
+	transitionIndexes = 1+np.where(reachedThresholds[1:]!=reachedThresholds[:-1])[0]
+	lastUsableIndex = transitionIndexes[-1]
+	reachedThresholds = reachedThresholds[:lastUsableIndex+1]
+	t = t[:lastUsableIndex+1]
+	longestTimes=t[transitionIndexes]
+	t[transitionIndexes]=0
+	allTimes=np.array([longestTimes[transitionIndexes>i][0]-t[i] for i in range(len(t)-1)])
+	x0x1 = allTimes[reachedThresholds[:-1] == 0]
+	x1x0 = allTimes[reachedThresholds[:-1] == 1]
+	return x0x1, x1x0
+	
+	
+
+
 def getValues(baseFile, valueName, type=float):
 	configFile = baseFile.replace('.csv', '_conf.csv')
 	if isinstance(valueName, list) or isinstance(valueName, tuple):
@@ -90,8 +114,13 @@ def getTimings_x0x1_and_x1x0(baseFile, removeRanges = []):
 				end_idx += 1
 			p = np.concatenate((p[:start_idx], p[end_idx:]))
 	
+	
 	# raw data is given in clock cycles, not in seconds
 	if min(p) >= 1:
+		# remove bug in acquisition
+		p[p%10==1] //= 2
+		p[p%10==3] //= 4
+		p[p%10==6] //= 8
 		p/=50.e6
 	
 	# timings are alternated between x0x1 and x1x0, sometimes the bit that indicates that gets lost (still don't know how), so to be sure if the timings x0x1 are in the even or odd rows, let's see the sum of all the even and odd bits
@@ -116,6 +145,11 @@ def saveSeparateTimings(baseFile):
 	t -= t[0]
 	# raw data is given in clock cycles, not in seconds
 	if min(p) >= 1:
+		# remove bug in acquisition
+		p[p%10==1] //= 2
+		p[p%10==3] //= 4
+		p[p%10==6] //= 8
+		
 		p/=50.e6
 	
 	transmissionConfig = getValues(baseFile, 'transmission config')
@@ -161,6 +195,9 @@ def saveAllTrajectories(folderPath):
 		output_file = bioAcqFile.replace('_bioControllerAcquisition.csv', '_trajectory.csv')
 		new_df.to_csv(output_file, index=False)
 		
+def getCFD(values):
+	values = np.sort(values)
+	return values, np.linspace(0,1,len(values))
 def getPFD(values, bins = 100, max = .075):
 	values = np.sort(values)
 	if bins is not None:
@@ -178,7 +215,15 @@ def getPFD(values, bins = 100, max = .075):
 	return singleValues,np.concatenate((np.zeros(1),y))
 	# new_timings, filtered_signal = filter_asynchronous_signal(y, singleValues[:-1], len(values))
 	# return new_timings, filtered_signal
-
+def getTimingProbabilitiesFox_x0x1(baseFile, removeRanges = []):
+	q = getTimings_x0x1_and_x1x0(baseFile, removeRanges)
+	if isinstance(q, tuple):
+		x0x1, x1x0 = q
+	else:
+		x0x1 = q
+		x1x0 = None
+	x,y=getPFD(x0x1)
+	return x,y
 def plotTimingsProbabilities(baseFile, showPlot = True, saveImage = False, removeRanges = []):
 	x0, x1 = getValuesOf_x0_and_x1(baseFile)
 	q = getTimings_x0x1_and_x1x0(baseFile, removeRanges)
@@ -207,6 +252,37 @@ def plotTimingsProbabilities(baseFile, showPlot = True, saveImage = False, remov
 	elif saveImage:
 		plt.savefig(output_file)
 		plt.close()
+	return x,y
+
+def getAllx0x1(folderPath):  
+	csv_files = getBaseFiles(folderPath)
+	output = []
+	for baseFile in csv_files:
+		x0, x1 = getValuesOf_x0_and_x1(baseFile)
+		q = getTimings_x0x1_and_x1x0(baseFile, [])
+		if isinstance(q, tuple):
+			x0x1, _ = q
+		else:
+			x0x1 = q
+		outputAfter_x0, outputAfter_x1 = getValuesOf_outputs(baseFile)
+		x,y=getPFD(x0x1)
+		output.append((x,y))
+	return output
+def getAll_cdf_x0x1(folderPath):  
+	csv_files = getBaseFiles(folderPath)
+	output = []
+	for baseFile in csv_files:
+		x0, x1 = getValuesOf_x0_and_x1(baseFile)
+		q = getTimings_x0x1_and_x1x0(baseFile, [])
+		if isinstance(q, tuple):
+			x0x1, _ = q
+		else:
+			x0x1 = q
+		
+		x,y=getCFD(x0x1)
+		output.append((x,y))
+	return output
+	
 def plotAllx0x1(folderPath):    
 	csv_files = getBaseFiles(folderPath)
 	plt.figure()
@@ -219,8 +295,10 @@ def plotAllx0x1(folderPath):
 			x0x1 = q
 		outputAfter_x0, outputAfter_x1 = getValuesOf_outputs(baseFile)
 		x,y=getPFD(x0x1)
-		plt.plot(x,y, label=f"{x0} to {x1}, intensity from {outputAfter_x0}A to {outputAfter_x1}A")
+		plt.plot(x*1e3,y, label=f"{x0} to {x1}, intensity from {outputAfter_x0}A to {outputAfter_x1}A")
 	plt.legend()
+	plt.xlabel("ms")
+	plt.ylabel("PDF")
 	plt.show()
 	for baseFile in csv_files:
 		x0, x1 = getValuesOf_x0_and_x1(baseFile)
@@ -229,9 +307,12 @@ def plotAllx0x1(folderPath):
 			_, x1x0 = q
 			outputAfter_x0, outputAfter_x1 = getValuesOf_outputs(baseFile)
 			x,y=getPFD(x1x0)
-			plt.plot(x,y, label=f"{x0} to {x1}, intensity from {outputAfter_x1}A to {outputAfter_x0}A")
+			plt.plot(x*1e3,y, label=f"{x1} to {x0}, intensity from {outputAfter_x1}A to {outputAfter_x0}A")
 	plt.legend()
+	plt.xlabel("ms")
+	plt.ylabel("PDF")
 	plt.show()
+	
 def get_csv_files(folderPath):
 	csv_files = [f for f in os.listdir(folderPath) if f.endswith('.csv')]
 	return csv_files
@@ -285,11 +366,18 @@ def getAllStiffnesses(folderPath):
 		#'''
 		stiffness = bioTweezerController.laserStiffnessFromPositionSignal(x, x_2, 300)
 		print(f"{file}: {stiffness}")
+def getBaseFileNameFromIdx(folderPath, idx):
+	csv_files = getBaseFiles(folderPath)
+	for file in csv_files:
+		if f"{idx:03}" in file:
+			return file
+	raise Exception(f"idx {idx} not found")
+
 
 if __name__ == "__main__":
-	# folder_path = 'C:/Users/lastline/Documents/bioTweezers/20_2_5'
-	# saveAllProbabilities(folder_path, showPlot = True)
-	# getAllInfos(folder_path)
+	# folder_path = 'D:/lastline/bioTweezers/20_2_5'
+	# # saveAllProbabilities(folder_path, showPlot = True)
+	# # getAllInfos(folder_path)
 	# saveAllSeparateTimings(folder_path)
 	# saveAllTrajectories(folder_path)
 	
@@ -298,28 +386,28 @@ if __name__ == "__main__":
 
 	# folder_path = 'D:/elaborated data'
 	# changeFileNames(folder_path,[
-	# ['constantIntensity_004', 									'bead 1_setpoint 0.015_constant stiffness 0.15_004'],
-	# ['constantIntensity_005', 									'bead 1_setpoint 0.01_constant stiffness 0.15_offset around -0.01_005'],
-	# ['constantIntensity_disruptedByGerm_003', 					'bead 1_setpoint 0.025_constant stiffness 0.15_disruption at 63s_higherSampling_003'],
-	# ['constantStiffness_bothTransitions_007', 					'bead 1_setpoint 0.015_constant stiffness 0.15_007'],
-	# ['constantStiffness_bothTransitions_008', 					'bead 1_setpoint -0.015_constant stiffness 0.15_008'],
-	# ['newBead_constantStiffness_009', 							'bead 2_setpoint 0.015_constant stiffness 0.15_009'],
-	# ['newBead_constantStiffness_012', 							'bead 2_setpoint 0.01_constant stiffness 0.15_012'],
-	# ['newBead_constantStiffness_013', 							'bead 2_setpoint 0.005_constant stiffness 0.15_013'],
-	# ['newBead_constantStiffness_014', 							'bead 2_setpoint 0.005_constant stiffness 0.15_014'],
-	# ['newBead_constantStiffness_015', 							'bead 2_setpoint 0.02_constant stiffness 0.15_015'],
-	# ['newBead_constantStiffness_interruptedByBead_011', 		'bead 2_setpoint 0.01_constant stiffness 0.15_disruption at 40s_011'],
-	# ['newBead_constantStiffness_offsetStillShiftingALot_017', 	'bead 2_setpoint -0.015_constant stiffness 0.15_lots of drifts_017'],
-	# ['newBead_constantStiffness_offsetStillShiftingALot_018', 	'bead 2_setpoint -0.015_constant stiffness 0.15_offset drifts to 0.01_018'],
-	# ['newBead_constantStiffness_setpointShifted_010', 			'bead 2_setpoint 0.01_constant stiffness 0.15_offset drifts to 0.02_010'],
-	# ['newBead_constantStiffness_setpointShiftsTooMuch_016', 	'bead 2_setpoint -0.015_constant stiffness 0.15_016'],
-	# ['test_001', 												'bead 1_setpoint 0.025_constant stiffness 0.15_001'],
-	# ['test_002', 												'bead 1_setpoint 0.025_constant stiffness 0.15_002'],
-	# ['constantStiffness_006', 									'bead 1_setpoint 0.015_feedback stiffness 0.15-0.2_offset around 0.07_006'],
-	# ['newBead_feedbackStiffness_019', 							'bead 2_setpoint 0.02_feedback stiffness 0.15-0.3_offset around 0.01_019'],
+	# ['constantIntensity_004', 									'004_bead 1_setpoint 0.015_constant stiffness 0.15_'],
+	# ['constantIntensity_005', 									'005_bead 1_setpoint 0.01_constant stiffness 0.15_ offset around -0.01_005'],
+	# ['constantIntensity_disruptedByGerm_003', 					'003_bead 1_setpoint 0.025_constant stiffness 0.15_ disruption at 63s_higherSampling_003'],
+	# ['constantStiffness_bothTransitions_007', 					'007_bead 1_setpoint 0.015_constant stiffness 0.15_'],
+	# ['constantStiffness_bothTransitions_008', 					'008_bead 1_setpoint -0.015_constant stiffness 0.15_'],
+	# ['newBead_constantStiffness_009', 							'009_bead 2_setpoint 0.015_constant stiffness 0.15_'],
+	# ['newBead_constantStiffness_012', 							'012_bead 2_setpoint 0.01_constant stiffness 0.15_'],
+	# ['newBead_constantStiffness_013', 							'013_bead 2_setpoint 0.005_constant stiffness 0.15_'],
+	# ['newBead_constantStiffness_014', 							'014_bead 2_setpoint 0.005_constant stiffness 0.15_'],
+	# ['newBead_constantStiffness_015', 							'015_bead 2_setpoint 0.02_constant stiffness 0.15_'],
+	# ['newBead_constantStiffness_interruptedByBead_011', 			'011_bead 2_setpoint 0.01_constant stiffness 0.15_ disruption at 40s_011'],
+	# ['newBead_constantStiffness_offsetStillShiftingALot_017', 	'017_bead 2_setpoint -0.015_constant stiffness 0.15_ lots of drifts_017'],
+	# ['newBead_constantStiffness_offsetStillShiftingALot_018', 	'018_bead 2_setpoint -0.015_constant stiffness 0.15_ offset drifts to 0.01_018'],
+	# ['newBead_constantStiffness_setpointShifted_010', 			'010_bead 2_setpoint 0.01_constant stiffness 0.15_ offset drifts to 0.02_010'],
+	# ['newBead_constantStiffness_setpointShiftsTooMuch_016', 		'016_bead 2_setpoint -0.015_constant stiffness 0.15_'],
+	# ['test_001', 													'001_bead 1_setpoint 0.025_constant stiffness 0.15_'],
+	# ['test_002', 													'002_bead 1_setpoint 0.025_constant stiffness 0.15_'],
+	# ['constantStiffness_006', 									'006_bead 1_setpoint 0.015_feedback stiffness 0.15_ 0.2_offset around 0.07_006'],
+	# ['newBead_feedbackStiffness_019', 							'019_bead 2_setpoint 0.02_feedback stiffness 0.15_ 0.3_offset around 0.01_019'],
 
 	# 			])
 
-	# folder_path = 'D:/elaborated data - Copia'
-	# plotAllx0x1(folder_path)
+	folder_path = 'D:/elaborated data - Copia'
+	plotAllx0x1(folder_path)
 	pass

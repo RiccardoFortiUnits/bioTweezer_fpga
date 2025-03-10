@@ -57,7 +57,7 @@ total_time = parse(Float64, ARGS[1]) #parse(Float64, readline())
 
 # print("The interval [0,t] is discretized in N small steps. Please enter the value of N ")
 N = parse(Float64, ARGS[2])#parse(Float64, readline())
-t_step = total_time/N
+t_step = total_time/(N-1)
 t_space = collect(0.00:t_step:total_time)
 
 # print("Please enter the value of the parameter A≡γ/2k_BT. A = ")

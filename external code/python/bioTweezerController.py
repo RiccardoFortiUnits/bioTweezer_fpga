@@ -297,7 +297,7 @@ class fpgaHandler:
 						
 				if(isThereSlowData):
 					nOfSlowWords = received[0] >> 2
-					word_size = 31
+					word_size = self.slowDataWordSize
 					word_mask = (1 << slowWordSize) - 1
 					bytesPerWord = (slowWordSize + 7) >> 3
 					currentBit = 0
@@ -372,7 +372,7 @@ class fpgaHandler:
 				
 				if(isThereSlowData):
 					nOfSlowWords = received[0] >> 2
-					word_size = 31
+					word_size = self.slowDataWordSize
 					word_mask = (1 << slowWordSize) - 1
 					bytesPerWord = (slowWordSize + 7) >> 3
 					currentBit = 0
