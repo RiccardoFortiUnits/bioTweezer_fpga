@@ -39,6 +39,7 @@ except:
 import ast
 import threading
 	
+from acquisition import acquisition
 
 class ProtocolNode:
 	def __init__(self:Self, wave_type:List[str], amp:List[float], freq:List[float], off:List[float], duration:float, rate:float, n_chans:int=2):
@@ -246,7 +247,7 @@ class NiFrame(Frame):
 
 		#self.detach_writers_and_readers()
 		
-	def init_bioTweezerController(self:Self):
+	def init_bioTweezerController(self:Self) -> bioTweezerController:
 		q = bioTweezerController()
 		self.bio_hide = [False] * 3
 		return q
@@ -978,14 +979,15 @@ class NiFrame(Frame):
 		if self.ai_line_handles is not None:
 			for i in range(len(ai_hide)):
 				self.ai_line_handles[i].set_visible(not ai_hide[i])
-		if self.bio_controller is not None:
+		if hasattr(self, "bio_hide") and self.bio_hide is not None:
 			if bio_hide is None:
 				bio_hide = self.bio_hide
 			if self.bio_line_handles is not None:
 				for i in range(len(bio_hide)):
 					self.bio_line_handles[i].set_visible(not bio_hide[i])
+		
 
-	def ai_plot(self:Self, x:np.ndarray, y:np.ndarray, mny:np.ndarray, mxy:np.ndarray):
+	def ai_plot(self:Self, x:np.ndarray, y:np.ndarray, mny:np.ndarray, mxy:np.ndarray, bio_x=None,bio_y=None):
 		#x = self.ai_buffer_times
 		if x is not None:
 			x = x - x[0]
@@ -1006,14 +1008,11 @@ class NiFrame(Frame):
 
 		#print(f'y min is {np.min(mny)}, y max is {np.max(mxy)}')
 		if self.bio_controller is not None:
-			(t,bio_y) = self.bio_controller.getArraysFromDataStreamBuffer()
-		else:
-			t = None
-			bio_y = None
+			(bio_x,bio_y) = self.bio_controller.getArraysFromDataStreamBuffer()
 
 
-		if self.ai_line_handles is not None:
-			
+		alreadyClearedPlot = False
+		if self.ai_line_handles is not None:			
 			for i in range(self._ai_n_channels):
 					self.ai_line_handles[i].set_xdata(x)
 					if qpd_norm == 1:
@@ -1025,36 +1024,27 @@ class NiFrame(Frame):
 							self.ai_line_handles[i].set_ydata(y[:,i])
 					else:
 						self.ai_line_handles[i].set_ydata(y[:,i])
-			self.sub_plot.set_xlim(x[0], x[-1])
-		elif self.bio_line_handles is not None:
-			self.sub_plot.set_xlim(t[0], t[-1])
+		elif x is not None:
+			self.sub_plot.cla()
+			alreadyClearedPlot = True
+			self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
+			self.sub_plot.set_ylim(-10.0, 10.0)
+
 
 		if self.bio_line_handles is not None:
 			for i in range(3):
-				self.bio_line_handles[i].set_xdata(t)
+				self.bio_line_handles[i].set_xdata(bio_x)
 				self.bio_line_handles[i].set_ydata(bio_y[:,i])
-
+		elif bio_x is not None:
+			if not alreadyClearedPlot:
+				self.sub_plot.cla()
+			self.bio_line_handles = self.sub_plot.plot(bio_x, bio_y)
 			
-			#self.sub_plot.set_ylim(mny, mxy)
-			#self.sub_plot.set_ylim(-10.0, 10.0)
-			#self.sub_plot.set_ylim(-0.5, 10.0)
-		else:
-			self.sub_plot.cla()
-			
-			if x is not None:
-				self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
-				self.sub_plot.set_xlim(x[0], x[-1])
-			elif t is not None:
-				self.sub_plot.set_xlim(t[0], t[-1])
-			if t is not None:
-				self.bio_line_handles = self.sub_plot.plot(t, bio_y)
-				
-			#self.sub_plot.set_ylim(np.min(mny), np.max(mxy))
-			self.sub_plot.set_ylim(-10.0, 10.0)
+		if self.ai_line_handles is not None:
+			self.sub_plot.set_xlim(x[0], x[-1])
+		elif self.bio_line_handles is not None:
+			self.sub_plot.set_xlim(bio_x[0], bio_x[-1])
 
-			#for i in range(self._ai_n_channels):
-			#    obj = self.sub_plot.plot(x, y[i,:])
-			#    self.ai_line_handles.append(obj[0])
 		self.hidePlots()
 		self.fig.canvas.draw()
 
@@ -1591,28 +1581,27 @@ class NiFrame(Frame):
 		data = self.load_ai_data_from_csv(fname)
 		
 	def load_ai_data_from_csv(self:Self, fname:str)->np.ndarray:
-		
-		pf = pd.read_csv(fname, sep='\t', lineterminator='\n')
-		buf = pf.to_numpy(dtype=np.float64)
-		(pts, self._ai_n_channels) = buf.shape
-		self.ai_hide = [False] * self._ai_n_channels
-		self._ai_n_channels -= 1
-		
-		# Set the first column as the index (times)
-		if "time" in str.lower(pf.columns[-1]):
-			t = buf[:,-1]
-			buf = buf[:,:-1]
-		else:
-			t = buf[:,0]
-			buf = buf[:,1:]
+		acq = acquisition(fname)
 
+		t,buf = acq.getNidaqAcquisition(returnType = np.ndarray)
+		
+		self._ai_n_channels = len(buf)
+		self.ai_hide = [False] * self._ai_n_channels
+		
 		self.data_rate = int(1.0/np.mean(np.diff(t)))
 		self.data_rate_entry_var.set(self.data_rate)
 
-		self.ai_buffer = np.transpose(buf)
+		self.ai_buffer = buf
 		self.ai_buffer_times = self.data_rate * t
 
-		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer))
+		bio_buff = acq.getBioControllerAcquisition(returnType = dict)
+		if self.bio_controller is not None:
+			self.bio_controller.dataStreamBuffer = bio_buff
+		bio_t = np.array(bio_buff["times"])
+		bio_buff = np.array([bio_buff[key] for key in ["x", "y", "z"]]).T
+		self.bio_hide = [False] * len(bio_buff[0])
+
+		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer), bio_x=bio_t, bio_y=bio_buff)
 
 	def preprocess_ai_data(self:Self, t:np.ndarray, y:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
 		#selection interval
@@ -1875,6 +1864,11 @@ class NiFrame(Frame):
 			
 		return el
 	
+	def updateHideValueFromCheckButton(self, hideList, index, var):
+		hideList.__setitem__(index, var.get() == 0)
+		self.hidePlots()
+		self.fig.canvas.draw()
+		
 	def addPlotSelectors(self):
 		
 		signals = self.getBaseSettingsFromFile(device = "Signal Names", returnType=dict)
@@ -1882,7 +1876,7 @@ class NiFrame(Frame):
 			signal = signals[f"ai {i}"]
 			var = IntVar(value=signal["Parameter value"])
 			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,
-					   command = lambda i=i, var=var: self.ai_hide.__setitem__(i, var.get() == 0))
+					   command = lambda i=i, var=var: self.updateHideValueFromCheckButton(self.ai_hide, i, var))
 			if var.get() == 1:
 				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
 			check.grid(column=0, row=i)
@@ -1891,7 +1885,7 @@ class NiFrame(Frame):
 			signal = signals[f"bio {i}"]
 			var = IntVar(value=signal["Parameter value"])
 			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,
-					   command = lambda i=i, var=var: self.bio_hide.__setitem__(i, var.get() == 0))
+					   command = lambda i=i, var=var: self.updateHideValueFromCheckButton(self.bio_hide, i, var))
 			if var.get() == 1:
 				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
 			check.grid(column=1, row=i)
