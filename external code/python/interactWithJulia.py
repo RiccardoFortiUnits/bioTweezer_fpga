@@ -109,9 +109,9 @@ def getFPTFromJuliaScript(maxTime_s, nOfPoints, x0_m, stiffness_N_m, drag_Ns_m, 
 import plotFirstPassagePdf
 if __name__ == "__main__":
 	#2.76665116e-03 -1.63524817e-05  1.21543669e-02
-	x0=np.linspace(5e-9,20e-9,1)
-	stiffness = [6.87628186e-05,1e-8,1e-7,1e-6]#[10e-9,10e-8,10e-7,10e-6]#np.linspace(.1e-9, 10e-6, 3)
-	viscosity = 6.16294955e-07#10**np.linspace(-5, -4,5)
+	x0=[7.96966560e-08, 4.54689257e-08, 2.48123160e-08, 8.56582627e-08, 6.83053256e-08]
+	stiffness = 2.14810464e-06#[10e-9,10e-8,10e-7,10e-6]#np.linspace(.1e-9, 10e-6, 3)
+	viscosity = 2.60641696e-08#10**np.linspace(-5, -4,5)
 	X0,S,V = np.meshgrid(x0, stiffness, viscosity)
 	x0 = X0.flatten()
 	stiffness = S.flatten()
@@ -122,9 +122,8 @@ if __name__ == "__main__":
 	# x/=x[-1,:]
 	plt.plot(t,x, label = [i for i in range(len(x[0]))], alpha=0.5)
 	# plt.legend()
-	# folder_path = 'D:/elaborated data - Copia'
-	# # plotTimingsProbabilities(baseFile, removeRanges=[])
-	# p=plotFirstPassagePdf.getAllx0x1(folder_path)
-	# for (x,y) in p:
-	# 	plt.plot(x,y, color = 'blue')
+	folder_path = 'D:/elaborated data - Copia'
+	p=plotFirstPassagePdf.getAllx0x1(folder_path)
+	for (x,y) in p:
+		plt.plot(x,y, color = 'blue')
 	plt.show()

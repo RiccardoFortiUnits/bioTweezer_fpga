@@ -17,7 +17,8 @@ except:
 import numpy as np
 import time
 from datetime import datetime
-from typing import List, Tuple, Self
+from typing import List, Tuple, Self, Dict
+from types import MethodType
 #from typing_extensions import Self
 import numba
 from numba import jit, njit
@@ -196,6 +197,12 @@ class NiFrame(Frame):
 			self.bio_controller = None
 			self.status = 'no bio controller'
 
+		self.acq = acquisition(
+			ai_buffer=self.ai_buffer_forAcquisition,
+			bio_buffer=self.bio_buffer_forAcquisition,
+			bio_configurations=self.bio_configurations_forAcquisition,
+			crossTimings=self.crossTimings_forAcquisition
+		)
 		self.init_ni_data()
 		self.init_widgets()
 
@@ -212,9 +219,8 @@ class NiFrame(Frame):
 
 		if self.bio_controller is not None:
 			pass
-
+		
 		#self.jit_prepare_ai_data = njit(add_ai_read_data)
-
 
 	def init_ni_data(self:Self):
 
@@ -252,7 +258,7 @@ class NiFrame(Frame):
 		self.bio_hide = [False] * 3
 		return q
 
-	def init_widgets(self:Self):
+	def init_widgets(self:Self, bioControllerConfigFileName='bio_controller.csv'):
 		self.info_label = Label(self, text=self.dev_info)
 		self.info_label.pack()
 
@@ -363,14 +369,14 @@ class NiFrame(Frame):
 			self.bio_UI_frames = {"general" : self.bio_general_frame, "PI" : self.bio_PI_frame, "wallFeedback" : self.bio_binFeedback_frame}
 			self.bio_UI_frames = {key : {"frame":val, "row":0,"col":0} for key,val in self.bio_UI_frames.items()}
 			#get the current generator base current. It's important for the bioTweezerController class to know this value before setting other parameters 
-			generatorCurrentSettings = self.getBaseSettingsFromFile(device = "Current Generator")[0]
+			generatorCurrentSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Current Generator")[0]
 			baseCurrentFrame = self.createUIElement(self.bio_UI_frames ["general"]["frame"],generatorCurrentSettings, 
 													bindingFunction=lambda event:self.bio_controller.updateGeneratorBaseCurrent(event.widget.get()),
 													refreshFunction=lambda x:None)
 			baseCurrentFrame.grid(row=self.bio_UI_frames["general"]["row"], column=self.bio_UI_frames["general"]["col"])
 			self.bio_UI_frames ["general"]["col"]=1
 			#get all the parameters of the FPGA
-			bioControllerSettings = self.getBaseSettingsFromFile(device = "Bio Controller")
+			bioControllerSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller")
 			for element in bioControllerSettings:
 				#a parameter can be useful in more than one UI, so we'll have a different frame for each of the UI
 				UI_frames = element["UI position"].split(";")
@@ -386,7 +392,7 @@ class NiFrame(Frame):
 			self.bio_calib_frame.pack(fill='both', expand=True)		
 			self.bio_notebook.add(self.bio_calib_frame, text='calibration')
 			
-			bioControllerCalibrationSettings = self.getBaseSettingsFromFile(device = "Bio Controller Calibration", returnType=dict)
+			bioControllerCalibrationSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller Calibration", returnType=dict)
 			self.bio_calib_calibrateOnRecordingStart_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["calibrateOnRecordingStart"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
 			self.bio_calib_calibrateOnRecordingStart_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
 			self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
@@ -529,10 +535,16 @@ class NiFrame(Frame):
 
 		self.protocol_qpd_xynorm_var = IntVar()
 		self.protocol_qpd_xynorm_var.set(0)
+		self.protocol_qpd_xyOffset_var = IntVar()
+		self.protocol_qpd_xyOffset_var.set(0)
 		self.protocol_qpd_xynorm_checkbox = Checkbutton(self.node_frame, text='QPD norm', 
 														variable=self.protocol_qpd_xynorm_var, 
-														onvalue=1, offvalue=0, command=self.qpd_xynorm_check_callback)
+														onvalue=1, offvalue=0, command=self.qpd_xyModifiers_check_callback)
 		self.protocol_qpd_xynorm_checkbox.pack(side='left')
+		self.protocol_qpd_xyOffset_checkbox = Checkbutton(self.node_frame, text='QPD offsets', 
+														variable=self.protocol_qpd_xyOffset_var, 
+														onvalue=1, offvalue=0, command=self.qpd_xyModifiers_check_callback)
+		self.protocol_qpd_xyOffset_checkbox.pack(side='left')
 		
 
 		self.node_frame.pack(expand=False, fill='x', side='top')
@@ -570,6 +582,19 @@ class NiFrame(Frame):
 
 		self.plot_qpd_variance_data_button = Button(self.selection_frame, text="Plot variance on x,ydif", command=self.plot_qpd_variance_data)
 		self.plot_qpd_variance_data_button.pack(side='left')
+		
+	
+		self.availablePlots : Dict[str,str]= {
+			"data from nidaq":			"plotNidaqAcquisition",
+			"data from bioController":	"plotBioControllerAcquisition",
+			"FPT timings":				"plotBioControllerFPT_CDF",}
+		def plotFunction(selection):
+			return getattr(self.acq, self.availablePlots[selection])()
+		self.var_plotSelector = StringVar()
+		self.var_plotSelector.set("Plot...")  # Default value
+
+		self.dropdown_plotSelector = OptionMenu(self.selection_frame, self.var_plotSelector, *self.availablePlots.keys(), command=lambda selection: [self.var_plotSelector.set("Plot..."), plotFunction(selection)])
+		self.dropdown_plotSelector.pack(side='left')
 
 		self.selection_frame.pack(expand=False, fill='x', side='top')
 
@@ -1001,10 +1026,18 @@ class NiFrame(Frame):
 			y = np.transpose(y)
 
 			qpd_norm = self.protocol_qpd_xynorm_var.get()
-
 			if qpd_norm == 1:
 				reference_signal = y[:,1]
 				sum_average = np.mean(reference_signal)
+				
+			qpd_offset = self.protocol_qpd_xynorm_var.get()
+			if qpd_offset == 1 and self.bio_controller is not None:
+				xdiff_offset = [None, None, self.getBioControllerValueFromUI("xDiff_offset"), self.getBioControllerValueFromUI("yDiff_offset")]
+				x_offset = [None, None, self.getBioControllerValueFromUI("x_offset"), self.getBioControllerValueFromUI("y_offset")]
+				sum_offset = self.getBioControllerValueFromUI("SUM_offsetFor_div")
+			else: 
+				qpd_offset = 0
+				
 
 		#print(f'y min is {np.min(mny)}, y max is {np.max(mxy)}')
 		if self.bio_controller is not None:
@@ -1017,7 +1050,10 @@ class NiFrame(Frame):
 					self.ai_line_handles[i].set_xdata(x)
 					if qpd_norm == 1:
 						if i==2 or i == 3:
-							self.ai_line_handles[i].set_ydata(y[:,i] / reference_signal)
+							if qpd_offset == 1:
+								self.ai_line_handles[i].set_ydata((y[:,i]-xdiff_offset[i]) / (reference_signal-sum_offset) - x_offset[i])
+							else:
+								self.ai_line_handles[i].set_ydata(y[:,i] / reference_signal)
 						elif i == 1:
 							self.ai_line_handles[i].set_ydata(y[:,i] / sum_average)
 						else:
@@ -1116,6 +1152,19 @@ class NiFrame(Frame):
 		df.to_csv(output_path, mode='a', header=(not os.path.exists(output_path)) or header is not None, sep=separator, index=False)
 
 
+	def ai_buffer_forAcquisition(self):
+		return {'Time (s)' : self.ai_buffer_times / self.data_rate, 
+		   			**{f'AI{i+1}' : self.ai_buffer[i, :] for i in range(self._ai_n_channels)}}
+
+	def bio_buffer_forAcquisition(self):
+		return self.bio_buffer
+
+	def bio_configurations_forAcquisition(self):
+		return self.bio_configurationsToSave
+
+	def crossTimings_forAcquisition(self):
+		return self.crossTimings
+
 	def save_data_to_file_cb(self:Self):
 		fname = self.wdg_wave_save_file_entry_var.get()
 		name, extension = fname.rsplit('.', 1)
@@ -1127,9 +1176,7 @@ class NiFrame(Frame):
 
 		#save data from ai
 		if hasattr(self, "ai_buffer_times") and self.ai_buffer_times is not None:
-			data = {'Time (s)' : self.ai_buffer_times / self.data_rate, 
-		   			**{f'AI{i+1}' : self.ai_buffer[i, :] for i in range(self._ai_n_channels)}}
-			
+			data = self.ai_buffer_forAcquisition			
 			self._saveCsv(data, folder_name, fname)
 		
 		#save configuration file
@@ -1169,7 +1216,20 @@ class NiFrame(Frame):
 		self.autosaveFolder.set(folder_path)
 		#self.autosaveOn.set(True)
 		return folder_path  
-	
+	def getBioControllerValueFromUI(self, parameterName:str)->float:
+		for frame in [self.bio_general_frame, self.bio_PI_frame, self.bio_binFeedback_frame, self.bio_calib_frame]:
+			for el in frame.winfo_children():
+				if (not isinstance(el, Button)):
+					if el.valuesFromCsvFile["Parameter internal name"] == parameterName:
+						return float(el.get())
+		return None
+	def setBioControllerUI(self, parameterName:str, newValue:float)->float:
+		for frame in [self.bio_general_frame, self.bio_PI_frame, self.bio_binFeedback_frame, self.bio_calib_frame]:
+			for el in frame.winfo_children():
+				if (not isinstance(el, Button)):
+					if el.valuesFromCsvFile["Parameter internal name"] == parameterName:
+						return el.get()
+		return None
 	def storeConfigurations(self):
 		#get all the parameters from the labels and checkboxes for the bio controller. These will be saved when pressing the "Save file" button
 		self.bio_configurationsToSave = None
@@ -1495,13 +1555,13 @@ class NiFrame(Frame):
 
 		return output_protocol
 	
-	def qpd_xynorm_check_callback(self:Self):
+	def qpd_xyModifiers_check_callback(self:Self):
 		if self.ai_buffer is None:
 			return
 		
 		t = self.ai_buffer_times
 		self.ai_plot(t / self.data_rate, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer))
-	
+		
 	def plot_pick_point_event(self, event):
 		#print(event)
 		if isinstance(event.artist, matplotlib.lines.Line2D):
@@ -1581,9 +1641,9 @@ class NiFrame(Frame):
 		data = self.load_ai_data_from_csv(fname)
 		
 	def load_ai_data_from_csv(self:Self, fname:str)->np.ndarray:
-		acq = acquisition(fname)
+		self.acq = acquisition(fname)
 
-		t,buf = acq.getNidaqAcquisition(returnType = np.ndarray)
+		t,buf = self.acq.getNidaqAcquisition(returnType = np.ndarray)
 		
 		self._ai_n_channels = len(buf)
 		self.ai_hide = [False] * self._ai_n_channels
@@ -1594,12 +1654,14 @@ class NiFrame(Frame):
 		self.ai_buffer = buf
 		self.ai_buffer_times = self.data_rate * t
 
-		bio_buff = acq.getBioControllerAcquisition(returnType = dict)
+		self.bio_buffer = self.acq.getBioControllerAcquisition(returnType = dict)
 		if self.bio_controller is not None:
-			self.bio_controller.dataStreamBuffer = bio_buff
-		bio_t = np.array(bio_buff["times"])
-		bio_buff = np.array([bio_buff[key] for key in ["x", "y", "z"]]).T
+			self.bio_controller.dataStreamBuffer = self.bio_buffer
+		bio_t = np.array(self.bio_buffer["times"])
+		bio_buff = np.array([self.bio_buffer[key] for key in ["x", "y", "z"]]).T
 		self.bio_hide = [False] * len(bio_buff[0])
+		
+		# self.init_widgets(self.acq.file_conf)
 
 		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer), bio_x=bio_t, bio_y=bio_buff)
 

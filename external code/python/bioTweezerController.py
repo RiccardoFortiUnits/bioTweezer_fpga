@@ -231,7 +231,7 @@ class fpgaHandler:
 		slowData["startTimes"].append(startTime)
 		slowData["configuration"].append(currentConfig)
 		slowData["reachedThreshold"].append(reachedThreshold)
-		slowData["timing"].append(val)
+		slowData["timing"].append(val / self.fpga_controller_clock)
 
 	def getDataStream_old(self, time = 1, **dimensions):
 		#receive the data stream from the FPGA for the specified time (in seconds). The returned value is a dictionary

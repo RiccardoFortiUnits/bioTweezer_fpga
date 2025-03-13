@@ -63,7 +63,7 @@ def objective(params):
 	return total_s
 
 initial_guess = [10e-6, 28e-9] + [50e-9] * len(usedFiles)
-bounds = [(1e-11, 1e-4), (1e-10, 1e-5)] + [(1e-10, 1e-7)] * len(usedFiles)
+bounds = [(1e-11, 1e-4), (20e-9, 30e-9)] + [(1e-10, 1e-7)] * len(usedFiles)
 result = differential_evolution(objective, bounds)
 
 print(f"Optimized parameters: {result.x}")
