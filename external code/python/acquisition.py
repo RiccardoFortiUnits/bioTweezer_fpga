@@ -151,17 +151,19 @@ class acquisition():
 		reachedThresholds = reachedThresholds[:lastUsableIndex+1]
 		t = t[:lastUsableIndex+1]
 		longestTimes=t[transitionIndexes]
-		if not onlyLongTransitions:
-			transitionIndexes = np.concatenate(([0],transitionIndexes))#the first element is also treated as a transition
-			t[transitionIndexes]=0
-			allTimes=np.array([longestTimes[transitionIndexes>i][0]-t[i] for i in range(len(t)-1)])
-			x0x1 = np.sort(allTimes[reachedThresholds[:-1] == 1])
-		else:
-			x0x1 = longestTimes
-		x0x1 = np.sort(allTimes[reachedThresholds[:-1] == 1])
+		xx = [None] * (2 if bothTransitions else 1)
+		for i in range(len(xx)):
+			if not onlyLongTransitions:
+				t[transitionIndexes]=0
+				allTimes=np.array([longestTimes[transitionIndexes>i][0]-t[i+1] for i in range(len(t)-1)])
+				xx[i] = np.sort(allTimes[reachedThresholds[:-1] == 1-i])
+			else:
+				xx[i] = longestTimes[reachedThresholds[transitionIndexes] == 1-i]
+		# x0x1 = np.sort(allTimes[reachedThresholds[:-1] == 1])
 		if bothTransitions:
-			x1x0 = np.sort(allTimes[reachedThresholds[:-1] == 0])
+			x0x1,x1x0 = xx[0], xx[1]
 			return x0x1, x1x0
+		x0x1 = xx[0]
 		return x0x1
 	def getBioControllerFPT_CDF(self, bothTransitions = True, onlyLongTransitions = False):
 		'''
@@ -204,4 +206,25 @@ class acquisition():
 			plt.plot(x1x0, np.linspace(0,1,len(x1x0)), label = "x1 to x0")
 		plt.legend()
 		plt.show()
+
+def  Kolmogorov_Smirnov_test(theoreticalCDF, extractedData):
+	'''
+	Computes the Kolmogorov-Smirnov test between the theoretical CDF and the extracted data.
+	
+	theoreticalCDF: function
+	extractedData: list of samples from the distribution
+	
+	'''
+	extractedData = np.sort(extractedData)
+	# t = np.linspace(0,1,len(extractedData))
+	if isinstance(theoreticalCDF, MethodType):
+		theoreticalValues = theoreticalCDF(extractedData)
+	else:
+		theoreticalValues = theoreticalCDF
+	return np.max(np.abs(theoreticalValues-extractedData))
 		
+
+if __name__ == "__main__":
+	a=acquisition("aaa_bioControllerTimings.csv")
+	q=a.getBioControllerRawFPT(True, False)
+	print(q)

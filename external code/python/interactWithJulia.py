@@ -41,16 +41,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 # p=os.system('D:/lastline/Julia-1.11.3/bin/julia.exe "C:/Git/bioTweezer_fpga/external code/python/test.jl" a b c')
+def FTP_PDF(t, A, x0, w0):
+	O = np.outer(w0, t)
+	tau = (1 - np.exp(-2 * O)) / (2 * w0[:, None])
+	P = np.sqrt(A[:, None]) * np.abs(x0[:, None]) * np.exp(-O) / np.sqrt(2 * np.pi * tau**3) * np.exp(-A[:, None] * x0[:, None]**2 * np.exp(-2 * O) / (2 * tau))
+	P[t[None, :]==0] = 0
+	return P
 def FTP_waywayWayBetterThanJulia(maxTime, nOfPoints, A, x0, w0):
+	if nOfPoints is not None:
 		t = np.linspace(0, maxTime, nOfPoints)
-		t=t[1:]
-		O = np.outer(w0, t)
-		tau = (1 - np.exp(-2 * O)) / (2 * w0[:, None])
-		P = np.sqrt(A[:, None]) * np.abs(x0[:, None]) * np.exp(-O) / np.sqrt(2 * np.pi * tau**3) * np.exp(-A[:, None] * x0[:, None]**2 * np.exp(-2 * O) / (2 * tau))
+				
+		P = FTP_PDF(t, A, x0, w0)
 		
-		P = np.concatenate((np.zeros_like(P[:, 0])[:,None],P), axis=1)
-		t = np.concatenate(([0], t))
+		# P = np.concatenate((np.zeros_like(P[:, 0])[:,None],P), axis=1)
+		# t = np.concatenate(([0], t))
 		return t, P.T
+	
+	P = FTP_PDF(maxTime, A, x0, w0)
+	return maxTime, P.T
 
 def getFPTFromJuliaScript(maxTime_s, nOfPoints, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
 	inputList = [x0_m, stiffness_N_m, drag_Ns_m, T_K]

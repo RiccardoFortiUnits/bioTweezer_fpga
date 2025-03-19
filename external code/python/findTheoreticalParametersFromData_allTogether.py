@@ -11,7 +11,7 @@ from scipy.optimize import minimize
 import interactWithJulia
 import plotFirstPassagePdf
 from scipy.optimize import differential_evolution
-
+import acquisition
 basePath = "D:/lastline/bioTweezers/20_2_5"
 #				file idx, setpoint
 usedFileIdx =  [9  , 	#	0.015,
@@ -66,10 +66,23 @@ initial_guess = [10e-6, 28e-9] + [50e-9] * len(usedFiles)
 bounds = [(1e-11, 1e-4), (20e-9, 30e-9)] + [(1e-10, 1e-7)] * len(usedFiles)
 result = differential_evolution(objective, bounds)
 
+# result.x = [2.26415350e-06, 2.80607625e-08, 7.69547381e-08, 4.32306280e-08, \
+#  2.36452550e-08, 8.03034386e-08, 6.24333857e-08]
 print(f"Optimized parameters: {result.x}")
 stiffness_N_m, drag_Ns_m = result.x[:2]
 x0_m_values = result.x[2:]
 foundResults.append(result.x)
+for i in range(len(x0_m_values)):
+	tt_, pdf = interactWithJulia.getFPTFromJuliaScript(maxTime_s=max_times[i], nOfPoints=len(x_arrays[i]), x0_m=x0_m_values[i], stiffness_N_m=stiffness_N_m, drag_Ns_m=drag_Ns_m)
+	theoreticalMean = (np.linspace(0, max_times[i], len(pdf)).dot(pdf) / np.sum(pdf))[0]
+	x_pdf = np.diff(x_arrays[i])
+	experimentalMean = np.linspace(0, max_times[i], len(x_pdf)).dot(x_pdf) / np.sum(x_pdf)
+	ppdf = pdf#np.interp(x_arrays[i], np.linspace(0,1,len(pdf)), pdf)
+	cdf = np.cumsum(ppdf)
+	cdf -= cdf[0]
+	cdf /= cdf[-1]
+	ksTest = acquisition.Kolmogorov_Smirnov_test(cdf, x_arrays[i])
+	print(f"#{i:03d}\tstiffness: {x0_m_values[i]:.3e}\ttheor. average: {theoreticalMean:.3e}\t exp. average: {experimentalMean:.3e}\t KS test: {ksTest:.3e}")
 
 #013 0.005 [6.10264604e-09 6.81908163e-05 6.16294955e-07]
 #014 0.005 [5.94840761e-09 6.87628186e-05 5.87929612e-07]

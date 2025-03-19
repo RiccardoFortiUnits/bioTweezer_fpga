@@ -956,7 +956,7 @@ class NiFrame(Frame):
 
 			self._ai_streams = None
 			self._ao_streams = None
-		if self._bioPlot_thread is not None:
+		elif self._bioPlot_thread is not None:
 			if self.bio_controller.dataStreamRunning:
 				#should never happen, because the thread should be already stopped. But in case...
 				self.bio_controller.stopDataStream()

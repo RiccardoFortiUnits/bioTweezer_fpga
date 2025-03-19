@@ -37,8 +37,8 @@ def transmitCommand(sock, ip, port, command, waitForResponse = False, printTrans
 
 def receive(sock, port, printReception = False):
 	#receive a string or byte string  from the selected port. For now, the sender is not returned
-	#ready = select.select([sock], [], [], timeout=1)
-	#if ready[0]:
+	# ready = select.select([sock], [], [], timeout=1)
+	# if ready[0]:
 	received, address = sock.recvfrom(port)
 	if(printReception):
 		print("Received from", address, ":", received)
