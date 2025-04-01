@@ -10,6 +10,7 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 7,Bio Controller,Offset z,SUM_offsetFor_z,float,0,volt,QPD_output,general
 8,Bio Controller,Offset x,x_offset,float,0,none,FPGA_floatValue,general
 9,Bio Controller,Offset y,y_offset,float,0,none,FPGA_floatValue,general
+9,Bio Controller,Squares shift,squaresShift,int,0,none,FPGA_bitShift,general
 10,Bio Controller,Setpoint,setpoint,float,0,none,FPGA_floatValue,PI
 11,Bio Controller,Proportional control coefficient,kp,float,-1,none,FPGA_floatValue,PI
 12,Bio Controller,Integral control coefficient,ki,float,0,none,FPGA_floatValue,PI

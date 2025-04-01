@@ -18,7 +18,7 @@ import numpy as np
 import time
 from datetime import datetime
 from typing import List, Tuple, Self, Dict
-from types import MethodType
+import types 
 #from typing_extensions import Self
 import numba
 from numba import jit, njit
@@ -584,17 +584,47 @@ class NiFrame(Frame):
 		self.plot_qpd_variance_data_button.pack(side='left')
 		
 	
-		self.availablePlots : Dict[str,str]= {
+		self.singlePlots : Dict[str,str]= {
 			"data from nidaq":			"plotNidaqAcquisition",
 			"data from bioController":	"plotBioControllerAcquisition",
-			"FPT timings":				"plotBioControllerFPT_CDF",}
+			"FPT timings":				"plotBioControllerFPT_CDF",
+			"FPT timings_long + fitting":	"plotBioControllerFPT_CDF_fitted_onlyLongTransitions",
+			"FPT timings_all + fitting":	"plotBioControllerFPT_CDF_fitted_allTransitions",
+			}
+		self.multiplePlots : Dict[str,str]= self.singlePlots.copy()
+		self.multiplePlots.update({
+			"FPT timings_long + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions",
+			"FPT timings_all + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions",
+		})
+		
 		def plotFunction(selection):
-			return getattr(self.acq, self.availablePlots[selection])()
+			return getattr(self.acq, self.singlePlots[selection])()
+		def multiPlotFunction(selection):
+			files = filedialog.askopenfilenames(filetypes=[('Data files *.csv', '*.csv')])
+			
+			func = getattr(self.acq, self.multiplePlots[selection])
+			if isinstance(func, types.FunctionType):
+				return getattr(self.acq, self.multiplePlots[selection])(files)
+			else:
+				acquisition.createNewFigure = False
+				plt.figure(f"multi-plot for {selection}")
+				for file in files:
+					a = acquisition(file)
+					getattr(a, self.multiplePlots[selection])()
+				acquisition.createNewFigure = True
+				acquisition.show()
+		
 		self.var_plotSelector = StringVar()
 		self.var_plotSelector.set("Plot...")  # Default value
 
-		self.dropdown_plotSelector = OptionMenu(self.selection_frame, self.var_plotSelector, *self.availablePlots.keys(), command=lambda selection: [self.var_plotSelector.set("Plot..."), plotFunction(selection)])
+		self.dropdown_plotSelector = OptionMenu(self.selection_frame, self.var_plotSelector, *self.singlePlots.keys(), command=lambda selection: [self.var_plotSelector.set("Plot..."), plotFunction(selection)])
 		self.dropdown_plotSelector.pack(side='left')
+		
+		self.var_multiPlotSelector = StringVar()
+		self.var_multiPlotSelector.set("Plot on multiple...")  # Default value
+
+		self.dropdown_multiPlotSelector = OptionMenu(self.selection_frame, self.var_multiPlotSelector, *self.multiplePlots.keys(), command=lambda selection: [self.var_multiPlotSelector.set("Plot on multiple..."), multiPlotFunction(selection)])
+		self.dropdown_multiPlotSelector.pack(side='left')
 
 		self.selection_frame.pack(expand=False, fill='x', side='top')
 
@@ -1176,7 +1206,7 @@ class NiFrame(Frame):
 
 		#save data from ai
 		if hasattr(self, "ai_buffer_times") and self.ai_buffer_times is not None:
-			data = self.ai_buffer_forAcquisition			
+			data = self.ai_buffer_forAcquisition()			
 			self._saveCsv(data, folder_name, fname)
 		
 		#save configuration file
@@ -1641,6 +1671,8 @@ class NiFrame(Frame):
 		data = self.load_ai_data_from_csv(fname)
 		
 	def load_ai_data_from_csv(self:Self, fname:str)->np.ndarray:
+		for item in acquisition.getAllFilesProperties(os.path.dirname(fname)):
+			print(item)
 		self.acq = acquisition(fname)
 
 		t,buf = self.acq.getNidaqAcquisition(returnType = np.ndarray)
@@ -1664,7 +1696,7 @@ class NiFrame(Frame):
 		# self.init_widgets(self.acq.file_conf)
 
 		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer), bio_x=bio_t, bio_y=bio_buff)
-
+		
 	def preprocess_ai_data(self:Self, t:np.ndarray, y:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
 		#selection interval
 		y = y.copy()
@@ -1951,7 +1983,90 @@ class NiFrame(Frame):
 			if var.get() == 1:
 				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
 			check.grid(column=1, row=i)
-	   
+			
+	def updateBioTweezerConfigs(self, newConfigs):
+		
+		if self.bio_controller is None:
+			return
+
+		self.bio_frame = LabelFrame(self.ao_bio_frame, text="Bio controller")
+		self.bio_notebook = ttk.Notebook(self.bio_frame)
+		self.bio_notebook.grid(columnspan=2)
+		
+		self.bio_general_frame = ttk.Frame(self.bio_notebook)
+		self.bio_PI_frame = ttk.Frame(self.bio_notebook)
+		self.bio_binFeedback_frame = ttk.Frame(self.bio_notebook)
+
+		# Pack the frames (optional, depending on your layout needs)
+		self.bio_general_frame.pack(fill='both', expand=True)
+		self.bio_PI_frame.pack(fill='both', expand=True)
+		self.bio_binFeedback_frame.pack(fill='both', expand=True)
+
+		# Add frames to the notebook as tabs
+		self.bio_notebook.add(self.bio_general_frame, text='general')
+		self.bio_notebook.add(self.bio_PI_frame, text='PI')
+		self.bio_notebook.add(self.bio_binFeedback_frame, text='binary feedback')
+		self.bio_notebook.bind('<<NotebookTabChanged>>', self.on_bio_tab_change)
+		self.bio_UI_frames = {"general" : self.bio_general_frame, "PI" : self.bio_PI_frame, "wallFeedback" : self.bio_binFeedback_frame}
+		self.bio_UI_frames = {key : {"frame":val, "row":0,"col":0} for key,val in self.bio_UI_frames.items()}
+		#get the current generator base current. It's important for the bioTweezerController class to know this value before setting other parameters 
+		generatorCurrentSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Current Generator")[0]
+		baseCurrentFrame = self.createUIElement(self.bio_UI_frames ["general"]["frame"],generatorCurrentSettings, 
+												bindingFunction=lambda event:self.bio_controller.updateGeneratorBaseCurrent(event.widget.get()),
+												refreshFunction=lambda x:None)
+		baseCurrentFrame.grid(row=self.bio_UI_frames["general"]["row"], column=self.bio_UI_frames["general"]["col"])
+		self.bio_UI_frames ["general"]["col"]=1
+		#get all the parameters of the FPGA
+		bioControllerSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller")
+		for element in bioControllerSettings:
+			#a parameter can be useful in more than one UI, so we'll have a different frame for each of the UI
+			UI_frames = element["UI position"].split(";")
+			for uiFrame in UI_frames:
+				frame = self.createUIElement(self.bio_UI_frames[uiFrame]["frame"],element)
+				frame.grid(row=self.bio_UI_frames[uiFrame]["row"], column=self.bio_UI_frames[uiFrame]["col"])
+				self.bio_UI_frames[uiFrame]["col"]+=1
+				if(self.bio_UI_frames[uiFrame]["col"]>1):
+					self.bio_UI_frames[uiFrame]["col"]=0
+					self.bio_UI_frames[uiFrame]["row"]+=1
+		#set the calibration parameters
+		self.bio_calib_frame = ttk.Frame(self.bio_notebook)
+		self.bio_calib_frame.pack(fill='both', expand=True)		
+		self.bio_notebook.add(self.bio_calib_frame, text='calibration')
+		
+		bioControllerCalibrationSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller Calibration", returnType=dict)
+		self.bio_calib_calibrateOnRecordingStart_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["calibrateOnRecordingStart"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_calibrateOnRecordingStart_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
+		self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_sampleTime_entry.pack()
+		self.bio_calib_nOfSamples_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["nOfSamples"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_nOfSamples_entry.pack()
+		self.bio_calib_baseCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["baseCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_baseCurrent_entry.pack()
+		self.bio_calib_EndCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["EndCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
+		self.bio_calib_EndCurrent_entry.pack()
+		self.bio_calib_enableXdiff_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableXdiff"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
+		self.bio_calib_enableXdiff_entry.pack()
+		self.bio_calib_enableSum_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableSum"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
+		self.bio_calib_enableSum_entry.pack()
+
+
+
+		#add some buttons
+		self.bio_reset_button = Button(self.bio_frame, text="Disable all",command=self.bio_controller.reset)
+		self.bio_reset_button.grid(row=1,column=0)
+		self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
+		self.bio_calibrate_button.grid(row=1,column=1)
+		self.bio_test_button = Button(self.bio_frame, text="Test Acquisition",command=self.plotBioControllerReception)
+		self.bio_test_button.grid(row=1,column=2)
+
+		self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
+		self.bio_set_const_out_button.grid(row=self.bio_UI_frames["general"]["row"]+1,column=0)
+		self.bio_enable_PI_button = Button(self.bio_PI_frame, text="Enable PI",command=self.bio_controller.EnablePI)
+		self.bio_enable_PI_button.grid(row=self.bio_UI_frames["PI"]["row"]+1,column=0)
+		self.bio_enable_BinaryFeedback_button = Button(self.bio_binFeedback_frame, text="Enable binary feedback",command=self.bio_controller.EnableBinaryFeedback)
+		self.bio_enable_BinaryFeedback_button.grid(row=self.bio_UI_frames["wallFeedback"]["row"]+1,column=0)
+
+		self.bio_frame.pack(expand=True, fill='both', side='right')
 
 
 if __name__ == '__main__':

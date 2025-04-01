@@ -4,8 +4,39 @@ from bioTweezerController import bioTweezerController
 import matplotlib.pyplot as plt
 from types import FunctionType, MethodType
 from functools import partial
+from scipy.optimize import differential_evolution
+import interactWithJulia
+import os
+import glob
 class acquisition():
-
+	createNewFigure = True
+	@staticmethod
+	def newFigure(*vals):
+		if acquisition.createNewFigure:
+			plt.figure(*vals)
+	@staticmethod
+	def show():
+		if acquisition.createNewFigure:
+			plt.legend()
+			plt.show()
+	def plot(self, x,y,label=None,*args,**kwargs):
+		if label is None:
+				plt.plot(x,y,*args,**kwargs)
+		else:
+			if not acquisition.createNewFigure:
+				name = str.replace(os.path.basename(self.__baseFile),"_"," ")
+				label = f"{name}: {label}"			
+			plt.plot(x,y, label=label,*args,**kwargs)
+	@staticmethod
+	def getAllFilesProperties(folderPath, properties = ["binFeedback_x0", "binFeedback_valueWhenIn_x0"]):
+		files = acquisition.getAllBaseFiles(folderPath)
+		allProperties = []
+		for file in files:
+			acq = acquisition(file)
+			filtered_properties = {key: acq.configurations[key]["Parameter value"] for key in properties if key in acq.configurations}
+			filtered_properties["file"] = os.path.basename(file)
+			allProperties.append(filtered_properties)
+		return allProperties
 
 	@staticmethod
 	def getBaseSettingsFromFile(fileName='bio_controller.csv', device = "Bio Controller", returnType = list):
@@ -37,6 +68,13 @@ class acquisition():
 						.replace('_x0x1_timings', '')\
 						.replace('_x1x0_timings', '')\
 						.replace('_trajectory', '')
+	
+	@staticmethod
+	def getAllBaseFiles(folderPath):
+		allFiles = [os.path.abspath(file) for file in glob.glob(os.path.join(folderPath, "*.csv"))]
+		allFiles = [acquisition.getBaseFile(file) for file in allFiles]
+		allFiles = list(set(allFiles))
+		return allFiles
 	def getFile(self, fileType):
 		return self.__baseFile + fileType
 	def __init__(self, *args, **kwargs):
@@ -155,10 +193,10 @@ class acquisition():
 		for i in range(len(xx)):
 			if not onlyLongTransitions:
 				t[transitionIndexes]=0
-				allTimes=np.array([longestTimes[transitionIndexes>i][0]-t[i+1] for i in range(len(t)-1)])
-				xx[i] = np.sort(allTimes[reachedThresholds[:-1] == 1-i])
+				allTimes = longestTimes[np.searchsorted(transitionIndexes, np.arange(len(t)-1), side='right')] - t[1:]
+				xx[i] = np.sort(allTimes[reachedThresholds[:-1] == i])
 			else:
-				xx[i] = longestTimes[reachedThresholds[transitionIndexes] == 1-i]
+				xx[i] = np.sort(longestTimes[reachedThresholds[transitionIndexes] == 1-i])
 		# x0x1 = np.sort(allTimes[reachedThresholds[:-1] == 1])
 		if bothTransitions:
 			x0x1,x1x0 = xx[0], xx[1]
@@ -183,29 +221,117 @@ class acquisition():
 		d = self.ai_buffer
 		t, data = d["Time (s)"], d.copy()
 		data.pop("Time (s)")
-		plt.figure()
-		plt.plot(t, np.column_stack(list(data.values())), label = list(data.keys()))
-		plt.legend()
-		plt.show()
+		acquisition.newFigure()
+		self.plot(t, np.column_stack(list(data.values())), label = list(data.keys()))
+		acquisition.show()
 	def plotBioControllerAcquisition(self):
 		d = self.bio_buffer
 		t, data = d["times"], d.copy()
 		data.pop("times")
-		plt.figure()
-		plt.plot(t, np.column_stack(list(data.values())), label = list(data.keys()))
-		plt.legend()
-		plt.show()
-	def plotBioControllerFPT_CDF(self, bothTransitions = True, onlyLongTransitions = True):
-		q = self.getBioControllerRawFPT(bothTransitions, onlyLongTransitions)
-		if isinstance(q,tuple):
-			x0x1, x1x0 = q
-		else:
-			x0x1 = q
-		plt.plot(x0x1, np.linspace(0,1,len(x0x1)), label = "x0 to x1")
-		if bothTransitions:
-			plt.plot(x1x0, np.linspace(0,1,len(x1x0)), label = "x1 to x0")
-		plt.legend()
-		plt.show()
+		acquisition.newFigure()
+		self.plot(t, np.column_stack(list(data.values())), label = list(data.keys()))
+		acquisition.show()
+	def plotBioControllerFPT_CDF(self, bothTransitions = True):
+		for b in [False, True]:
+			q = self.getBioControllerRawFPT(bothTransitions, b)
+			if isinstance(q,tuple):
+				x0x1, x1x0 = q
+			else:
+				x0x1 = q
+			s="only long transitions" if b else "all transitions"
+			self.plot(x0x1, np.linspace(0,1,len(x0x1)), label = f"x0 to x1 {s}")
+			if bothTransitions:
+				self.plot(x1x0, np.linspace(0,1,len(x1x0)), label = f"x1 to x0 {s}")
+		acquisition.show()
+	def plotBioControllerFPT_CDF_fitted_onlyLongTransitions(self):
+		return self.plotBioControllerFPT_CDF_fitted(True)
+	def plotBioControllerFPT_CDF_fitted_allTransitions(self):
+		return self.plotBioControllerFPT_CDF_fitted(False)
+	def get_xy_forFPT_CDF(self, onlyLongTransitions=True):
+		q = self.getBioControllerRawFPT(bothTransitions=False, onlyLongTransitions=onlyLongTransitions)
+		x0x1 = q
+		x=np.concatenate(([0],x0x1))
+		y=np.linspace(0,1,len(x))
+		unique = np.concatenate(([True], np.abs(x[1:]-x[:-1]) > (1/50e6)))
+		x=x[unique]
+		y=y[unique]
+		return x,y
+	def plotBioControllerFPT_CDF_fitted(self, onlyLongTransitions = True):
+		x,y=self.get_xy_forFPT_CDF(onlyLongTransitions)
+		theoreticalFunction = lambda t, stiff, x0, drag : interactWithJulia.FTP_CDF(t, x0, stiff, drag)
+		bounds = [(1e-11,1e-4), (1e-10, 1e-7), (10e-9,50e-9)]
+		p, theor_y = getFittingFunction(x,y, theoreticalFunction, bounds, alsoReturnF_x=True)
+		print(f"theoretical curve: stiffness: {p[0]}, x0: {p[1]}, drag: {p[2]}")
+		s = "long transitions" if onlyLongTransitions else "all transitions"
+		acquisition.newFigure(f"{self.__baseFile} FPT CDF ({s})")
+		self.plot(x, y, label = f"x0 to x1")
+		self.plot(x, theor_y[0], label=f"theoretical curve: stiffness: {p[0]:.3e}, x0: {p[1]:.3e}, drag: {p[2]:.3e}")
+		acquisition.show()
+	@staticmethod
+	def plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions(acquisitions):
+		acquisition.plotBioControllerFPT_CDF_multipleFitted(acquisitions, onlyLongTransitions=True)
+	@staticmethod
+	def plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions(acquisitions):
+		acquisition.plotBioControllerFPT_CDF_multipleFitted(acquisitions, onlyLongTransitions=False)
+	@staticmethod
+	def plotBioControllerFPT_CDF_multipleFitted(acquisitions, onlyLongTransitions = True):
+		xs = []
+		ys = []
+		acquisitions = [acquisition(s) if isinstance(s, str) else s for s in acquisitions]
+		for acq in acquisitions:
+			x,y=acq.get_xy_forFPT_CDF(onlyLongTransitions)
+			xs.append(x)
+			ys.append(y)
+		# xs = np.array(xs)
+		# ys = np.array(ys)
+		theoreticalFunction = lambda t, stiff, drag, x0 : interactWithJulia.FTP_CDF(t, x0, stiff, drag)
+		commonBounds = [(1e-10, 1e-7), (10e-9,50e-9)]
+		singleBounds = [(1e-9,1e-7)]
+		p, theor_y = getFittingFunctions_commonParameters(xs,ys, theoreticalFunction, commonBounds, singleBounds, alsoReturnF_x=True)
+		print(f"theoretical curves: stiffness: {p[0]}, drag: {p[1]}, x0s: {p[2:]}")
+		acquisition.newFigure(f"theoretical curves: stiffness: {p[0]}, drag: {p[1]}")		
+		for i,acq in enumerate(acquisitions):
+			acq.plot(xs[i], ys[i], label = f"x0 to x1")
+			acq.plot(xs[i], theor_y[i][0], label=f"theoretical curve: x0: {p[2+i]:.3e}")
+		acquisition.show()
+			
+
+
+
+def getFittingFunction(x,y,fittingFunction, parametersRanges, alsoReturnF_x=False, printErrors = True):
+	'''finds the best parameters *p that fit the experimental data (x,y) into the fitting function, so that
+	y ~= fittingFunction(x,*p)
+	'''	
+	def difference(*p):
+		e = np.sum((y - fittingFunction(x,*(p[0]))) ** 2)
+		if printErrors:
+			print(e)
+		return e
+	result = differential_evolution(difference, parametersRanges)
+	p = result.x
+	if alsoReturnF_x:
+		return p, fittingFunction(x,*p)
+	return p
+def getFittingFunctions_commonParameters(x,y,fittingFunction, commonParametersRanges, separatedParametersRanges, alsoReturnF_x=False, printErrors = True):
+	'''
+	finds the best parameters *p,*q[i] that fit the experimental data (x[i],y[i]) into the fitting function, so that
+	y[i] ~= fittingFunction(x[i],*p,*q[i]) for each i
+	x and y are lists of arrays, and some of the parameters are common between different (x[i],y[i])
+	'''	
+	q_index=len(commonParametersRanges)
+	def difference(*p):
+		e = np.zeros(len(x))
+		for i in range(len(x)):
+			e[i] = np.sum((y[i] - fittingFunction(x[i],*(p[0][:q_index]),*(p[0][q_index+i::len(x)]))) ** 2)
+		if printErrors:
+			print(e)
+		return np.sum(e)
+		
+	result = differential_evolution(difference, commonParametersRanges + separatedParametersRanges * len(x))
+	p = result.x
+	if alsoReturnF_x:
+		return p, [fittingFunction(x[i],*(p[:q_index]),*(p[q_index+i::len(x)])) for i in range(len(x))]
+	return p
 
 def  Kolmogorov_Smirnov_test(theoreticalCDF, extractedData):
 	'''
@@ -225,6 +351,29 @@ def  Kolmogorov_Smirnov_test(theoreticalCDF, extractedData):
 		
 
 if __name__ == "__main__":
-	a=acquisition("aaa_bioControllerTimings.csv")
-	q=a.getBioControllerRawFPT(True, False)
-	print(q)
+	# a=acquisition("C:/Users/lastline/Downloads/FPT_current225_x0.01_006.csv")
+	# q=a.getBioControllerRawFPT(True, True)
+	# for i in q:
+	# 	plt.plot(i,np.linspace(0,1,len(i)))
+	# q=a.getBioControllerRawFPT(True, False)
+	# for i in q:
+	# 	plt.plot(i,np.linspace(0,1,len(i)))
+	# # self.plot(q[0])
+	# # self.plot(q[1])
+	# acquisition.show()
+	# a.plotBioControllerAcquisition()
+
+	acquisition.plotBioControllerFPT_CDF_multipleFitted([
+		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv",
+		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.01_014_bioControllerAcquisition.csv",
+		"d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.005_013_conf.csv",
+		"d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.02_drift_012_conf.csv",
+		"d:/lastline/bioTweezers/28_3_25/bead6_FPT_150mA_x0.01_drift_009_bioControllerTimings.csv",
+	], True)
+	acquisition.plotBioControllerFPT_CDF_multipleFitted([
+		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv",
+		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.01_014_bioControllerAcquisition.csv",
+		# "d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.005_013_conf.csv",
+		# "d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.02_drift_012_conf.csv",
+		# "d:/lastline/bioTweezers/28_3_25/bead6_FPT_150mA_x0.01_drift_009_bioControllerTimings.csv",
+	], False)

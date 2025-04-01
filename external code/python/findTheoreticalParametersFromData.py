@@ -12,16 +12,16 @@ import interactWithJulia
 import plotFirstPassagePdf
 from scipy.optimize import differential_evolution
 
-basePath = "D:/lastline/bioTweezers/20_2_5"
+basePath = "D:/lastline/bioTweezers/20250327"
 #				file idx, setpoint
-usedFileIdx =  [9  , 	#	0.015,
-				12 , 	#	0.010,
-				14 , 	#	0.005,
-				15 , 	#	0.020,
-				16 , 	#	-0.015
-				]
-usedFiles = [plotFirstPassagePdf.getBaseFileNameFromIdx(basePath, i) for i in usedFileIdx]
-
+# usedFileIdx =  [9  , 	#	0.015,
+# 				12 , 	#	0.010,
+# 				14 , 	#	0.005,
+# 				15 , 	#	0.020,
+# 				16 , 	#	-0.015
+# 				]
+# usedFiles = [plotFirstPassagePdf.getBaseFileNameFromIdx(basePath, i) for i in usedFileIdx]
+usedFiles=[plotFirstPassagePdf.getBaseFileNameFromIdx(basePath, 1)]
 fileConversion = {
 	'constantIntensity_004.csv' 									:	'004_bead 1_setpoint 0.015_constant stiffness 0.15_',
 	'constantIntensity_005.csv' 									:	'005_bead 1_setpoint 0.01_constant stiffness 0.15_ offset around -0.01_005',
@@ -48,7 +48,8 @@ foundResults = []
 
 for baseFile in usedFiles:
 	fileName = baseFile.split("/")[-1]
-	newFileName = fileConversion[fileName]
+	# newFileName = fileConversion[fileName]
+	newFileName = fileName
 	q = plotFirstPassagePdf.getTimings_x0x1_and_x1x0(baseFile, [])
 	x0,x1=plotFirstPassagePdf.getValuesOf_x0_and_x1(baseFile)
 	if isinstance(q, tuple):

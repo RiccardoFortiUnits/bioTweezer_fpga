@@ -1,3 +1,18 @@
+# def install_and_import(package):
+# 	import subprocess
+# 	import sys
+# 	try:
+# 		__import__(package)
+# 	except ImportError:
+# 		try:
+# 			subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+# 		except:
+# 			subprocess.check_call([sys.executable, "-m", "pip", "install", f"py{package}"])
+# 		__import__(package)
+		
+# install_and_import("tqdm")
+
+
 
 # import numpy as np
 # from dimensionLinker import dimensionLinker

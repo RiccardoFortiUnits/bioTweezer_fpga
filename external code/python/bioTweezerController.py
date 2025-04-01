@@ -50,9 +50,11 @@ class fpgaRegister:
 		#dimension that the FPGA value represents). It uses a dimensionLinker to convert between dimensions, so you
 		#can also change/read the value of this object by feeding it a value in a different dimension, as long as
 		#it is connected to the base dimension
-	def __init__(self, dimLinker : dimensionLinker, dimension, preferredConversionDimension, command = None):
+	def __init__(self, dimLinker : dimensionLinker, dimension, preferredConversionDimension = None, command = None):
 		self.dimLinker : dimensionLinker = dimLinker
 		self.dimension = dimension
+		if preferredConversionDimension is None:
+			preferredConversionDimension = dimension
 		self.preferredConversionDimension = preferredConversionDimension
 		self.bitSize = dimLinker.nodes[dimension]["bitSize"]
 		try:
@@ -437,6 +439,7 @@ class bioTweezerController(fpgaHandler):
 	
 	dimLink = dimensionLinker()
 	dimLink.addDimension("bead_position", "m")
+	dimLink.addDimension("bead_positionSquare_unshifted", "m^2")
 	dimLink.addDimension("bead_positionSquare", "m^2")
 	dimLink.addDimension("QPD_output", "V")
 	dimLink.addDimension("xy_voltage", "V")
@@ -453,6 +456,7 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addDimension("FPGA_bf_cfg", bitSize = 1, isSigned = False)
 	dimLink.addDimension("FPGA_bf_transmissionCfg", bitSize = 2, isSigned = False)
 	dimLink.addDimension("FPGA_usedInputCfg", bitSize = 2, isSigned = False)
+	dimLink.addDimension("FPGA_bitShift", bitSize = 8, isSigned = False, defaultValue=0)
 	dimLink.addDimension("control_voltage", "V")
 	dimLink.addDimension("generator_input", "V")
 	dimLink.addDimension("generator_current", "I")
@@ -463,45 +467,7 @@ class bioTweezerController(fpgaHandler):
 
 	def initializeDimensionLinker(self):
 		self.dimLink = bioTweezerController.dimLink
-		
-	
-	def updateDimensionLinker(self):
-		self.dimLink.clearEdges()
-		self.dimLink.addConnection("QPD_output", "xy_voltage", dimensionLinker.gainFunctions(self.ADC_xyAttenuation))
-		self.dimLink.addConnection("QPD_output", "sum_voltage", dimensionLinker.gainFunctions(self.ADC_sumAttenuation))
-		self.dimLink.addConnection("xy_voltage", "FPGA_floatValue", dimensionLinker.gainFunctions(self.ADC_voltageToFpgaInput))
-		self.dimLink.addConnection("sum_voltage", "FPGA_SUMfloatValue", dimensionLinker.gainFunctions(self.ADC_voltageToFpgaInput))
-		self.dimLink.addConnection("FPGA_floatValue", "FPGA_signalRegister", dimensionLinker.gainFunctions(2**15))
-		self.dimLink.addConnection("FPGA_SUMfloatValue", "FPGA_SUMsignalRegister", dimensionLinker.gainFunctions(2**15))
-		self.dimLink.addConnection("FPGA_floatValue", "FPGA_coeffRegister", dimensionLinker.gainFunctions(2**24))
-		self.dimLink.addConnection("FPGA_floatValue", "FPGA_largeCoeffRegister", dimensionLinker.gainFunctions(2**22))
-		self.dimLink.addConnection("FPGA_floatValue", "control_voltage", dimensionLinker.gain_n_shiftFunctions(self.DAC_fpgaOuputToVoltage, self.DAC_offset))
-		self.dimLink.addConnection("control_voltage", "generator_input", dimensionLinker.shift_n_gainFunctions(-self.DAC_offset, self.DAC_gain))
-		self.dimLink.addConnection("generator_input", "generator_current", dimensionLinker.gain_n_shiftFunctions(self.currentGenerator_inputVtoI, self.currentGenerator_baseCurrent))
-		self.dimLink.addConnection("generator_current", "generator_debugVoltage", dimensionLinker.gainFunctions(self.currentGenerator_ItoDebugV))
-		self.dimLink.addConnection("generator_current", "laserPower", dimensionLinker.gainFunctions(self.laser_currentToLaserPower))
-		self.dimLink.addConnection("FPGA_floatValue", "bead_position", dimensionLinker.gainFunctions(self.range_x))
-		self.dimLink.addConnection("bead_position", "bead_positionSquare", dimensionLinker.squareFunctions())
-		self.dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(self.piezo_V_to_distance))
-		self.dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
-		self.dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
-		self.dimLink.checkForLoops()		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+			
 		
 		
 	
@@ -513,9 +479,9 @@ class bioTweezerController(fpgaHandler):
 			"x"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"y"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"z"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
-			"x^2"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
-			"y^2"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
-			"z^2"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare"),
+			"x^2"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare_unshifted"),
+			"y^2"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare_unshifted"),
+			"z^2"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_positionSquare_unshifted"),
 		}
 		self.ParametersForFPGA = {#follow the FPGA order
 			#large parameters
@@ -550,10 +516,11 @@ class bioTweezerController(fpgaHandler):
 			"binFeedback_x1"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"binFeedback_x0"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"binFeedback_transmissionCfg"   : fpgaRegister(self.dimLink, "FPGA_bf_transmissionCfg", "FPGA_bf_transmissionCfg"),
+			"squaresShift"					: fpgaRegister(self.dimLink, "FPGA_bitShift", "FPGA_bitShift"),
 		}
 		super(bioTweezerController, self).__init__(**kwargs)
 		self.reset()
-		self.updateDimensionLinker()
+		# self.updateDimensionLinker()
 		#self.initiateTweezers()
 		
 	#gains of the ADC/DAC circuits
@@ -631,7 +598,8 @@ class bioTweezerController(fpgaHandler):
 		signals = np.array([dataFromFPGA[direction] for direction in directions])
 		squaredSignals = np.array([dataFromFPGA[direction+"^2"] for direction in directions])
 		signals = self.dimLink.convert(signals, "FPGA_floatValue", "bead_position")
-		squaredSignals = self.dimLink.convert(squaredSignals, "FPGA_floatValue", "bead_positionSquare")
+		squareShift = self.readBackParameter("squaresShift")
+		squaredSignals = self.dimLink.convert([squaredSignals, squareShift], ["FPGA_floatValue", "FPGA_bitShift"], "bead_positionSquare")
 		return bioTweezerController.laserStiffnessFromPositionSignal(signals, squaredSignals, temperature)
 
 	@staticmethod
@@ -771,25 +739,28 @@ class bioTweezerController(fpgaHandler):
 		self.updateDimensionLinker()
 	
 
-	dimLink.addConnection("QPD_output", "xy_voltage", dimensionLinker.gainFunctions(ADC_xyAttenuation))
-	dimLink.addConnection("QPD_output", "sum_voltage", dimensionLinker.gainFunctions(ADC_sumAttenuation))
-	dimLink.addConnection("xy_voltage", "FPGA_floatValue", dimensionLinker.gainFunctions(ADC_voltageToFpgaInput))
-	dimLink.addConnection("sum_voltage", "FPGA_SUMfloatValue", dimensionLinker.gainFunctions(ADC_voltageToFpgaInput))
-	dimLink.addConnection("FPGA_floatValue", "FPGA_signalRegister", dimensionLinker.gainFunctions(2**15))
-	dimLink.addConnection("FPGA_SUMfloatValue", "FPGA_SUMsignalRegister", dimensionLinker.gainFunctions(2**15))
-	dimLink.addConnection("FPGA_floatValue", "FPGA_coeffRegister", dimensionLinker.gainFunctions(2**24))
-	dimLink.addConnection("FPGA_floatValue", "FPGA_largeCoeffRegister", dimensionLinker.gainFunctions(2**22))
-	dimLink.addConnection("FPGA_floatValue", "control_voltage", dimensionLinker.gain_n_shiftFunctions(DAC_fpgaOuputToVoltage, DAC_offset))
-	dimLink.addConnection("control_voltage", "generator_input", dimensionLinker.shift_n_gainFunctions(-DAC_offset, DAC_gain))
-	dimLink.addConnection("generator_input", "generator_current", dimensionLinker.gain_n_shiftFunctions(currentGenerator_inputVtoI, currentGenerator_baseCurrent))
-	dimLink.addConnection("generator_current", "generator_debugVoltage", dimensionLinker.gainFunctions(currentGenerator_ItoDebugV))
-	dimLink.addConnection("generator_current", "laserPower", dimensionLinker.gainFunctions(laser_currentToLaserPower))
-	dimLink.addConnection("FPGA_floatValue", "bead_position", dimensionLinker.gainFunctions(range_x))
-	dimLink.addConnection("bead_position", "bead_positionSquare", dimensionLinker.squareFunctions())
-	dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(piezo_V_to_distance))
-	dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
-	dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
-	dimLink.checkForLoops()
+	@staticmethod
+	def updateDimensionLinker():
+		bioTweezerController.dimLink.addConnection("QPD_output", "xy_voltage", dimensionLinker.gainFunctions(bioTweezerController.ADC_xyAttenuation))
+		bioTweezerController.dimLink.addConnection("QPD_output", "sum_voltage", dimensionLinker.gainFunctions(bioTweezerController.ADC_sumAttenuation))
+		bioTweezerController.dimLink.addConnection("xy_voltage", "FPGA_floatValue", dimensionLinker.gainFunctions(bioTweezerController.ADC_voltageToFpgaInput))
+		bioTweezerController.dimLink.addConnection("sum_voltage", "FPGA_SUMfloatValue", dimensionLinker.gainFunctions(bioTweezerController.ADC_voltageToFpgaInput))
+		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "FPGA_signalRegister", dimensionLinker.gainFunctions(2**15))
+		bioTweezerController.dimLink.addConnection("FPGA_SUMfloatValue", "FPGA_SUMsignalRegister", dimensionLinker.gainFunctions(2**15))
+		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "FPGA_coeffRegister", dimensionLinker.gainFunctions(2**24))
+		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "FPGA_largeCoeffRegister", dimensionLinker.gainFunctions(2**22))
+		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "control_voltage", dimensionLinker.gain_n_shiftFunctions(bioTweezerController.DAC_fpgaOuputToVoltage, bioTweezerController.DAC_offset))
+		bioTweezerController.dimLink.addConnection("control_voltage", "generator_input", dimensionLinker.shift_n_gainFunctions(-bioTweezerController.DAC_offset, bioTweezerController.DAC_gain))
+		bioTweezerController.dimLink.addConnection("generator_input", "generator_current", dimensionLinker.gain_n_shiftFunctions(bioTweezerController.currentGenerator_inputVtoI, bioTweezerController.currentGenerator_baseCurrent))
+		bioTweezerController.dimLink.addConnection("generator_current", "generator_debugVoltage", dimensionLinker.gainFunctions(bioTweezerController.currentGenerator_ItoDebugV))
+		bioTweezerController.dimLink.addConnection("generator_current", "laserPower", dimensionLinker.gainFunctions(bioTweezerController.laser_currentToLaserPower))
+		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "bead_position", dimensionLinker.gainFunctions(bioTweezerController.range_x))
+		bioTweezerController.dimLink.addConnection("bead_position", "bead_positionSquare_unshifted", dimensionLinker.squareFunctions())
+		bioTweezerController.dimLink.addMultiConnection(["bead_positionSquare_unshifted", "bead_positionSquare", "FPGA_bitShift"], dimensionLinker.shift2Functions("bead_positionSquare_unshifted", "bead_positionSquare", "FPGA_bitShift"))
+		bioTweezerController.dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(bioTweezerController.piezo_V_to_distance))
+		bioTweezerController.dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
+		bioTweezerController.dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
+		bioTweezerController.dimLink.checkForLoops()
 
 if __name__ == "__main__":
 	q = bioTweezerController()

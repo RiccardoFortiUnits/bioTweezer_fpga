@@ -141,13 +141,12 @@ localparam maxTimeBetweenTransmissions = 28'h8000000;// ~2.7 s
 reg [28 -1:0] TimeBetweenTransmissions;
 wire [28 -1:0] TimeBetweenTransmissions_fromNetwork;
 wire TimeBetweenTransmissions_updated;
-always @(posedge rx_xcvr_clk) begin
+wire TimeBetweenTransmissions_isValid = TimeBetweenTransmissions_fromNetwork > 1;
+always @(negedge TimeBetweenTransmissions_updated) begin
 	if(reset) begin
 		TimeBetweenTransmissions <= 'h3D090;//with the 50MHz clock, there's a transmission every 5.0ms;
 	end else begin
-		if(TimeBetweenTransmissions_updated)begin
-			TimeBetweenTransmissions <= TimeBetweenTransmissions_fromNetwork ? TimeBetweenTransmissions_fromNetwork : 'h3D090;//let's be sure that we don't set the value to 0 when the network starts
-		end
+		TimeBetweenTransmissions <= TimeBetweenTransmissions_isValid ? TimeBetweenTransmissions_fromNetwork : 'h3D090;//let's be sure that we don't set the value to 0 when the network starts
 	end
 end
 
@@ -189,6 +188,7 @@ wire pi_rdempty_output_fifo, x_rdempty_fifo, y_rdempty_fifo, z_rdempty_fifo, xSq
 wire [15:0] controllerOut;
 wire [15:0] ray;
 wire [15:0] x, y, z, xSquare, ySquare, zSquare;
+wire [7:0] squaresShift;//shift of the square signals, used if they are so small that you can't see them that well with the limited precision. Maybe you need less bits for this, but better to have one more than one less
 wire useToggleEnable;//, binFeedback_actOnInGreaterThanThreshold;
 wire [27:0] enableToggleCycles;//, binFeedback_activeFeedbackMaxCycles, binFeedback_idleWaitCycles, binFeedback_cyclesForActivation;
 // wire [15:0] binFeedback_threshold, binFeedback_valueWhenActive;
@@ -249,11 +249,11 @@ wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
 
 
-parameter nOfsmallRegisters = 18;
+parameter nOfsmallRegisters = 19;
 
-parameter smallRegisterStartIdxs = {32'hE6                     , 32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hEE      , 32'hE6                     , 32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
-assign                             {binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
+assign                             {squaresShift, binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
 wire [nOfsmallRegisters -1:0] smallRegisters_update_cmd;
 //assign {...} = smallRegisters_update_cmd;
@@ -438,6 +438,7 @@ tweezerController#(
 	.xSquare								(xSquare),
 	.ySquare								(ySquare),
 	.zSquare								(zSquare),
+	.squaresShift							(squaresShift),
 	.x_offset								(x_offset),
 	.y_offset								(y_offset),
 	.xDiff_offset							(xDiff_offset),

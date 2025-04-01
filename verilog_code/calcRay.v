@@ -11,6 +11,9 @@ module calcRay#
 	input signed [inputWidth -1:0] x,
 	input signed [inputWidth -1:0] y,
 	input signed [inputWidth -1:0] z,
+	input [$clog2(inputWidth+1)+1 :0] squaresShift,//the signals xSquare, ySquare, zSquare will be shifted left
+						//by squaresShift bits before being sent to the output. Use a value >0 when the inputs are very small, and there
+						//aren't enough bits to have a precise square value at the output. The ray calculation is not affected by this value
 	output [outputWidth -1:0] xSquare,
 	output [outputWidth -1:0] ySquare,
 	output [outputWidth -1:0] zSquare,
@@ -91,7 +94,7 @@ fixedPointShifter#(
 	.outputFracSize(outputFracWidth),
 	.isSigned		(0)
 )shiftXsquare(
-	.in		(inputs_square[0]),
+	.in		(inputs_square[0] << squaresShift),
 	.out	(xSquare)
 );
 fixedPointShifter#(
@@ -101,7 +104,7 @@ fixedPointShifter#(
 	.outputFracSize(outputFracWidth),
 	.isSigned		(0)
 )shiftYsquare(
-	.in		(inputs_square[1]),
+	.in		(inputs_square[1] << squaresShift),
 	.out	(ySquare)
 );
 fixedPointShifter#(
@@ -111,7 +114,7 @@ fixedPointShifter#(
 	.outputFracSize(outputFracWidth),
 	.isSigned		(0)
 )shiftZsquare(
-	.in		(inputs_square[2]),
+	.in		(inputs_square[2] << squaresShift),
 	.out	(zSquare)
 );
 endmodule

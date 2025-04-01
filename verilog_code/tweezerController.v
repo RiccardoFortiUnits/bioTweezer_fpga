@@ -52,11 +52,11 @@ module tweezerController#(
 	input 											binFeedback_cfg,
 	input   [outputBitSize -1:0]                    binFeedback_valueWhenIn_x0,
 	input   [outputBitSize -1:0]                    binFeedback_valueWhenIn_x1,
-	input [1:0]																		binFeedback_transmissionCfg,
+	input   [1:0]									binFeedback_transmissionCfg,
 	output  [outputBitSize -1:0]             	    binFeedback_out,
 	output  [$clog2(EnableToggleMaxTime+1) -1:0] 	binFeedback_lastActiveDuration,
 	output                                          binFeedback_lastActiveDuration_dataValid,
-	output 																					binFeedback_lastReachedThreshold,
+	output 											binFeedback_lastReachedThreshold,
 	input 	[$clog2(binFeedbackMaxAveragingTime+1) -1:0] binFeedback_preAverageTime,
 
 	output	[outputBitSize -1:0]					ray,
@@ -66,6 +66,7 @@ module tweezerController#(
 	output	[outputBitSize -1:0]					xSquare,
 	output	[outputBitSize -1:0]					ySquare,
 	output	[outputBitSize -1:0]					zSquare,
+	input	[$clog2(workingBitSize+1)+1 :0]			squaresShift,
 	
 	input   [1:0]									used_inputs,
 	
@@ -185,6 +186,7 @@ calcRay#
 	.xSquare			(xSquare_untrimmed),
 	.ySquare			(ySquare_untrimmed),
 	.zSquare			(zSquare_untrimmed),
+	.squaresShift		(squaresShift),
 
 	.r					(r),
 	.outData_valid		(r_valid) 
@@ -339,7 +341,6 @@ fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSiz
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	trimUsedInput(usedInput_untrimmed, usedInput);
 
-	 
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 0) 
 	shift_xyzSquare[0:2](
 		{xSquare_untrimmed, ySquare_untrimmed, zSquare_untrimmed},

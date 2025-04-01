@@ -41,24 +41,58 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 # p=os.system('D:/lastline/Julia-1.11.3/bin/julia.exe "C:/Git/bioTweezer_fpga/external code/python/test.jl" a b c')
-def FTP_PDF(t, A, x0, w0):
-	O = np.outer(w0, t)
-	tau = (1 - np.exp(-2 * O)) / (2 * w0[:, None])
-	P = np.sqrt(A[:, None]) * np.abs(x0[:, None]) * np.exp(-O) / np.sqrt(2 * np.pi * tau**3) * np.exp(-A[:, None] * x0[:, None]**2 * np.exp(-2 * O) / (2 * tau))
+'''
+
+stiffness: pN/um = 1e-6 N/m
+drag: pN*ms/um = 1e-9 N*s/m
+
+'''
+
+
+
+def FTP_PDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):	
+	inputList = [x0_m, stiffness_N_m, drag_Ns_m, T_K]
+	maxLength = max(map(lambda l: len(l) if isinstance(l, (list, np.ndarray)) else 1, inputList))
+	for i in range(len(inputList)):
+		if isinstance(inputList[i], list):
+			inputList[i] = np.array(inputList[i])
+		elif not isinstance(inputList[i], np.ndarray):
+			inputList[i] = np.repeat(inputList[i], maxLength)
+	(x0_m, stiffness_N_m, drag_Ns_m, T_K) = tuple(inputList)
+	
+	kBoltzman = 1.3806504e-23
+	A = drag_Ns_m/(2*kBoltzman*T_K)
+	omega = stiffness_N_m/drag_Ns_m
+	O = np.outer(omega, t)
+	tau = (1 - np.exp(-2 * O)) / (2 * omega[:, None])
+	P = np.sqrt(A[:, None]) * np.abs(x0_m[:, None]) * np.exp(-O) / np.sqrt(2 * np.pi * tau**3) * np.exp(-A[:, None] * x0_m[:, None]**2 * np.exp(-2 * O) / (2 * tau))
 	P[t[None, :]==0] = 0
 	return P
-def FTP_waywayWayBetterThanJulia(maxTime, nOfPoints, A, x0, w0):
-	if nOfPoints is not None:
-		t = np.linspace(0, maxTime, nOfPoints)
+def FTP_CDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):	
+	P = FTP_PDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K)
+	dt = np.concatenate(([t[0]],np.diff(t)))
+	C = np.cumsum(P * dt[None,:], axis = 1)
+	C -= C[:,0]
+	C /= C[:,-1]
+	return C
+# def FTP_PDF(t, A, x0, w0):
+# 	O = np.outer(w0, t)
+# 	tau = (1 - np.exp(-2 * O)) / (2 * w0[:, None])
+# 	P = np.sqrt(A[:, None]) * np.abs(x0[:, None]) * np.exp(-O) / np.sqrt(2 * np.pi * tau**3) * np.exp(-A[:, None] * x0[:, None]**2 * np.exp(-2 * O) / (2 * tau))
+# 	P[t[None, :]==0] = 0
+# 	return P
+# def FTP_waywayWayBetterThanJulia(maxTime, nOfPoints, A, x0, w0):
+# 	if nOfPoints is not None:
+# 		t = np.linspace(0, maxTime, nOfPoints)
 				
-		P = FTP_PDF(t, A, x0, w0)
+# 		P = FTP_PDF(t, A, x0, w0)
 		
-		# P = np.concatenate((np.zeros_like(P[:, 0])[:,None],P), axis=1)
-		# t = np.concatenate(([0], t))
-		return t, P.T
+# 		# P = np.concatenate((np.zeros_like(P[:, 0])[:,None],P), axis=1)
+# 		# t = np.concatenate(([0], t))
+# 		return t, P.T
 	
-	P = FTP_PDF(maxTime, A, x0, w0)
-	return maxTime, P.T
+# 	P = FTP_PDF(maxTime, A, x0, w0)
+# 	return maxTime, P.T
 
 def getFPTFromJuliaScript(maxTime_s, nOfPoints, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
 	inputList = [x0_m, stiffness_N_m, drag_Ns_m, T_K]

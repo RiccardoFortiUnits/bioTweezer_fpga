@@ -12,7 +12,6 @@ module network_wrapper #(
 	PORT_2 = 2048,
 	LOCKIN_NUMBER = 32,
 	 
-	parameter idxSizes = 32,
 	parameter largeRegisterStartIdxs = {64, 32, 0},
 	parameter nOflargeRegisters = 2,
 	parameter smallRegisterStartIdxs = {64, 48, 32, 16, 0},
@@ -272,7 +271,6 @@ generic_param_decoder pi_reset_decoder(
 );
 
 control_param_decoder #(
-	.idxSizes					(idxSizes),
 	.largeRegisterStartIdxs		(largeRegisterStartIdxs),
 	.nOflargeRegisters			(nOflargeRegisters),
 	.smallRegisterStartIdxs		(smallRegisterStartIdxs),

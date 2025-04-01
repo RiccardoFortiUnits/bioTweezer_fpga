@@ -91,7 +91,7 @@ class dimensionLinker():
 					self.g.add_edge(dimensions[i], str(dimensions), transferFun = conversionFunctions[i])
 				self.g.add_edge(str(dimensions), dimensions[i], transferFun = lambda x: x)
 	
-	def convert(self, values, fromDimensions, toDimension, useDefaultValues = False):
+	def convert(self, values : float | int | List[float] | List[int], fromDimensions : str | List[str], toDimension : str, useDefaultValues = False):
 		#convert a value (or more than one value if the conversion requires more inputs) to a new dimension. If 
 			#the dimensions are not connected, the function returns an error
 		if not isinstance(fromDimensions, list):
@@ -182,6 +182,7 @@ class dimensionLinker():
 	def inverseFunctions():
 		return (lambda x : 1/x, lambda x : 1/x)
 	
+	
 	@staticmethod
 	def additionFunction(list1, list2):#the equations has the form:
 				#list1[0] + list1[1] + ... + list1[-1] = list2[0] + list2[1] + ... + list2[-1]
@@ -230,7 +231,16 @@ class dimensionLinker():
 				return val ** (1/len(resultKey))
 			return val
 		return [fun1]*len(list1) + [fun2]*len(list2)
-		
+	
+	@staticmethod
+	def shift2Functions(base, leftshift, shifted):# base << leftshift = shifted. negative leftshifts does a right shift
+		def getBase(**kwargs):
+			return kwargs[shifted] * (.5 ** kwargs[leftshift])
+		def getLeftshift(**kwargs):
+			return np.log2(kwargs[shifted] / kwargs[base])
+		def getShifted(**kwargs):
+			return kwargs[base] * (2 ** kwargs[leftshift])
+		return [getBase, getLeftshift, getShifted]
 #example use:
 '''
 G = dimensionLinker()
