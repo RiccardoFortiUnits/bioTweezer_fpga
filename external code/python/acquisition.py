@@ -19,14 +19,18 @@ class acquisition():
 		if acquisition.createNewFigure:
 			plt.legend()
 			plt.show()
-	def plot(self, x,y,label=None,*args,**kwargs):
+	def genericPlot(self, x,y,label=None, plotFunction = plt.plot,*args,**kwargs):
 		if label is None:
-				plt.plot(x,y,*args,**kwargs)
+				plotFunction(x,y,*args,**kwargs)
 		else:
 			if not acquisition.createNewFigure:
 				name = str.replace(os.path.basename(self.__baseFile),"_"," ")
 				label = f"{name}: {label}"			
-			plt.plot(x,y, label=label,*args,**kwargs)
+			plotFunction(x,y, label=label,*args,**kwargs)
+	def plot(self, x,y,label=None, *args, **kwargs):
+		self.genericPlot(x,y,label, self.genericPlot, *args, **kwargs)
+	def step(self, x,y,label=None, *args, **kwargs):
+		self.genericPlot(x,y,label, plt.step, *args, **kwargs)
 	@staticmethod
 	def getAllFilesProperties(folderPath, properties = ["binFeedback_x0", "binFeedback_valueWhenIn_x0"]):
 		files = acquisition.getAllBaseFiles(folderPath)
@@ -256,19 +260,42 @@ class acquisition():
 		x=x[unique]
 		y=y[unique]
 		return x,y
-	def plotBioControllerFPT_CDF_fitted(self, onlyLongTransitions = True):
-		x,y=self.get_xy_forFPT_CDF(onlyLongTransitions)
-		theoreticalFunction = lambda t, stiff, x0, drag : interactWithJulia.FTP_CDF(t, x0, stiff, drag)
+	def get_xy_forFPT_PDF(self, onlyLongTransitions=True):
+		x,y = self.get_xy_forFPT_CDF(onlyLongTransitions)
+		dy_dx = np.gradient(y, x)
+		return x, dy_dx
+	def __fitForCDF(self, onlyLongTransitions = True):
+		x,y=self.get_xy_forFPT_CDF(onlyLongTransitions)	
+		theoreticalFunction = lambda t, stiff, x0, drag: interactWithJulia.FTP_CDF(t, x0, stiff, drag)
 		bounds = [(1e-11,1e-4), (1e-10, 1e-7), (10e-9,50e-9)]
 		p, theor_y = getFittingFunction(x,y, theoreticalFunction, bounds, alsoReturnF_x=True)
 		print(f"theoretical curve: stiffness: {p[0]}, x0: {p[1]}, drag: {p[2]}")
+		return x,y, p,theor_y
+	
+	def plotBioControllerFPT_CDF_fitted(self, onlyLongTransitions = True):
+		x,y,p, theor_y = self.__fitForCDF(onlyLongTransitions)
 		s = "long transitions" if onlyLongTransitions else "all transitions"
 		acquisition.newFigure(f"{self.__baseFile} FPT CDF ({s})")
-		self.plot(x, y, label = f"x0 to x1")
-		self.plot(x, theor_y[0], label=f"theoretical curve: stiffness: {p[0]:.3e}, x0: {p[1]:.3e}, drag: {p[2]:.3e}")
+		self.step(x, y, label = f"x0 to x1")
+		self.plot(x, theor_y[0], label=f"theoretical curve: stiffness: {p[0]:.3e}, x0: {p[1]:.3e}, drag: {p[2]:.3e}", color=plt.gca().lines[-1].get_color())
 		acquisition.show()
+	def plotBioControllerFPT_PDF_fitted(self, onlyLongTransitions = True):
+		_,__,p, theor_y = self.__fitForCDF(onlyLongTransitions)	
+		x,y=self.get_xy_forFPT_PDF(onlyLongTransitions)
+		s = "long transitions" if onlyLongTransitions else "all transitions"
+		acquisition.newFigure(f"{self.__baseFile} FPT CDF ({s})")
+		self.step(x, y, label = f"x0 to x1")
+		theor_y = interactWithJulia.FTP_PDF_normalized(x, p[1], p[0], p[2])
+		self.plot(x, theor_y[0], label=f"theoretical curve: stiffness: {p[0]:.3e}, x0: {p[1]:.3e}, drag: {p[2]:.3e}", color=plt.gca().lines[-1].get_color())
+		acquisition.show()
+
+	def plotBioControllerFPT_PDF_fitted_onlyLongTransitions(self):
+		return self.plotBioControllerFPT_PDF_fitted(True)
+	def plotBioControllerFPT_PDF_fitted_allTransitions(self):
+		return self.plotBioControllerFPT_PDF_fitted(False)
+
 	@staticmethod
-	def plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions(acquisitions):
+	def plotBioControllerFPT_CDF_multipleFitted_allTransitions(acquisitions):
 		acquisition.plotBioControllerFPT_CDF_multipleFitted(acquisitions, onlyLongTransitions=True)
 	@staticmethod
 	def plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions(acquisitions):
@@ -291,8 +318,8 @@ class acquisition():
 		print(f"theoretical curves: stiffness: {p[0]}, drag: {p[1]}, x0s: {p[2:]}")
 		acquisition.newFigure(f"theoretical curves: stiffness: {p[0]}, drag: {p[1]}")		
 		for i,acq in enumerate(acquisitions):
-			acq.plot(xs[i], ys[i], label = f"x0 to x1")
-			acq.plot(xs[i], theor_y[i][0], label=f"theoretical curve: x0: {p[2+i]:.3e}")
+			acq.step(xs[i], ys[i], label = f"x0 to x1")
+			acq.plot(xs[i], theor_y[i][0], label=f"theoretical curve: x0: {p[2+i]:.3e}", color=plt.gca().lines[-1].get_color())
 		acquisition.show()
 			
 
@@ -363,17 +390,24 @@ if __name__ == "__main__":
 	# acquisition.show()
 	# a.plotBioControllerAcquisition()
 
-	acquisition.plotBioControllerFPT_CDF_multipleFitted([
-		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv",
-		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.01_014_bioControllerAcquisition.csv",
-		"d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.005_013_conf.csv",
-		"d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.02_drift_012_conf.csv",
-		"d:/lastline/bioTweezers/28_3_25/bead6_FPT_150mA_x0.01_drift_009_bioControllerTimings.csv",
-	], True)
-	acquisition.plotBioControllerFPT_CDF_multipleFitted([
-		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv",
-		"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.01_014_bioControllerAcquisition.csv",
-		# "d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.005_013_conf.csv",
-		# "d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.02_drift_012_conf.csv",
-		# "d:/lastline/bioTweezers/28_3_25/bead6_FPT_150mA_x0.01_drift_009_bioControllerTimings.csv",
-	], False)
+	# acquisition.plotBioControllerFPT_CDF_multipleFitted([
+	# 	"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv",
+	# 	"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.01_014_bioControllerAcquisition.csv",
+	# 	"d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.005_013_conf.csv",
+	# 	"d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.02_drift_012_conf.csv",
+	# 	"d:/lastline/bioTweezers/28_3_25/bead6_FPT_150mA_x0.01_drift_009_bioControllerTimings.csv",
+	# ], True)
+	# acquisition.plotBioControllerFPT_CDF_multipleFitted([
+	# 	"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv",
+	# 	"d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.01_014_bioControllerAcquisition.csv",
+	# 	# "d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.005_013_conf.csv",
+	# 	# "d:/lastline/bioTweezers/28_3_25/bead7_FPT_150mA_x0.02_drift_012_conf.csv",
+	# 	# "d:/lastline/bioTweezers/28_3_25/bead6_FPT_150mA_x0.01_drift_009_bioControllerTimings.csv",
+	# ], False)
+
+	a=acquisition('d:/lastline/bioTweezers/28_3_25/bead8_FPT_150mA_x0-.015_015_conf.csv')
+	a.plotBioControllerFPT_CDF_fitted_onlyLongTransitions()
+	a.plotBioControllerFPT_CDF_fitted_allTransitions()
+
+
+	pass

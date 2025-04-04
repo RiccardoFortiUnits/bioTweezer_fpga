@@ -75,6 +75,12 @@ def FTP_CDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
 	C -= C[:,0]
 	C /= C[:,-1]
 	return C
+def FTP_PDF_normalized(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
+	P = FTP_PDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K)
+	dt = np.concatenate(([t[0]],np.diff(t)))
+	sum = np.sum(P * dt[None,:], axis = 1)
+	P /= sum
+	return P
 # def FTP_PDF(t, A, x0, w0):
 # 	O = np.outer(w0, t)
 # 	tau = (1 - np.exp(-2 * O)) / (2 * w0[:, None])

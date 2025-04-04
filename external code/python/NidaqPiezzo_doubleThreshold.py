@@ -590,11 +590,13 @@ class NiFrame(Frame):
 			"FPT timings":				"plotBioControllerFPT_CDF",
 			"FPT timings_long + fitting":	"plotBioControllerFPT_CDF_fitted_onlyLongTransitions",
 			"FPT timings_all + fitting":	"plotBioControllerFPT_CDF_fitted_allTransitions",
+			"FPT PDF_long + fitting":	"plotBioControllerFPT_PDF_fitted_onlyLongTransitions",
+			"FPT PDF_all + fitting":	"plotBioControllerFPT_PDF_fitted_allTransitions",
 			}
 		self.multiplePlots : Dict[str,str]= self.singlePlots.copy()
 		self.multiplePlots.update({
 			"FPT timings_long + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions",
-			"FPT timings_all + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions",
+			"FPT timings_all + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_allTransitions",
 		})
 		
 		def plotFunction(selection):
@@ -1674,6 +1676,7 @@ class NiFrame(Frame):
 		for item in acquisition.getAllFilesProperties(os.path.dirname(fname)):
 			print(item)
 		self.acq = acquisition(fname)
+		self.updateBioTweezerConfigs(self.acq.configurations)
 
 		t,buf = self.acq.getNidaqAcquisition(returnType = np.ndarray)
 		
@@ -1881,7 +1884,7 @@ class NiFrame(Frame):
 		#create a basic entry or checkButton for the property extracted from a CSV file. This function returns a frame
 			#containing the checkbox or the entry/label for the specific property. This frame also has some added parameters
 			#to either identify it faster or to get the actual value from the internal UI. So, for example, you can call the
-			#property get() of the frame to get the internal value, or get the name and unit of the parameter with parameters
+			#property get()/set() of the frame to get/set the internal value, or get the name and unit of the parameter with parameters
 			#internalName and internalUnit.
 			#-bindingFunction is a function bound to either typing escape in the entry (for numerical parameters) or checking
 			#the checkbox (for boolean parameters). Use it to update some internal values after the property has been updated
@@ -1908,10 +1911,15 @@ class NiFrame(Frame):
 			el.get = el.entry.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromEntry
+			fakeEvent = SimpleNamespace(widget = el.entry, parent = el)
+			def setValue(val):
+				el.entry.delete(0, END)
+				el.entry.insert(0, f"{val}")
+				bindingFunction(fakeEvent)
+			el.set = setValue
 			el.entry.bind("<Return>", bindingFunction)
 			el.entry.bind("<KeyRelease>", lambda x: el.entry.config(bg="white" if x.keysym == 'Return' else "yellow"))
 			# entry.event_generate("<Return>")
-			fakeEvent = SimpleNamespace(widget = el.entry, parent = el)
 			bindingFunction(fakeEvent)
 			el.label.pack(side=LEFT)
 			el.entry.pack(side=LEFT)
@@ -1925,6 +1933,10 @@ class NiFrame(Frame):
 			el.get = var.get
 			if bindingFunction is None:
 				bindingFunction = self.updateBioControllerParameterFromCheckbox
+			def setValue(val):
+				el.set(val)
+				bindingFunction(el)
+			el.set = setValue
 			on,off = (1,0) if valuesFromCsvFile["Parameter type"] == "bool" else (0,1)
 			el.checkbox = Checkbutton(el, text=valuesFromCsvFile["Parameter name"], variable=var,onvalue=on,offvalue=off, 
 								command=partial(bindingFunction, el))
@@ -1952,10 +1964,11 @@ class NiFrame(Frame):
 			if refreshFunction is None:
 				refreshFunction = self.refreshComboboxFromFPGA
 			el.refreshValue = partial(refreshFunction, el.menu)
-			el.get = el.menu.current
-			
-			
-			
+			el.get = el.menu.current			
+			def setValue(val):
+				el.menu.current(int(val))
+				bindingFunction(fakeEvent)
+			el.set = setValue
 		return el
 	
 	def updateHideValueFromCheckButton(self, hideList, index, var):
@@ -1986,87 +1999,13 @@ class NiFrame(Frame):
 			
 	def updateBioTweezerConfigs(self, newConfigs):
 		
-		if self.bio_controller is None:
-			return
-
-		self.bio_frame = LabelFrame(self.ao_bio_frame, text="Bio controller")
-		self.bio_notebook = ttk.Notebook(self.bio_frame)
-		self.bio_notebook.grid(columnspan=2)
-		
-		self.bio_general_frame = ttk.Frame(self.bio_notebook)
-		self.bio_PI_frame = ttk.Frame(self.bio_notebook)
-		self.bio_binFeedback_frame = ttk.Frame(self.bio_notebook)
-
-		# Pack the frames (optional, depending on your layout needs)
-		self.bio_general_frame.pack(fill='both', expand=True)
-		self.bio_PI_frame.pack(fill='both', expand=True)
-		self.bio_binFeedback_frame.pack(fill='both', expand=True)
-
-		# Add frames to the notebook as tabs
-		self.bio_notebook.add(self.bio_general_frame, text='general')
-		self.bio_notebook.add(self.bio_PI_frame, text='PI')
-		self.bio_notebook.add(self.bio_binFeedback_frame, text='binary feedback')
-		self.bio_notebook.bind('<<NotebookTabChanged>>', self.on_bio_tab_change)
-		self.bio_UI_frames = {"general" : self.bio_general_frame, "PI" : self.bio_PI_frame, "wallFeedback" : self.bio_binFeedback_frame}
-		self.bio_UI_frames = {key : {"frame":val, "row":0,"col":0} for key,val in self.bio_UI_frames.items()}
-		#get the current generator base current. It's important for the bioTweezerController class to know this value before setting other parameters 
-		generatorCurrentSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Current Generator")[0]
-		baseCurrentFrame = self.createUIElement(self.bio_UI_frames ["general"]["frame"],generatorCurrentSettings, 
-												bindingFunction=lambda event:self.bio_controller.updateGeneratorBaseCurrent(event.widget.get()),
-												refreshFunction=lambda x:None)
-		baseCurrentFrame.grid(row=self.bio_UI_frames["general"]["row"], column=self.bio_UI_frames["general"]["col"])
-		self.bio_UI_frames ["general"]["col"]=1
-		#get all the parameters of the FPGA
-		bioControllerSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller")
-		for element in bioControllerSettings:
-			#a parameter can be useful in more than one UI, so we'll have a different frame for each of the UI
-			UI_frames = element["UI position"].split(";")
-			for uiFrame in UI_frames:
-				frame = self.createUIElement(self.bio_UI_frames[uiFrame]["frame"],element)
-				frame.grid(row=self.bio_UI_frames[uiFrame]["row"], column=self.bio_UI_frames[uiFrame]["col"])
-				self.bio_UI_frames[uiFrame]["col"]+=1
-				if(self.bio_UI_frames[uiFrame]["col"]>1):
-					self.bio_UI_frames[uiFrame]["col"]=0
-					self.bio_UI_frames[uiFrame]["row"]+=1
-		#set the calibration parameters
-		self.bio_calib_frame = ttk.Frame(self.bio_notebook)
-		self.bio_calib_frame.pack(fill='both', expand=True)		
-		self.bio_notebook.add(self.bio_calib_frame, text='calibration')
-		
-		bioControllerCalibrationSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller Calibration", returnType=dict)
-		self.bio_calib_calibrateOnRecordingStart_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["calibrateOnRecordingStart"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_calibrateOnRecordingStart_entry.pack()#for now, I'm using pack instead of grid, because I'm lazy to write all the columns and rows
-		self.bio_calib_sampleTime_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["sampleTime"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_sampleTime_entry.pack()
-		self.bio_calib_nOfSamples_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["nOfSamples"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_nOfSamples_entry.pack()
-		self.bio_calib_baseCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["baseCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_baseCurrent_entry.pack()
-		self.bio_calib_EndCurrent_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["EndCurrent"], bindingFunction = lambda *x:None, refreshFunction = lambda *x:None)
-		self.bio_calib_EndCurrent_entry.pack()
-		self.bio_calib_enableXdiff_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableXdiff"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
-		self.bio_calib_enableXdiff_entry.pack()
-		self.bio_calib_enableSum_entry = self.createUIElement(self.bio_calib_frame, bioControllerCalibrationSettings["enableSum"], bindingFunction = lambda *x:None, refreshFunction = lambda parent:parent.var.set(parent.var.get()))
-		self.bio_calib_enableSum_entry.pack()
-
-
-
-		#add some buttons
-		self.bio_reset_button = Button(self.bio_frame, text="Disable all",command=self.bio_controller.reset)
-		self.bio_reset_button.grid(row=1,column=0)
-		self.bio_calibrate_button = Button(self.bio_frame, text="Calibrate",command=self.calibrateBioController)
-		self.bio_calibrate_button.grid(row=1,column=1)
-		self.bio_test_button = Button(self.bio_frame, text="Test Acquisition",command=self.plotBioControllerReception)
-		self.bio_test_button.grid(row=1,column=2)
-
-		self.bio_set_const_out_button = Button(self.bio_general_frame, text="Set constant output",command=self.bio_controller.EnableConstantOutput)
-		self.bio_set_const_out_button.grid(row=self.bio_UI_frames["general"]["row"]+1,column=0)
-		self.bio_enable_PI_button = Button(self.bio_PI_frame, text="Enable PI",command=self.bio_controller.EnablePI)
-		self.bio_enable_PI_button.grid(row=self.bio_UI_frames["PI"]["row"]+1,column=0)
-		self.bio_enable_BinaryFeedback_button = Button(self.bio_binFeedback_frame, text="Enable binary feedback",command=self.bio_controller.EnableBinaryFeedback)
-		self.bio_enable_BinaryFeedback_button.grid(row=self.bio_UI_frames["wallFeedback"]["row"]+1,column=0)
-
-		self.bio_frame.pack(expand=True, fill='both', side='right')
+		for frameDict in self.bio_UI_frames.values():
+			frame = frameDict["frame"]
+			for child in frame.winfo_children():
+				if hasattr(child, "internalName") and hasattr(child, "internalUnit"):
+					if child.internalName in newConfigs.keys():
+						child.set(newConfigs[child.internalName]["Parameter value"])
+						
 
 
 if __name__ == '__main__':

@@ -138,17 +138,8 @@ wire ADC_outclock_50, ADC_ready_50, ADC_outclock_100;
 
 localparam maxTimeBetweenTransmissions = 28'h8000000;// ~2.7 s
 
-reg [28 -1:0] TimeBetweenTransmissions;
 wire [28 -1:0] TimeBetweenTransmissions_fromNetwork;
-wire TimeBetweenTransmissions_updated;
 wire TimeBetweenTransmissions_isValid = TimeBetweenTransmissions_fromNetwork > 1;
-always @(negedge TimeBetweenTransmissions_updated) begin
-	if(reset) begin
-		TimeBetweenTransmissions <= 'h3D090;//with the 50MHz clock, there's a transmission every 5.0ms;
-	end else begin
-		TimeBetweenTransmissions <= TimeBetweenTransmissions_isValid ? TimeBetweenTransmissions_fromNetwork : 'h3D090;//let's be sure that we don't set the value to 0 when the network starts
-	end
-end
 
 `define synchToNewClock(outputClk, stretchEdgeName, wire_inputClk, wire_outputClk) \
 wire wire_inputClk, wire_outputClk;	\
@@ -554,8 +545,8 @@ dataHandlerForTransmission #(
 	.dataClk					(ADC_outclock_50),
 	.fifoReadClk				(rx_xcvr_clk),
 	.reset						(reset_50 | reset | SW[9]),
-	.nOfDataPerTransmission		(TimeBetweenTransmissions),
-	.enableData					(1'b1),
+	.nOfDataPerTransmission		(TimeBetweenTransmissions_fromNetwork),
+	.enableData					(TimeBetweenTransmissions_isValid),
 	.in							({controllerOut, x, y, z, xSquare, ySquare, zSquare}),
 	.readRequest				({pi_rdreq_output_fifo, x_rdreq_fifo, y_rdreq_fifo, z_rdreq_fifo, xSquare_rdreq_fifo, ySquare_rdreq_fifo, zSquare_rdreq_fifo}),
 	.dataRead					({pi_rddata_output_fifo, x_rddata_fifo, y_rddata_fifo, z_rddata_fifo, xSquare_rddata_fifo, ySquare_rddata_fifo, zSquare_rddata_fifo}),
