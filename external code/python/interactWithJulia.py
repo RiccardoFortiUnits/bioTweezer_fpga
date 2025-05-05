@@ -66,20 +66,20 @@ def FTP_PDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
 	O = np.outer(omega, t)
 	tau = (1 - np.exp(-2 * O)) / (2 * omega[:, None])
 	P = np.sqrt(A[:, None]) * np.abs(x0_m[:, None]) * np.exp(-O) / np.sqrt(2 * np.pi * tau**3) * np.exp(-A[:, None] * x0_m[:, None]**2 * np.exp(-2 * O) / (2 * tau))
-	P[t[None, :]==0] = 0
+	P[:,t==0] = 0
 	return P
 def FTP_CDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):	
 	P = FTP_PDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K)
 	dt = np.concatenate(([t[0]],np.diff(t)))
 	C = np.cumsum(P * dt[None,:], axis = 1)
-	C -= C[:,0]
-	C /= C[:,-1]
+	C -= (C[:,0])[:,None]
+	C /= (C[:,-1])[:,None]
 	return C
 def FTP_PDF_normalized(t, x0_m, stiffness_N_m, drag_Ns_m, T_K = 300):
 	P = FTP_PDF(t, x0_m, stiffness_N_m, drag_Ns_m, T_K)
 	dt = np.concatenate(([t[0]],np.diff(t)))
 	sum = np.sum(P * dt[None,:], axis = 1)
-	P /= sum
+	P /= sum[:,None]
 	return P
 # def FTP_PDF(t, A, x0, w0):
 # 	O = np.outer(w0, t)
@@ -157,21 +157,24 @@ def getFPTFromJuliaScript(maxTime_s, nOfPoints, x0_m, stiffness_N_m, drag_Ns_m, 
 import plotFirstPassagePdf
 if __name__ == "__main__":
 	#2.76665116e-03 -1.63524817e-05  1.21543669e-02
-	x0=[7.96966560e-08, 4.54689257e-08, 2.48123160e-08, 8.56582627e-08, 6.83053256e-08]
-	stiffness = 2.14810464e-06#[10e-9,10e-8,10e-7,10e-6]#np.linspace(.1e-9, 10e-6, 3)
-	viscosity = 2.60641696e-08#10**np.linspace(-5, -4,5)
+	x0=10.**np.arange(-10,-7,1)
+	stiffness = 10.**np.arange(-9,-3,1)#[10e-9,10e-8,10e-7,10e-6]#np.linspace(.1e-9, 10e-6, 3)
+	viscosity = 2.80641696e-08#10**np.linspace(-5, -4,5)
 	X0,S,V = np.meshgrid(x0, stiffness, viscosity)
 	x0 = X0.flatten()
 	stiffness = S.flatten()
 	viscosity = V.flatten()
-	maxT = 2
-	t,x = getFPTFromJuliaScript(maxT, 50000, x0, stiffness, viscosity)
+	maxT = .05
+	t=np.linspace(0, maxT,50000)
+	x = FTP_CDF(t, x0, stiffness, viscosity)
 	# x=np.cumsum(x,axis=0)
 	# x/=x[-1,:]
-	plt.plot(t,x, label = [i for i in range(len(x[0]))], alpha=0.5)
+	
+	for i in range(len(x)):
+		plt.plot(t,x[i], label = f"{i}", alpha=0.5)
 	# plt.legend()
-	folder_path = 'D:/elaborated data - Copia'
-	p=plotFirstPassagePdf.getAllx0x1(folder_path)
-	for (x,y) in p:
-		plt.plot(x,y, color = 'blue')
+	# folder_path = 'D:/elaborated data - Copia'
+	# p=plotFirstPassagePdf.getAllx0x1(folder_path)
+	# for (x,y) in p:
+	# 	plt.plot(x,y, color = 'blue')
 	plt.show()

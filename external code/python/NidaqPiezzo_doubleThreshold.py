@@ -224,7 +224,7 @@ class NiFrame(Frame):
 
 	def init_ni_data(self:Self):
 
-		self.data_rate = 1000
+		self.data_rate = 100
 		self.ai_chunk_size = 250
 		self.ao_chunk_size = 1000
 		self.ao_written_samples = 0
@@ -234,6 +234,7 @@ class NiFrame(Frame):
 		self._ao_n_channels = 2 #we'll be using 2 channels
 		self._ai_n_channels = 7
 		self.ai_hide = [False] * self._ai_n_channels
+		self.bio_hide = [False] * 3
 		self.ai_buffer = None
 		self.ai_buffer_times = None
 		self.ai_buffer_min = np.zeros((self._ai_n_channels, 1), dtype=np.float64) + 100.0
@@ -255,7 +256,7 @@ class NiFrame(Frame):
 		
 	def init_bioTweezerController(self:Self) -> bioTweezerController:
 		q = bioTweezerController()
-		self.bio_hide = [False] * 3
+		# self.bio_hide = [False] * 3
 		return q
 
 	def init_widgets(self:Self, bioControllerConfigFileName='bio_controller.csv'):
@@ -445,7 +446,7 @@ class NiFrame(Frame):
 		self.wdg_wave_time_label = Label(self.protocol_frame, text='Time (s):')
 		self.wdg_wave_time_label.pack(side='left')
 		self.wdg_wave_time_entry_var = DoubleVar()
-		self.wdg_wave_time_entry_var.set(10)
+		self.wdg_wave_time_entry_var.set(600)
 		self.wdg_wave_time_entry = Entry(self.protocol_frame, textvariable=self.wdg_wave_time_entry_var)
 		self.wdg_wave_time_entry.pack(side='left')
 
@@ -585,18 +586,19 @@ class NiFrame(Frame):
 		
 	
 		self.singlePlots : Dict[str,str]= {
-			"data from nidaq":			"plotNidaqAcquisition",
-			"data from bioController":	"plotBioControllerAcquisition",
-			"FPT timings":				"plotBioControllerFPT_CDF",
-			"FPT timings_long + fitting":	"plotBioControllerFPT_CDF_fitted_onlyLongTransitions",
-			"FPT timings_all + fitting":	"plotBioControllerFPT_CDF_fitted_allTransitions",
-			"FPT PDF_long + fitting":	"plotBioControllerFPT_PDF_fitted_onlyLongTransitions",
-			"FPT PDF_all + fitting":	"plotBioControllerFPT_PDF_fitted_allTransitions",
+			"data from nidaq":				"plotNidaqAcquisition",
+			"data from bioController":		"plotBioControllerAcquisition",
+			# "FPT timings":					"plotBioControllerFPT_CDF",
+			"FPT timings + fitting":		"plotBioControllerFPT_CDF_fitted_onlyLongTransitions",
+			# "FPT timings_all + fitting":	"plotBioControllerFPT_CDF_fitted_allTransitions",
+			"FPT PDF + fitting":			"plotBioControllerFPT_PDF_fitted_onlyLongTransitions",
+			"variance and stiffness":		"showVarianceAndStiffness",
+			# "FPT PDF_all + fitting":		"plotBioControllerFPT_PDF_fitted_allTransitions",
 			}
 		self.multiplePlots : Dict[str,str]= self.singlePlots.copy()
 		self.multiplePlots.update({
 			"FPT timings_long + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_onlyLongTransitions",
-			"FPT timings_all + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_allTransitions",
+			# "FPT timings_all + multiple fitting":	"plotBioControllerFPT_CDF_multipleFitted_allTransitions",
 		})
 		
 		def plotFunction(selection):
@@ -608,8 +610,8 @@ class NiFrame(Frame):
 			if isinstance(func, types.FunctionType):
 				return getattr(self.acq, self.multiplePlots[selection])(files)
 			else:
+				acquisition.newFigure(f"multi-plot for {selection}")
 				acquisition.createNewFigure = False
-				plt.figure(f"multi-plot for {selection}")
 				for file in files:
 					a = acquisition(file)
 					getattr(a, self.multiplePlots[selection])()
@@ -1074,6 +1076,10 @@ class NiFrame(Frame):
 		#print(f'y min is {np.min(mny)}, y max is {np.max(mxy)}')
 		if self.bio_controller is not None:
 			(bio_x,bio_y) = self.bio_controller.getArraysFromDataStreamBuffer()
+			if len(bio_x) > 1000:
+				step = len(bio_x) // 1000
+				bio_x = bio_x[::step] 
+				bio_y = bio_y[::step]
 
 
 		alreadyClearedPlot = False
@@ -1095,7 +1101,7 @@ class NiFrame(Frame):
 		elif x is not None:
 			self.sub_plot.cla()
 			alreadyClearedPlot = True
-			self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2)
+			self.ai_line_handles = self.sub_plot.plot(x, y, picker=True, pickradius=2, alpha=.7)
 			self.sub_plot.set_ylim(-10.0, 10.0)
 
 
@@ -1106,13 +1112,13 @@ class NiFrame(Frame):
 		elif bio_x is not None:
 			if not alreadyClearedPlot:
 				self.sub_plot.cla()
-			self.bio_line_handles = self.sub_plot.plot(bio_x, bio_y)
+			self.bio_line_handles = self.sub_plot.plot(bio_x, bio_y, alpha=.7)
 			
 		if self.ai_line_handles is not None:
 			self.sub_plot.set_xlim(x[0], x[-1])
 		elif self.bio_line_handles is not None:
 			self.sub_plot.set_xlim(bio_x[0], bio_x[-1])
-
+		self.sub_plot.grid(True, which='both', axis='both')
 		self.hidePlots()
 		self.fig.canvas.draw()
 
@@ -1673,15 +1679,14 @@ class NiFrame(Frame):
 		data = self.load_ai_data_from_csv(fname)
 		
 	def load_ai_data_from_csv(self:Self, fname:str)->np.ndarray:
-		for item in acquisition.getAllFilesProperties(os.path.dirname(fname)):
-			print(item)
+		# for item in acquisition.getAllFilesProperties(os.path.dirname(fname)):
+		# 	print(item)
 		self.acq = acquisition(fname)
-		self.updateBioTweezerConfigs(self.acq.configurations)
 
 		t,buf = self.acq.getNidaqAcquisition(returnType = np.ndarray)
 		
 		self._ai_n_channels = len(buf)
-		self.ai_hide = [False] * self._ai_n_channels
+		# self.ai_hide = [False] * self._ai_n_channels
 		
 		self.data_rate = int(1.0/np.mean(np.diff(t)))
 		self.data_rate_entry_var.set(self.data_rate)
@@ -1691,14 +1696,16 @@ class NiFrame(Frame):
 
 		self.bio_buffer = self.acq.getBioControllerAcquisition(returnType = dict)
 		if self.bio_controller is not None:
+			self.updateBioTweezerConfigs(self.acq.configurations)
 			self.bio_controller.dataStreamBuffer = self.bio_buffer
 		bio_t = np.array(self.bio_buffer["times"])
 		bio_buff = np.array([self.bio_buffer[key] for key in ["x", "y", "z"]]).T
-		self.bio_hide = [False] * len(bio_buff[0])
+		# self.bio_hide = [False] * len(bio_buff[0])
 		
 		# self.init_widgets(self.acq.file_conf)
 
 		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer), bio_x=bio_t, bio_y=bio_buff)
+		print(f'mean x:{1e9*bioTweezerController.dimLink.convert(np.mean(bio_buff[:,0]), "FPGA_floatValue", "bead_position")}nm ({np.mean(bio_buff[:,0])})')
 		
 	def preprocess_ai_data(self:Self, t:np.ndarray, y:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
 		#selection interval
