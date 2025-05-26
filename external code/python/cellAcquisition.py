@@ -400,7 +400,16 @@ def __plotPiezoAndBeadDisplacemets(file, applyFilter = False):
 	ax2 = ax1.twinx()
 	ax2.plot(x, y2, 'b-')
 	ax2.set_ylabel('bead x displacement (nm)', color='b')
+	# Set the font size for axis tick labels and axis labels
+	ax1.tick_params(axis='both', labelsize=14)  # Change 14 to your desired font size
+	ax1.xaxis.label.set_size(16)  # X-axis label font size
+	ax1.yaxis.label.set_size(16)  # Y-axis label font size
+
+	ax2.tick_params(axis='both', labelsize=14)
+	ax2.yaxis.label.set_size(16)
 	ax2.set_ybound(0,np.max(y2)+10)
+	fig.set_size_inches(8, 6)
+	plt.savefig("piezo_bead_displacements.tiff", format="tiff", dpi=600)
 	plt.show()
 
 	# Plotting the first y-axis
@@ -425,9 +434,15 @@ def __plotCellStiffness(file, startTime = 0,endTime = None):
 	y1 = p.dimLink.convert(p.piezo - np.mean(p.piezo),"piezo_voltage", "bead_position") / 1e-9
 
 	# Plotting the first y-axis
+	fig, ax1 = plt.subplots()
 	plt.scatter(y1, y2,s=0.1)
 	plt.xlabel('Piezo displacement (nm)')
 	plt.ylabel('Membrane pulling force (pN)')
+	ax1.yaxis.label.set_size(16)
+	ax1.xaxis.label.set_size(16)
+	fig.set_size_inches(8, 6)
+	ax1.tick_params(axis='both', labelsize=14)  # Change 14 to your desired font size
+	plt.savefig("CellStiffness.tiff", format="tiff", dpi=600)
 
 	plt.show()
 
@@ -486,9 +501,27 @@ def __getVarianceInDifferentPlaces(file):
 	# plt.plot(acq.response / np.max(np.abs(acq.response)))
 	# plt.plot(x / np.max(np.abs(x)))
 	# plt.show()
+def plotHorizontalLine(x, height, text = None, edgeBarsHeight = None, lineStyle = 'r-', ax = plt, textPosition = "upperLeft"):	
+	ax.plot([x[0], x[-1]], [height, height], lineStyle)
+
+	if edgeBarsHeight is not None:
+		ax.plot([x[0], x[0]], [height - edgeBarsHeight/2, height + edgeBarsHeight/2], lineStyle)
+		ax.plot([x[-1], x[-1]], [height - edgeBarsHeight/2, height + edgeBarsHeight/2], lineStyle)
+	else:
+		edgeBarsHeight=0
+	color = lineStyle.replace('-', '')
+	if text is not None:
+		if textPosition == "upperLeft":
+			ax.text(x[0], height + edgeBarsHeight/2, 'threshold', color=color, va='bottom', ha='left', fontsize=12)
+			return
+		if textPosition == "lowerCenter":
+			ax.text((x[0] + x[-1]) / 2, height - edgeBarsHeight/2, text, color=color, va='top', ha='center', fontsize=12)
+			return
+
+
 def __plotActivationSequence():
 	fig, ax1 = plt.subplots()
-	p = cellAcquisition("C:/Users/lastline/Documents/bioTweezers/9_10_24/onoff001.csv")
+	p = cellAcquisition("D:/lastline/bioTweezers/9_10_24/onoff001.csv")
 	p.addOffsetToBaseX(200)
 	# p.plotAll(keep=["response","x"],normalizeAll=False)
 	p.truncateData(startTime=2.29, endTime=2.314)
@@ -506,18 +539,39 @@ def __plotActivationSequence():
 
 	ax2 = ax1.twinx()
 	ax2.plot(x, y2, 'b-')
-	ax2.plot([x[0],x[-1]], [setpoint, setpoint], 'r-')
 	ax2.set_ylabel('bead x displacement (nm)', color='b')
+	ax2.set_xlabel('bead x displacement (nm)', color='b')
+	ax1.tick_params(axis='both', labelsize=14)  # Change 14 to your desired font size
+	ax1.xaxis.label.set_size(16)  # X-axis label font size
+	ax1.yaxis.label.set_size(16)  # Y-axis label font size
+	# ax1.axhline(y=0.35, color='red', linestyle='--')
+	# Draw the horizontal threshold line
+
+	params = {'mathtext.default': 'regular' }          
+	plt.rcParams.update(params)
+	plotHorizontalLine(x, setpoint, text="threshold")
+	plotHorizontalLine([.00762, .01], .3, text="$τ_w$", edgeBarsHeight=.025, ax=ax1, textPosition="lowerCenter", lineStyle='k-')
+	plotHorizontalLine([.01002, .01508], .2, text="$τ_a$", edgeBarsHeight=.025, ax=ax1, textPosition="lowerCenter", lineStyle='k-')
+	plotHorizontalLine([.01507, .01867], .3, text="$τ_d$", edgeBarsHeight=.025, ax=ax1, textPosition="lowerCenter", lineStyle='k-')
+	
+	ax1.text(.00605,.431, "(1)", color="k", fontsize=14, va='bottom', ha='center')
+	ax1.text(.01614,.435, "(2)", color="k", fontsize=14, va='bottom', ha='center')
+
+	ax2.tick_params(axis='both', labelsize=14)
+	ax2.yaxis.label.set_size(16)
+	fig.set_size_inches(8, 6)
+	plt.savefig("activation sequence.tiff", format="tiff", dpi=600)
 	plt.show()
-__getVarianceInDifferentPlaces("C:/Users/lastline/Documents/bioTweezers/9_10_24/onoff001.csv")
+# __getVarianceInDifferentPlaces("C:/Users/lastline/Documents/bioTweezers/9_10_24/onoff001.csv")
 
 # # __plotCellStiffness("C:/Users/lastline/Documents/bioTweezers/26_9_24/bigliaInTether_PI_004.csv", endTime=3)
 # file = "C:/Users/lastline/Documents/bioTweezers/26_9_24/bigliaInTether_PI_004.csv"
 # __plotPiezoAndBeadDisplacemets(file, True)
 # # __plotCellStiffness(file)
-# # file = "C:/Users/lastline/Documents/bioTweezers/26_9_24/bigliaInTether_PI_003.csv"
-# # # __plotPiezoAndBeadDisplacemets(file)
-# # __plotCellStiffness(file)
+file = "D:/lastline/bioTweezers/26_9_24/bigliaInTether_PI_004.csv"
+# __plotPiezoAndBeadDisplacemets(file, applyFilter=True)
+__plotActivationSequence()
+# __plotCellStiffness(file)
 
 # # plt.show()
 
