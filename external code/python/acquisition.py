@@ -9,6 +9,8 @@ import interactWithJulia
 import os
 import glob
 from scipy.optimize import curve_fit
+import matplotlib.animation as animation
+
 
 
 class acquisition():
@@ -147,6 +149,14 @@ class acquisition():
 			xdiff = np.array(d["AI3"])
 			return t, xdiff/sum
 		return self._genericPropertyFromFileOrFunctionOrValue("nidaq_t_x", get_t_x)
+	@property
+	def bio_t_x(self):
+		def get_t_x():
+			d=self.bio_buffer			
+			t = np.array(d["times"])
+			x = np.array(d["x"])
+			return t, x
+		return self._genericPropertyFromFileOrFunctionOrValue("bio_t_x", get_t_x)
 
 	@staticmethod
 	def _getAcquisitions(fileName, returnType = dict):
@@ -491,6 +501,41 @@ class acquisition():
 			return x0x1, x1x0
 		x0x1 = xx[0]
 		return x0x1
+	def animatePotentialWell(self, tStart=0, tEnd=None, ):
+		t, x = self.nidaq_t_x
+		# bioTweezerController.updateGeneratorBaseCurrent(bioTweezerController, self.configurations["currentGenerator_baseCurrent"]["Parameter value"])
+		stiffness = bioTweezerController.dimLink.convert(self.ai_buffer["AI7"], "generator_debugVoltage", "laserPower")
+		if tEnd is None:
+			tEnd = t[-1]
+		x = x[np.logical_and(t >= tStart, t <= tEnd)]
+		stiffness = stiffness[np.logical_and(t >= tStart, t <= tEnd)]
+		t = t[np.logical_and(t >= tStart, t <= tEnd)]
+		minX, maxX = np.min(x), np.max(x)
+		linspace = np.linspace(minX, maxX)
+		fig, ax = plt.gcf(), plt.gca()
+		line, = ax.plot([], [], 'b-', alpha=0.2)
+		dot, = ax.plot([], [], 'ro', markersize=8)
+		# ax.plot(linspace, linspace**2)
+		ax.set_xlim(minX, maxX)
+		ax.set_ylim(min(linspace**2), max(np.max(stiffness) * linspace**2))
+		ax.set_xlabel("x")
+		ax.set_ylabel("Potential")
+
+		def init():
+			line.set_data([], [])
+			dot.set_data([], [])
+			return (line, dot,)
+
+		def animate(i):
+			idx = min(i, len(x)-1)
+			line.set_data([linspace], [stiffness[idx] * linspace**2])
+			dot.set_data([x[idx]], [stiffness[idx] * x[idx]**2])
+			return (line, dot,)
+
+		frames = len(x) if tEnd is None else np.searchsorted(t, tEnd)
+		ani = animation.FuncAnimation(fig, animate, init_func=init, frames=frames, interval=30, blit=True)
+		plt.show()
+		ani=0
 
 
 def getFittingFunction(x,y,fittingFunction, parametersRanges, alsoReturnF_x=False, printErrors = True):
@@ -608,12 +653,15 @@ if __name__ == "__main__":
 	# nt,nx = acquisition.logDecimate(t,x,.1)
 	# plt.plot(np.log10(nt), nx)
 	# plt.show()
-	a=acquisition("d:/lastline/bioTweezers/18_4_25/FPT_150mA_setpoint.02_001_bioControllerAcquisition.csv")
-	acquisition.createNewFigure = False
-	a.plotBioControllerFPT_CDF_fitted_allTransitions()
-	a.plotBioControllerFPT_CDF_fitted_onlyLongTransitions()
-	# a.getBioControllerRawFPT = a.getNidaqRawFPT
-	# # q = a.getBioControllerRawFPT(True, False)
+	# a=acquisition("d:/lastline/bioTweezers/18_4_25/FPT_150mA_setpoint.02_001_bioControllerAcquisition.csv")
+	# acquisition.createNewFigure = False
 	# a.plotBioControllerFPT_CDF_fitted_allTransitions()
-	acquisition.createNewFigure = True
-	a.show()
+	# a.plotBioControllerFPT_CDF_fitted_onlyLongTransitions()
+	# # a.getBioControllerRawFPT = a.getNidaqRawFPT
+	# # # q = a.getBioControllerRawFPT(True, False)
+	# # a.plotBioControllerFPT_CDF_fitted_allTransitions()
+	# acquisition.createNewFigure = True
+	# a.show()
+
+	acq = acquisition("d:/lastline/bioTweezers/18_4_25/bead3_FPT_stiffnessChange_100_150mA_setpoint-.04_007_bioControllerAcquisition.csv")
+	acq.animatePotentialWell(1, 5)
