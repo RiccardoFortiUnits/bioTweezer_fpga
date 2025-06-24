@@ -47,7 +47,7 @@ endgenerate
 `define setActive                             \
     if(canActivate)begin                        \
         state <= s_active;                      \
-        counter = activeFeedbackMaxCycles - 1;  \
+        counter <= activeFeedbackMaxCycles - 1;  \
         out <= valueWhenActive;                 \
     end else begin                              \
         state <= s_idle;                        \

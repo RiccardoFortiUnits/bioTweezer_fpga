@@ -130,8 +130,20 @@ wire [15:0] pi_limit_HI;
 wire [15:0] pi_limit_LO;
 wire [15:0] sumForDivision_offset;
 wire [25:0] sumForDivision_multiplier;
+
+
+parameter offset_nOfSegments = 4;
+parameter offset_inputResolution = 8;//todo if you modify this, you should also change the sizes of xOffset_qs... in smallRegisterStartIdxs
+parameter offset_mResolution = 16;
+parameter offset_mFracBits = 13;//shouldn't need too many whole bits, the offset slopes are quite tame
+wire [offset_inputResolution*offset_nOfSegments -1:0] xOffset_qs, xOffset_edgePoints;
+wire [offset_mResolution*offset_nOfSegments -1:0] xOffset_ms;
 wire [15:0] z_offset, x_offset, y_offset, xDiff_offset, yDiff_offset;
 wire [25:0] z_multiplier;
+wire [31:0] qs3210, edgePoints3210, ms10, ms32;
+assign xOffset_qs = {qs3210[31:24], 8'b0, qs3210[23:16], 8'b0, qs3210[15:8], 8'b0, qs3210[7:0], 8'b0};
+assign xOffset_edgePoints = {edgePoints3210[31:24], 8'b0, edgePoints3210[23:16], 8'b0, edgePoints3210[15:8], 8'b0, edgePoints3210[7:0], 8'b0};
+assign xOffset_ms = {ms32, ms10};
 
 wire ADC_outclock_50, ADC_ready_50, ADC_outclock_100;
 
@@ -230,21 +242,21 @@ wire [1:0] usedInput;
 			-add the relative wires to the rdreq_fifo, rddata_fifo and rdempty_fifo registers.
 		 
 */
-parameter nOflargeRegisters = 8;
+parameter nOflargeRegisters = 12;
 
-parameter largeRegisterStartIdxs = {32'd207 				  , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
+parameter largeRegisterStartIdxs = {32'd335, 32'd303	   , 32'd271, 32'd239, 32'd207 					 , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
 wire [largeRegisterStartIdxs[nOflargeRegisters*32+32 -1-:32] -1:0] largeRegisters;
-assign                             {binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
+assign                             {qs3210 , edgePoints3210, ms10   , ms32	 , binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
 
 wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
 
 
-parameter nOfsmallRegisters = 19;
+parameter nOfsmallRegisters = 18;
 
-parameter smallRegisterStartIdxs = {32'hEE      , 32'hE6                     , 32'hE4        , 32'hD4        , 32'hC4         , 32'hC3                    , 32'hB3                    , 32'hA3      , 32'h93      , 32'h83   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hDE      , 32'hD6                     , 32'hD4        , 32'hC4        , 32'hB4         , 32'hB3                    , 32'hA3                    , 32'h93      , 32'h83   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
-assign                             {squaresShift, binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, xDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
+assign                             {squaresShift, binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
 wire [nOfsmallRegisters -1:0] smallRegisters_update_cmd;
 //assign {...} = smallRegisters_update_cmd;
@@ -460,6 +472,23 @@ tweezerController#(
 //	.leds									(LEDR[7:4])
 );
 
+segmentedFunction#(
+	.nOfEdges			(offset_nOfSegments),
+	.totalBits_IO		(16),
+	.fracBits_IO		(15),
+	.totalBits_m		(offset_mResolution),
+	.fracBits_m			(offset_mFracBits),
+	.areSignalsSigned	(1)
+)sf_x(
+	.clk				(ADC_outclock_50),
+	.reset				(reset_50),
+	.in					(SUM),
+	.out				(xDiff_offset),
+
+	.edgePoints			(xOffset_edgePoints),
+	.qs					(xOffset_qs),
+	.ms					(xOffset_ms)
+);
 
 dacs_ad5541a dacs_ad5541a_0 (
 	.clock			(ADC_outclock_50),

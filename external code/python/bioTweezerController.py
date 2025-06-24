@@ -26,7 +26,7 @@ def setupReception(ip, port):
 	return sock
 
 def transmitCommand(sock, ip, port, command, waitForResponse = False, printTransmission = False):
-	#transmit a string or bite stream to the selected ip/port. It can also wait for a response message
+	'''transmit a string or bite stream to the selected ip/port. It can also wait for a response message'''
 	if(isinstance(command, str)):
 		command = command.encode()
 	sock.sendto(command, (ip, port))
@@ -36,7 +36,7 @@ def transmitCommand(sock, ip, port, command, waitForResponse = False, printTrans
 		return receive(sock, port)
 
 def receive(sock, port, printReception = False):
-	#receive a string or byte string  from the selected port. For now, the sender is not returned
+	'''receive a string or byte string from the selected port.'''
 	# ready = select.select([sock], [], [], timeout=1)
 	try:
 		received, address = sock.recvfrom(port)
@@ -51,11 +51,13 @@ def receive(sock, port, printReception = False):
 	return received
 	
 class fpgaRegister:
-	#class that handles data conversion between physical values and the raw values used inside the FPGA controller.
-		#it has a base dimension (the raw bit values inside the FPGA) and a preferred physical dimension (i.e. the
-		#dimension that the FPGA value represents). It uses a dimensionLinker to convert between dimensions, so you
-		#can also change/read the value of this object by feeding it a value in a different dimension, as long as
-		#it is connected to the base dimension
+	'''
+	class that handles data conversion between physical values and the raw values used inside the FPGA controller.
+	it has a base dimension (the raw bit values inside the FPGA) and a preferred physical dimension (i.e. the
+	dimension that the FPGA value represents). It uses a dimensionLinker to convert between dimensions, so you
+	can also change/read the value of this object by feeding it a value in a different dimension, as long as
+	it is connected to the base dimension
+	'''
 	def __init__(self, dimLinker : dimensionLinker, dimension, preferredConversionDimension = None, command = None):
 		self.dimLinker : dimensionLinker = dimLinker
 		self.dimension = dimension
@@ -209,7 +211,12 @@ class fpgaHandler:
 		if len(values) == 1:
 			values = values[0]
 		return values
-		
+	def readAllParameters(self):
+		#reads all the parameters from the FPGA, and returns a dictionary with the parameter names as keys
+		values = {}
+		for param in self.ParametersForFPGA.keys():
+			values[param] = self.readBackParameter(param)
+		return values
 	def sendCommand(self, commands, waitForResponse = True):
 		#send one or multiple commands to the FPGA
 		with setupReception(self.self_ip, self.parameterPort) as sock:
@@ -420,6 +427,10 @@ class fpgaHandler:
 		y[:,0] = np.array(self.dataStreamBuffer["x"][:pts])
 		y[:,1] = np.array(self.dataStreamBuffer["y"][:pts])
 		y[:,2] = np.array(self.dataStreamBuffer["z"][:pts])
+		if len(t) != len(y):
+			m = min(len(t), len(y))
+			t = t[:m]
+			y = y[:m,:]
 		
 		return(t, y)
 
@@ -471,6 +482,17 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addDimension("laserPower", "W")
 	dimLink.addDimension("time", "s")
 	dimLink.addDimension("piezo_voltage", "V")
+	dimLink.addDimension("byte", "B", bitSize = 8, isSigned = False)
+	dimLink.addDimension("word", "B", bitSize = 32, isSigned = False)
+	dimLink.addDimension("qs_list", bitSize = 32)
+	dimLink.addDimension("edges_list", bitSize = 32)
+	dimLink.addDimension("ms_list0", bitSize = 32)
+	dimLink.addDimension("ms_list1", bitSize = 32)
+	dimLink.addDimension("FPGA_RampFloatValue", "[adimensional]")
+	dimLink.addDimension("q_register", "bit", bitSize = 8)
+	dimLink.addDimension("m_register", "bit", bitSize = 8)
+	dimLink.addDimension("edge_register", "bit", bitSize = 16)
+	...
 
 	def initializeDimensionLinker(self):
 		self.dimLink = bioTweezerController.dimLink
@@ -503,6 +525,10 @@ class bioTweezerController(fpgaHandler):
 			# "binFeedback_cyclesForActivation"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			"binFeedback_maxTimeOn_x0"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			"binFeedback_preAverageTime"	: fpgaRegister(self.dimLink, "FPGA_smallTimeRegister", "time"),
+			"offset_ms32"					: fpgaRegister(self.dimLink, "ms_list1", "ms_list1"),
+			"offset_ms10"					: fpgaRegister(self.dimLink, "ms_list0", "ms_list0"),
+			"offset_edgePoints3210"			: fpgaRegister(self.dimLink, "edges_list", "edges_list"),
+			"offset_qs3210"					: fpgaRegister(self.dimLink, "qs_list", "qs_list"),
 			
 			#small parameters
 			"outWhenPiDisabled"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
@@ -515,7 +541,7 @@ class bioTweezerController(fpgaHandler):
 			"y_offset"						: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"useToggleEnable"				: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
 			"usedInput"						: fpgaRegister(self.dimLink, "FPGA_usedInputCfg", "FPGA_usedInputCfg"),
-			"xDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
+			# "xDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),
 			"yDiff_offset"					: fpgaRegister(self.dimLink, "FPGA_signalRegister", "QPD_output"),			
 			"binFeedback_valueWhenIn_x1"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
 			"binFeedback_valueWhenIn_x0"	: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
@@ -582,7 +608,7 @@ class bioTweezerController(fpgaHandler):
 			
 			SUM_offsetFor_div = (self.SUM_offsetFor_div, "FPGA_floatValue"),
 			x_offset = (self.x_offset, "FPGA_floatValue"),
-			xDiff_offset = (self.xDiff_offset, "FPGA_floatValue"),
+			# xDiff_offset = (self.xDiff_offset, "FPGA_floatValue"),
 			y_offset = (self.y_offset, "FPGA_floatValue"),
 			yDiff_offset = (self.yDiff_offset, "FPGA_floatValue"),
 			outWhenPiDisabled = (0, "generator_input"),
@@ -642,7 +668,7 @@ class bioTweezerController(fpgaHandler):
 		self.setParameters(
 			x_offset = (0, "FPGA_floatValue"),
 			y_offset = (0, "FPGA_floatValue"),
-			xDiff_offset = (0, "FPGA_floatValue"),
+			# xDiff_offset = (0, "FPGA_floatValue"),
 			yDiff_offset = (0, "FPGA_floatValue"),
 			SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
 			SUM_multiplierFor_div = ( self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
@@ -659,7 +685,7 @@ class bioTweezerController(fpgaHandler):
 		self.setParameters(
 			x_offset = (0, "FPGA_floatValue"),
 			y_offset = (0, "FPGA_floatValue"),
-			xDiff_offset = (0, "FPGA_floatValue"),
+			# xDiff_offset = (0, "FPGA_floatValue"),
 			yDiff_offset = (0, "FPGA_floatValue"),
 			SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
 			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
@@ -754,6 +780,70 @@ class bioTweezerController(fpgaHandler):
 		self.currentGenerator_baseCurrent = float(newCurrent_Ampere)
 		self.updateDimensionLinker()
 	
+	@staticmethod
+	def segmentedCoefficient(x,y):
+		'''
+			transforms the segmented function (x,y) into the list of ramps y[i](x) = q[i] + (s[i] - x * m[i]),
+			s[i] is the start input value of the ramp
+			q[i] is the start output value of the ramp ( y[i](s[i]) = q[i])
+			m[i] is the slope of the ramp
+		'''
+		a = x[0:len(x)-1]
+		b = x[1:]
+		c = y[0:len(y)-1]
+		d = y[1:]
+		
+		m = (d-c) / (b-a)
+		s = a
+		q = c
+		return (s,q,m)
+	
+	def SetOffsetLinearizer(self, singleCalibrationTime = 1, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 250e-3,4)]):
+		maxSamples = 4
+		if len(usedLaserPowers) > maxSamples+1:
+			print(f"WARNING: the number of used laser powers ({len(usedLaserPowers)}) is greater than the maximum number of samples ({maxSamples}). The calibration will be done with only {maxSamples} samples.")
+			usedLaserPowers = usedLaserPowers[:maxSamples]
+		#calculate the offsets for x and y
+		SUM = np.zeros(len(usedLaserPowers))
+		XDIFF = np.zeros(len(usedLaserPowers))
+		#reset every offset value, even for z, since we'll be using it to read the SUM signal
+		self.setParameters(
+			x_offset = (0, "FPGA_floatValue"),
+			y_offset = (0, "FPGA_floatValue"),
+			yDiff_offset = (0, "FPGA_floatValue"),
+			SUM_multiplierFor_z = (- 1, "FPGA_SUMfloatValue"),
+			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+			SUM_offsetFor_z = (0, "FPGA_floatValue"),
+			SUM_offsetFor_div = (0, "FPGA_floatValue"),
+			offset_ms32 = (0, "ms_list1"),
+			offset_ms10 = (0, "ms_list0"),
+			offset_edgePoints3210 = (0, "edges_list"),
+			offset_qs3210 = (0, "qs_list"),
+		)
+		#let's get some values for SUM and XDIFF
+		for i, intensity in enumerate(usedLaserPowers):
+			self.EnableConstantOutput(intensity)
+			
+			t.sleep(0.01)#wait for the system to stabilize
+			data = self.getDataStream(singleCalibrationTime)[0]
+			
+			SUM[i] = - np.mean(data["z"])
+			SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_SUMfloatValue")#convert the bead position into an adimensional value
+			XDIFF[i] = np.mean(data["x"])
+			XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#XDIFF = XDIFF / SUM => XDIFF = XDIFF * SUM
+					
+		(s,q,m) = bioTweezerController.segmentedCoefficient(SUM, XDIFF)
+		
+		s = np.append(s,[-1] * (maxSamples - len(m)))
+		q = - np.append(q,[0] * (maxSamples - len(m)))
+		m = - np.append(m,[0] * (maxSamples - len(m)))
+		
+		self.setParameters(
+			offset_edgePoints3210 = (s, "FPGA_SUMfloatValue"),
+			offset_qs3210 = (q, "FPGA_floatValue"),
+			offset_ms10 = (m, "FPGA_RampFloatValue"),
+			offset_ms32 = (m, "FPGA_RampFloatValue"),
+		)
 
 	@staticmethod
 	def updateDimensionLinker():
@@ -776,6 +866,7 @@ class bioTweezerController(fpgaHandler):
 		bioTweezerController.dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(bioTweezerController.piezo_V_to_distance))
 		bioTweezerController.dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
 		bioTweezerController.dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
+		print('TODO: update the function "updateDimensionLinker"!!!')
 		bioTweezerController.dimLink.checkForLoops()
 	
 	dimLink.addConnection("QPD_output", "xy_voltage", dimensionLinker.gainFunctions(ADC_xyAttenuation))
@@ -797,6 +888,15 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(piezo_V_to_distance))
 	dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
 	dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
+	
+	dimLink.addConnection("FPGA_floatValue", "q_register", dimensionLinker.gainFunctions(2**7))
+	dimLink.addConnection("FPGA_RampFloatValue", "m_register", dimensionLinker.gainFunctions(2**13))
+	dimLink.addConnection("FPGA_SUMfloatValue", "edge_register", dimensionLinker.gainFunctions(2**7))
+	dimLink.addConnection("edges_list", "edge_register", dimensionLinker.wordToByteArrayFunctions(byteSize=8, byteCount=4))
+	dimLink.addConnection("qs_list", "q_register", dimensionLinker.wordToByteArrayFunctions(byteSize=8, byteCount=4))
+	dimLink.addWordToListConnection(["ms_list0", "ms_list1"], "m_register", byteSize=16, byteCountForWord=2)
+	
+	dimLink.addMultiConnection(["FPGA_SUMfloatValue", "FPGA_RampFloatValue", "FPGA_floatValue"], dimensionLinker.monomialFunctions(["FPGA_SUMfloatValue", "FPGA_RampFloatValue"], ["FPGA_floatValue"]))
 	dimLink.checkForLoops()
 	
 
@@ -810,6 +910,14 @@ if __name__ == "__main__":
 	q.EnablePI(kp = 0.01, ki = 0.0, setpoint = (-0, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
 	
 	#q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)	
+
+	
+	params = q.readAllParameters()
+	for key, value in params.items():
+		print(f"{key}: {value}")
+
+
+
 	data = q.plotReceivedData(1,elementsToShow=["pid out", "x","z", "x^2"], **{"x" : "FPGA_floatValue", "x^2" : "FPGA_floatValue"})
 	
 	plt.plot(data["times"], np.array(data["x^2"]) - np.array(data["x"])**2, label="var_x", alpha=0.7)

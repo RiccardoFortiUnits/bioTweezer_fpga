@@ -9,6 +9,7 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Dict, List, Any
+from functools import partial
 
 def graphFromCheckedGraph(checked, startingNode):
 	G=[]
@@ -29,7 +30,7 @@ def shortestPath(G : nx.DiGraph, startNodes, endNode):
 	checked : Dict[Any, List[int,list]]= {key: [1,[]]  for key in G.nodes}
 	for node,data in G.nodes(data=True):
 		if data["mult"]:
-			checked[node][0] = len(G.edges(node))-1
+			checked[node][0] = len(list(G.predecessors(node))) - 1
 		elif node in startNodes:
 			checked[node][0] = 0
 	stillSomeNodes = True
@@ -88,8 +89,8 @@ class dimensionLinker():
 		if(conversionFunctions is not None):
 			for i in range(l):
 				if conversionFunctions[i] is not None:
-					self.g.add_edge(dimensions[i], str(dimensions), transferFun = conversionFunctions[i])
-				self.g.add_edge(str(dimensions), dimensions[i], transferFun = lambda x: x)
+					self.g.add_edge(str(dimensions), dimensions[i], transferFun = conversionFunctions[i])
+				self.g.add_edge(dimensions[i], str(dimensions), transferFun = lambda x: x)
 	
 	def convert(self, values : float | int | List[float] | List[int], fromDimensions : str | List[str], toDimension : str, useDefaultValues = False):
 		#convert a value (or more than one value if the conversion requires more inputs) to a new dimension. If 
@@ -110,7 +111,7 @@ class dimensionLinker():
 		for (startNode, endNode) in nodeList:
 			if self.g.nodes[startNode]["mult"]:
 				fromDimensions.append(startNode)
-				values.append(self.g[endNode][startNode]["transferFun"](**multiNodesInputs[startNode]))
+				values.append(self.g[startNode][endNode]["transferFun"](**multiNodesInputs[startNode]))
 				
 			valueIdx = fromDimensions.index(startNode)
 			
@@ -120,7 +121,10 @@ class dimensionLinker():
 				multiNodesInputs[endNode][startNode] = values[valueIdx]
 			else:
 				fromDimensions[valueIdx] = endNode
-				values[valueIdx] = self.g[startNode][endNode]["transferFun"](values[valueIdx])
+				if self.g.nodes[startNode]["mult"]:
+					values[valueIdx] = self.g[endNode][startNode]["transferFun"](values[valueIdx])
+				else:
+					values[valueIdx] = self.g[startNode][endNode]["transferFun"](values[valueIdx])
 				
 		return values[fromDimensions.index(toDimension)]	
 	
@@ -182,6 +186,38 @@ class dimensionLinker():
 	def inverseFunctions():
 		return (lambda x : 1/x, lambda x : 1/x)
 	
+	@staticmethod
+	def wordToByteArrayFunctions(byteCount = 4, byteSize = 8):
+		def wordToByteArray(val):
+			return np.array([(val >> (byteSize * i)) & ((1<<byteSize)-1) for i in reversed(range(byteCount))])
+		def byteArraytoWord(val):
+			return sum((int(val[i]) << (byteSize * i)) for i in range(byteCount))
+		return (wordToByteArray, byteArraytoWord)
+	def addWordToListConnection(self, wordDimensions, listDimension, byteSize = 8, byteCountForWord = 4):
+		'''
+		connects an element containing a list of bytes (or other shaped words) to a list of word elements, which contain these bytes.
+		The bytes are ordered LSB first.
+		example of conversion: 
+		obj.addWordToListConnection(["a","b", "byteList", byteSize = 8, bytesPerWord = 4)
+		obj.convert(np.array[1,2,3,4,5,6,7,8], "byteList", "a")
+		>> 0x04030201
+		obj.convert(np.array[1,2,3,4,5,6,7,8], "byteList", "b")
+		>> 0x08070605
+		obj.convert([0x04030201, 0x08070605], ["a", "b"], "byteList")
+		>> np.array([1,2,3,4,5,6,7,8])
+		'''
+		
+		def wordsToByteArray(**kwargs):
+			retVal = []
+			for word in wordDimensions:
+				retVal += [(kwargs[word] >> (byteSize * i)) & ((1<<byteSize)-1) for i in reversed(range(byteCountForWord))]
+			return np.array(retVal)		
+		def byteArraytoSingleWord(array, wordIndex):
+				val = array[wordIndex*byteCountForWord:(wordIndex+1)*byteCountForWord]
+				return sum(((int(val[i])) << (byteSize * i)) for i in range(byteCountForWord))
+		for i in range(len(wordDimensions)):
+			self.addConnection(listDimension, wordDimensions[i], partial(byteArraytoSingleWord, wordIndex = i), None)
+		self.addMultiConnection(wordDimensions + [listDimension], [None] * len(wordDimensions) + [wordsToByteArray])
 	
 	@staticmethod
 	def additionFunction(list1, list2):#the equations has the form:

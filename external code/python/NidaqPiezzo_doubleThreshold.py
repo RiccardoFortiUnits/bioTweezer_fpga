@@ -17,7 +17,7 @@ except:
 import numpy as np
 import time
 from datetime import datetime
-from typing import List, Tuple, Self, Dict
+from typing import List, Tuple, Self, Dict, Any
 import types 
 #from typing_extensions import Self
 import numba
@@ -377,7 +377,7 @@ class NiFrame(Frame):
 			baseCurrentFrame.grid(row=self.bio_UI_frames["general"]["row"], column=self.bio_UI_frames["general"]["col"])
 			self.bio_UI_frames ["general"]["col"]=1
 			#get all the parameters of the FPGA
-			bioControllerSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller")
+			bioControllerSettings = self.getBaseSettingsFromFile(fileName=bioControllerConfigFileName, device = "Bio Controller", removeElementsMissingFrom = self.bio_controller.ParametersForFPGA)
 			for element in bioControllerSettings:
 				#a parameter can be useful in more than one UI, so we'll have a different frame for each of the UI
 				UI_frames = element["UI position"].split(";")
@@ -1783,7 +1783,7 @@ class NiFrame(Frame):
 			self.bio_controller.setParameters(setpoint=sp)
 	
 	@staticmethod
-	def getBaseSettingsFromFile(fileName='bio_controller.csv', device = "Bio Controller", returnType = list):
+	def getBaseSettingsFromFile(fileName='bio_controller.csv', device = "Bio Controller", returnType = list, removeElementsMissingFrom : Dict[str, Any] = None):
 		pf = pd.read_csv(fileName, sep=',', lineterminator="\n", header=1)
 		l = [dict(row) for index, row in pf.iterrows()]
 		if '\r' in list(l[0].keys())[-1]:
@@ -1792,11 +1792,16 @@ class NiFrame(Frame):
 			for i in range(len(l)):
 				l[i][lastKey] = l[i][lastKey_slashR].replace('\r','')
 				l[i].pop(lastKey_slashR)
+		if removeElementsMissingFrom is not None:
+			for e in l:
+				if e["Device"] == device and e["Parameter internal name"] not in removeElementsMissingFrom.keys():
+					print(f'Warning: removing parameter {e["Parameter internal name"]} from device {device} because it is not present in the FPGA')
+					l.remove(e)
+
 		if returnType == list:
 			return [e for e in l if e["Device"] == device]
 		elif returnType == dict:
-			return {e["Parameter internal name"] : e for e in l if e["Device"] == device}
-	
+			return {e["Parameter internal name"] : e for e in l if e["Device"] == device}	
 	
 	def on_bio_tab_change(self, event):
 		notebook = event.widget
@@ -1849,25 +1854,33 @@ class NiFrame(Frame):
 		endCurrent = float(self.bio_calib_EndCurrent_entry.get())
 		nOfSamples = int(self.bio_calib_nOfSamples_entry.get())
 		currentActivity = self.bio_controller.mode
-		if useSum or useXdiff:
-			self.bio_controller.initiateTweezers(
+		self.bio_controller.SetOffsetLinearizer(
 				singleCalibrationTime= sampleTime,
 				usedLaserPowers=[(n,"generator_current") for n in np.linspace(
 																		baseCurrent,
 																		endCurrent,
 																		nOfSamples
 																  )
-				],
-				useXYDIFF_offset=useXdiff,
-				useSUM_offset=useSum
-			)
-		else:
-			self.bio_controller.initiateTweezers(
-				singleCalibrationTime=sampleTime,
-				usedLaserPowers=[(baseCurrent,"generator_current")],
-				useXYDIFF_offset=useXdiff,
-				useSUM_offset=useSum
-			)
+				])
+		# if useSum or useXdiff:
+		# 	self.bio_controller.initiateTweezers(
+		# 		singleCalibrationTime= sampleTime,
+		# 		usedLaserPowers=[(n,"generator_current") for n in np.linspace(
+		# 																baseCurrent,
+		# 																endCurrent,
+		# 																nOfSamples
+		# 														  )
+		# 		],
+		# 		useXYDIFF_offset=useXdiff,
+		# 		useSUM_offset=useSum
+		# 	)
+		# else:
+		# 	self.bio_controller.initiateTweezers(
+		# 		singleCalibrationTime=sampleTime,
+		# 		usedLaserPowers=[(baseCurrent,"generator_current")],
+		# 		useXYDIFF_offset=useXdiff,
+		# 		useSUM_offset=useSum
+		# 	)
 		#after calibration, refresh the tab, to see the new offset values
 		self.bio_notebook.event_generate('<<NotebookTabChanged>>')
 		self.bio_controller.setMode(currentActivity)
