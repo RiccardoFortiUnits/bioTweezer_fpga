@@ -84,16 +84,18 @@ class fpgaRegister:
 	def floatToFixedPoint(self, value, startDimension = None):
 		#convert from a physical dimension to the corresponding FPGA value
 		val, startDimension = self.convertValue(value, startDimension)
-		maxVal = (1 << (self.bitSize-1)) - 1 if self.isSigned else (1 << self.bitSize) - 1
-		minVal = -(1 << (self.bitSize-1)) if self.isSigned else 0
-		if(val > maxVal):
-			maxVal_unConverted = self.dimLinker.convert(maxVal, self.dimension, startDimension)
-			print(f"warning: value too high! using Max value = {maxVal_unConverted}" )
-			val = int(maxVal)
-		elif(val < minVal):
-			minVal_unConverted = self.dimLinker.convert(minVal, self.dimension, startDimension)
-			print(f"warning: value too low! using Min value = {minVal_unConverted}" )
-			val = int(minVal)
+		bitsOutOfBound = val >> self.bitSize
+		if (bitsOutOfBound != 0 and bitsOutOfBound != -1):
+			maxVal = (1 << (self.bitSize-1)) - 1 if self.isSigned else (1 << self.bitSize) - 1
+			minVal = -(1 << (self.bitSize-1)) if self.isSigned else 0
+			if(val > maxVal):
+				maxVal_unConverted = self.dimLinker.convert(maxVal, self.dimension, startDimension)
+				print(f"warning: value too high! using Max value = {maxVal_unConverted}" )
+				val = int(maxVal)
+			elif(val < minVal):
+				minVal_unConverted = self.dimLinker.convert(minVal, self.dimension, startDimension)
+				print(f"warning: value too low! using Min value = {minVal_unConverted}" )
+				val = int(minVal)
 		if(len(self.command) > 1):
 			return [val >> 16, val & 0xffff]
 		return [val]
@@ -811,7 +813,7 @@ class bioTweezerController(fpgaHandler):
 			x_offset = (0, "FPGA_floatValue"),
 			y_offset = (0, "FPGA_floatValue"),
 			yDiff_offset = (0, "FPGA_floatValue"),
-			SUM_multiplierFor_z = (- 1, "FPGA_SUMfloatValue"),
+			SUM_multiplierFor_z = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 			SUM_offsetFor_z = (0, "FPGA_floatValue"),
 			SUM_offsetFor_div = (0, "FPGA_floatValue"),
@@ -828,15 +830,15 @@ class bioTweezerController(fpgaHandler):
 			data = self.getDataStream(singleCalibrationTime)[0]
 			
 			SUM[i] = - np.mean(data["z"])
-			SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_SUMfloatValue")#convert the bead position into an adimensional value
+			SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
 			XDIFF[i] = np.mean(data["x"])
 			XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#XDIFF = XDIFF / SUM => XDIFF = XDIFF * SUM
-					
+		# SUM, XDIFF = np.array([0.11950638, 0.24429428, 0.36896362]), np.array([-0.059048,  0.00388725  , -0.05904876])
 		(s,q,m) = bioTweezerController.segmentedCoefficient(SUM, XDIFF)
 		
 		s = np.append(s,[-1] * (maxSamples - len(m)))
-		q = - np.append(q,[0] * (maxSamples - len(m)))
-		m = - np.append(m,[0] * (maxSamples - len(m)))
+		q = np.append(q,[0] * (maxSamples - len(m)))
+		m = np.append(m,[0] * (maxSamples - len(m)))
 		
 		self.setParameters(
 			offset_edgePoints3210 = (s, "FPGA_SUMfloatValue"),
@@ -918,8 +920,8 @@ if __name__ == "__main__":
 
 
 
-	data = q.plotReceivedData(1,elementsToShow=["pid out", "x","z", "x^2"], **{"x" : "FPGA_floatValue", "x^2" : "FPGA_floatValue"})
+	# data = q.plotReceivedData(1,elementsToShow=["pid out", "x","z", "x^2"], **{"x" : "FPGA_floatValue", "x^2" : "FPGA_floatValue"})
 	
-	plt.plot(data["times"], np.array(data["x^2"]) - np.array(data["x"])**2, label="var_x", alpha=0.7)
+	# plt.plot(data["times"], np.array(data["x^2"]) - np.array(data["x"])**2, label="var_x", alpha=0.7)
 	plt.legend()
 

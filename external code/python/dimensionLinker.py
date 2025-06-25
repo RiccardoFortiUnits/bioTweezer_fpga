@@ -191,7 +191,7 @@ class dimensionLinker():
 		def wordToByteArray(val):
 			return np.array([(val >> (byteSize * i)) & ((1<<byteSize)-1) for i in reversed(range(byteCount))])
 		def byteArraytoWord(val):
-			return sum((int(val[i]) << (byteSize * i)) for i in range(byteCount))
+			return sum(((int(val[i]) & ((1<<byteSize)-1)) << (byteSize * i)) for i in range(byteCount))
 		return (wordToByteArray, byteArraytoWord)
 	def addWordToListConnection(self, wordDimensions, listDimension, byteSize = 8, byteCountForWord = 4):
 		'''
@@ -214,7 +214,7 @@ class dimensionLinker():
 			return np.array(retVal)		
 		def byteArraytoSingleWord(array, wordIndex):
 				val = array[wordIndex*byteCountForWord:(wordIndex+1)*byteCountForWord]
-				return sum(((int(val[i])) << (byteSize * i)) for i in range(byteCountForWord))
+				return sum(((int(val[i]) & ((1<<byteSize)-1)) << (byteSize * i)) for i in range(byteCountForWord))
 		for i in range(len(wordDimensions)):
 			self.addConnection(listDimension, wordDimensions[i], partial(byteArraytoSingleWord, wordIndex = i), None)
 		self.addMultiConnection(wordDimensions + [listDimension], [None] * len(wordDimensions) + [wordsToByteArray])

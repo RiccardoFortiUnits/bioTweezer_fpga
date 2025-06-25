@@ -136,7 +136,7 @@ parameter offset_nOfSegments = 4;
 parameter offset_inputResolution = 8;//todo if you modify this, you should also change the sizes of xOffset_qs... in smallRegisterStartIdxs
 parameter offset_mResolution = 16;
 parameter offset_mFracBits = 13;//shouldn't need too many whole bits, the offset slopes are quite tame
-wire [offset_inputResolution*offset_nOfSegments -1:0] xOffset_qs, xOffset_edgePoints;
+wire [16*offset_nOfSegments -1:0] xOffset_qs, xOffset_edgePoints;
 wire [offset_mResolution*offset_nOfSegments -1:0] xOffset_ms;
 wire [15:0] z_offset, x_offset, y_offset, xDiff_offset, yDiff_offset;
 wire [25:0] z_multiplier;
