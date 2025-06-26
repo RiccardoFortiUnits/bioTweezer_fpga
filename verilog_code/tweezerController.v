@@ -68,7 +68,7 @@ module tweezerController#(
 	output	[outputBitSize -1:0]					zSquare,
 	input	[$clog2(workingBitSize+1)+1 :0]			squaresShift,
 	
-	input   [1:0]									used_inputs,
+	input   [2:0]									used_inputs,
 	
 	//debug wires
 	output	[3:0]									leds
@@ -79,9 +79,10 @@ module tweezerController#(
 
 //the input of the control system will either be
 localparam  ui_x_only = 0,//only x (can be positive and negative)
-			ui_1D_ray = 1,//only |x| (only positive)
-			ui_2D_ray = 2,//sqrt(x^2 + y^2)
-			ui_3D_ray = 3;//sqrt(x^2 + y^2 + z^2)
+			ui_xdiff  = 1,//XDIFF
+			ui_1D_ray = 2,//only |x| (only positive)
+			ui_2D_ray = 3,//sqrt(x^2 + y^2)
+			ui_3D_ray = 4;//sqrt(x^2 + y^2 + z^2)
 
 wire PI_enable = enable[0];
 wire binFeedback_enable = enable[1];											
@@ -147,6 +148,13 @@ fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize,
 		{x_offset, y_offset}, 
 		{x_offset_extended, y_offset_extended}
 );
+	
+wire [workingBitSize -1:0] xdiff_minusOffset_extended;
+fixedPointShifter#(inputBitSize + 1, inputFracSize, workingBitSize, workingFracSize, 1) 
+	xdiff_minusOffset(
+		xdiff_minusOffset, 
+		xdiff_minusOffset_extended
+);
 
 adder#(
 	.WIDTH				(workingBitSize),
@@ -180,8 +188,8 @@ calcRay#
 	.clk				(clk),
 	.reset				(reset),
 	.x					(x_untrimmed),
-	.y					(used_inputs <= ui_1D_ray ? 24'h0 : y_untrimmed),
-	.z					(used_inputs <= ui_2D_ray ? 24'h0 : z_untrimmed),
+	.y					(used_inputs >= ui_2D_ray ? y_untrimmed : 24'h0),
+	.z					(used_inputs >= ui_3D_ray ? z_untrimmed : 24'h0),
 
 	.xSquare			(xSquare_untrimmed),
 	.ySquare			(ySquare_untrimmed),
@@ -192,7 +200,13 @@ calcRay#
 	.outData_valid		(r_valid) 
 );
 
-wire [workingBitSize -1:0] usedInput_untrimmed = used_inputs == ui_x_only ? x_untrimmed : r;//the _valid flag will always remain r_valid, even though x would be valid a few clock cycles before r is valid
+
+wire [workingBitSize -1:0] usedInput_untrimmed = 
+									used_inputs == ui_x_only ? 
+										x_untrimmed : 
+										used_inputs == ui_xdiff?
+											xdiff_minusOffset_extended :
+											r;//the _valid flag will always remain r_valid, even though x would be valid a few clock cycles before r is valid
 wire [outputBitSize -1:0] usedInput;
 
 reg [coeffBitSize -1:0] PI_kp_reg, PI_ki_reg;

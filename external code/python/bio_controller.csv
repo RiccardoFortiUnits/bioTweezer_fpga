@@ -3,7 +3,7 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 0,Bio Controller,transmission time,transmissionTime,float,1e-2,s,time,general
 1,Current Generator,Base current,currentGenerator_baseCurrent,float,150e-3,ampere,generator_current,general
 2,Bio Controller,Base level,outWhenPiDisabled,float,150e-3,ampere,generator_current,general
-3,Bio Controller,used input,usedInput,option,0,[x; |x|; √x^2+y^2; √x^2+y^2+z^2],FPGA_usedInputCfg,general
+3,Bio Controller,used input,usedInput,option,0,[x; xdiff; |x|; √x^2+y^2; √x^2+y^2+z^2],FPGA_usedInputCfg,general
 4,Bio Controller,Offset XDiff,xDiff_offset,float,0,volt,QPD_output,general
 5,Bio Controller,Offset YDiff,yDiff_offset,float,0,volt,QPD_output,general
 6,Bio Controller,Offset Sum,SUM_offsetFor_div,float,0,volt,QPD_output,general
@@ -29,7 +29,7 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 25,Bio Controller Calibration,calibrate on recording start,calibrateOnRecordingStart,bool,1,none,\none,calibration
 25,Bio Controller Calibration,base current,baseCurrent,float,150e-3,ampere,\none,calibration
 26,Bio Controller Calibration,end current,EndCurrent,float,350e-3,ampere,\none,calibration
-27,Bio Controller Calibration,n of samples,nOfSamples,int,10,none,\none,calibration
+27,Bio Controller Calibration,n of samples,nOfSamples,int,5,none,\none,calibration
 28,Bio Controller Calibration,sample duration,sampleTime,float,2,s,\none,calibration
 29,Bio Controller Calibration,enable offset on XDIFF,enableXdiff,bool,0,none,\none,calibration
 30,Bio Controller Calibration,enable offset on SUM,enableSum,bool,0,none,\none,calibration

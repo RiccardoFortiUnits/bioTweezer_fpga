@@ -140,9 +140,9 @@ wire [16*offset_nOfSegments -1:0] xOffset_qs, xOffset_edgePoints;
 wire [offset_mResolution*offset_nOfSegments -1:0] xOffset_ms;
 wire [15:0] z_offset, x_offset, y_offset, xDiff_offset, yDiff_offset;
 wire [25:0] z_multiplier;
-wire [31:0] qs3210, edgePoints3210, ms10, ms32;
-assign xOffset_qs = {qs3210[31:24], 8'b0, qs3210[23:16], 8'b0, qs3210[15:8], 8'b0, qs3210[7:0], 8'b0};
-assign xOffset_edgePoints = {edgePoints3210[31:24], 8'b0, edgePoints3210[23:16], 8'b0, edgePoints3210[15:8], 8'b0, edgePoints3210[7:0], 8'b0};
+wire [31:0] qs32, qs10, edgePoints32, edgePoints10, ms10, ms32;
+assign xOffset_qs = {qs32, qs10};
+assign xOffset_edgePoints = {edgePoints32, edgePoints10};
 assign xOffset_ms = {ms32, ms10};
 
 wire ADC_outclock_50, ADC_ready_50, ADC_outclock_100;
@@ -201,7 +201,7 @@ wire binFeedback_cfg;
 wire binFeedback_lastActiveDuration_dataValid, binFeedback_lastReachedThreshold;
 wire [1:0] binFeedback_transmissionCfg;
 wire [18:0] binFeedback_preAverageTime;
-wire [1:0] usedInput;
+wire [2:0] usedInput;
 	/*How to add custom connections to the network module:
 	
 	reception: parameter setting
@@ -242,11 +242,11 @@ wire [1:0] usedInput;
 			-add the relative wires to the rdreq_fifo, rddata_fifo and rdempty_fifo registers.
 		 
 */
-parameter nOflargeRegisters = 12;
+parameter nOflargeRegisters = 14;
 
-parameter largeRegisterStartIdxs = {32'd335, 32'd303	   , 32'd271, 32'd239, 32'd207 					 , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
+parameter largeRegisterStartIdxs = {32'd399, 32'd367, 32'd335	  , 32'd303		, 32'd271, 32'd239, 32'd207 				  , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
 wire [largeRegisterStartIdxs[nOflargeRegisters*32+32 -1-:32] -1:0] largeRegisters;
-assign                             {qs3210 , edgePoints3210, ms10   , ms32	 , binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
+assign                             {qs32   , qs10 	, edgePoints32, edgePoints10, ms32   , ms10	  , binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
 
 wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
@@ -254,7 +254,7 @@ assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, p
 
 parameter nOfsmallRegisters = 18;
 
-parameter smallRegisterStartIdxs = {32'hDE      , 32'hD6                     , 32'hD4        , 32'hC4        , 32'hB4         , 32'hB3                    , 32'hA3                    , 32'h93      , 32'h83   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hDF      , 32'hD7                     , 32'hD5        , 32'hC5        , 32'hB5         , 32'hB4                    , 32'hA4                    , 32'h94      , 32'h84   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
 assign                             {squaresShift, binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
