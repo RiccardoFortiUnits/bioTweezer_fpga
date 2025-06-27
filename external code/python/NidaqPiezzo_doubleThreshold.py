@@ -192,6 +192,7 @@ class NiFrame(Frame):
 
 		
 		try:
+			print("starting bioController. If nothing happens, there's probably a connection problem, and I can't figure out how to make the code fail instead of looping infinitely")
 			self.bio_controller = self.init_bioTweezerController()
 		except:
 			self.bio_controller = None

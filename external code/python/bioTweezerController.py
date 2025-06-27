@@ -601,42 +601,42 @@ class bioTweezerController(fpgaHandler):
 	yDiff_offset = 0																										#	[adimensional]
 
 		
-	def initiateTweezers(self, singleCalibrationTime = 1, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True, checkStiffness = True):
-		#do some calibration measures
-		self.getCalibrationValues(singleCalibrationTime = singleCalibrationTime, usedLaserPowers = usedLaserPowers,
-							  useXYDIFF_offset = useXYDIFF_offset, useSUM_offset = useSUM_offset)
+	# def initiateTweezers(self, singleCalibrationTime = 1, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True, checkStiffness = True):
+	# 	#do some calibration measures
+	# 	self.getCalibrationValues(singleCalibrationTime = singleCalibrationTime, usedLaserPowers = usedLaserPowers,
+	# 						  useXYDIFF_offset = useXYDIFF_offset, useSUM_offset = useSUM_offset)
 		
-		#set a lot of parameters in the FPGA
-		mz = 1 / (self.range_x * self.sensitivity_z * self.ADC_sumAttenuation)
-		self.setParameters(
-			SUM_multiplierFor_z = (mz, "FPGA_floatValue"),
-			SUM_offsetFor_z = (-self.SUM_at_z0, "QPD_output"),
+	# 	#set a lot of parameters in the FPGA
+	# 	mz = 1 / (self.range_x * self.sensitivity_z * self.ADC_sumAttenuation)
+	# 	self.setParameters(
+	# 		SUM_multiplierFor_z = (mz, "FPGA_floatValue"),
+	# 		SUM_offsetFor_z = (-self.SUM_at_z0, "QPD_output"),
 			
-			SUM_multiplierFor_div = (self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+	# 		SUM_multiplierFor_div = (self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 			
-			SUM_offsetFor_div = (self.SUM_offsetFor_div, "FPGA_floatValue"),
-			x_offset = (self.x_offset, "FPGA_floatValue"),
-			# xDiff_offset = (self.xDiff_offset, "FPGA_floatValue"),
-			y_offset = (self.y_offset, "FPGA_floatValue"),
-			yDiff_offset = (self.yDiff_offset, "FPGA_floatValue"),
-			outWhenPiDisabled = (0, "generator_input"),
-		)
+	# 		SUM_offsetFor_div = (self.SUM_offsetFor_div, "FPGA_floatValue"),
+	# 		x_offset = (self.x_offset, "FPGA_floatValue"),
+	# 		# xDiff_offset = (self.xDiff_offset, "FPGA_floatValue"),
+	# 		y_offset = (self.y_offset, "FPGA_floatValue"),
+	# 		yDiff_offset = (self.yDiff_offset, "FPGA_floatValue"),
+	# 		outWhenPiDisabled = (0, "generator_input"),
+	# 	)
 
 		
-		if checkStiffness:
-			print(f'calculated stiffness: {self.calcStiffness(singleCalibrationTime, directions = ["x", "y"])*1e3} pN/nm')
+	# 	if checkStiffness:
+	# 		print(f'calculated stiffness: {self.calcStiffness(singleCalibrationTime, directions = ["x", "y"])*1e3} pN/nm')
 
-		# if(self.DAC_gain > 0):
-		# 	self.setParameters(
-		# 		limitLow = (self.currentGenerator_minCurrent, "generator_current"),
-		# 		limitHigh = (self.currentGenerator_maxCurrent, "generator_current"),
-		# 	)
-		# else:
-		# 	self.setParameters(
-		# 		#high and low limits are switched, because the DAC amplifier has a negative gain
-		# 		limitLow = (self.currentGenerator_maxCurrent, "generator_current"),
-		# 		limitHigh = (self.currentGenerator_minCurrent, "generator_current"),
-		# 	)
+	# 	# if(self.DAC_gain > 0):
+	# 	# 	self.setParameters(
+	# 	# 		limitLow = (self.currentGenerator_minCurrent, "generator_current"),
+	# 	# 		limitHigh = (self.currentGenerator_maxCurrent, "generator_current"),
+	# 	# 	)
+	# 	# else:
+	# 	# 	self.setParameters(
+	# 	# 		#high and low limits are switched, because the DAC amplifier has a negative gain
+	# 	# 		limitLow = (self.currentGenerator_maxCurrent, "generator_current"),
+	# 	# 		limitHigh = (self.currentGenerator_minCurrent, "generator_current"),
+	# 	# 	)
 		
 	
 	def calcStiffness(self, time = 3, temperature = 300, directions = ["x", "y"]):
@@ -682,73 +682,79 @@ class bioTweezerController(fpgaHandler):
 			SUM_multiplierFor_div = ( self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 			SUM_offsetFor_z = (0, "FPGA_floatValue"),
 			SUM_offsetFor_div = (0, "FPGA_floatValue"),
+			offset_ms32 = (0, "ms_list1"),
+			offset_ms10 = (0, "ms_list0"),
+			offset_edgePoints10 = (0, "edges_list0"),
+			offset_edgePoints32 = (0, "edges_list1"),
+			offset_qs10 = (0, "qs_list0"),
+			offset_qs32 = (0, "qs_list1"),
 		)
-	def getCalibrationValues(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
-		self.set_zOffset(singleCalibrationTime)
-		#calculate the offsets for x and y
-		SUM = np.zeros(len(usedLaserPowers))
-		XDIFF = np.zeros(len(usedLaserPowers))
-		YDIFF = np.zeros(len(usedLaserPowers))
-		#reset every offset value, even for z, since we'll be using it to read the SUM signal
-		self.setParameters(
-			x_offset = (0, "FPGA_floatValue"),
-			y_offset = (0, "FPGA_floatValue"),
-			# xDiff_offset = (0, "FPGA_floatValue"),
-			yDiff_offset = (0, "FPGA_floatValue"),
-			SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
-			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
-			SUM_offsetFor_z = (0, "FPGA_floatValue"),
-			SUM_offsetFor_div = (0, "FPGA_floatValue"),
-		)
-		debug = False
-		if debug:
-			global xd, yd, sm
-			SUM = sm
-			XDIFF = xd
-			YDIFF = yd
-			print("using debug calibration")
-		else:
-			#let's get some values for SUM, XDIFF and YDIFF
-			for i, intensity in enumerate(usedLaserPowers):
-				self.EnableConstantOutput(intensity)
+	# def getCalibrationValues(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
+	# 	self.set_zOffset(singleCalibrationTime)
+	# 	#calculate the offsets for x and y
+	# 	SUM = np.zeros(len(usedLaserPowers))
+	# 	XDIFF = np.zeros(len(usedLaserPowers))
+	# 	YDIFF = np.zeros(len(usedLaserPowers))
+	# 	#reset every offset value, even for z, since we'll be using it to read the SUM signal
+	# 	self.setParameters(
+	# 		x_offset = (0, "FPGA_floatValue"),
+	# 		y_offset = (0, "FPGA_floatValue"),
+	# 		# xDiff_offset = (0, "FPGA_floatValue"),
+	# 		yDiff_offset = (0, "FPGA_floatValue"),
+	# 		SUM_multiplierFor_z = (- self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),#value to normalize SUM to respect to XDIFF and YDIFF (the amplification circuit has different gains for X/YDIFF and SUM)
+	# 		SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
+	# 		SUM_offsetFor_z = (0, "FPGA_floatValue"),
+	# 		SUM_offsetFor_div = (0, "FPGA_floatValue"),
+	# 	)
+	# 	debug = False
+	# 	if debug:
+	# 		global xd, yd, sm
+	# 		SUM = sm
+	# 		XDIFF = xd
+	# 		YDIFF = yd
+	# 		print("using debug calibration")
+	# 	else:
+	# 		#let's get some values for SUM, XDIFF and YDIFF
+	# 		for i, intensity in enumerate(usedLaserPowers):
+	# 			self.EnableConstantOutput(intensity)
 				
-				t.sleep(0.01)#wait for the system to stabilize
-				data = self.getDataStream(singleCalibrationTime)[0]
+	# 			t.sleep(0.01)#wait for the system to stabilize
+	# 			data = self.getDataStream(singleCalibrationTime)[0]
 				
-				SUM[i] = - np.mean(data["z"])
-				SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
-				XDIFF[i] = np.mean(data["x"])
-				XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#x = XDIFF / SUM => XDIFF = x * SUM
-				YDIFF[i] = np.mean(data["y"])
-				YDIFF[i] = self.dimLink.convert(YDIFF[i], self.dataValuesFromFPGA["y"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]
+	# 			SUM[i] = - np.mean(data["z"])
+	# 			SUM[i] = self.dimLink.convert(SUM[i], self.dataValuesFromFPGA["z"].preferredConversionDimension, "FPGA_floatValue")#convert the bead position into an adimensional value
+	# 			XDIFF[i] = np.mean(data["x"])
+	# 			XDIFF[i] = self.dimLink.convert(XDIFF[i], self.dataValuesFromFPGA["x"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]#x = XDIFF / SUM => XDIFF = x * SUM
+	# 			YDIFF[i] = np.mean(data["y"])
+	# 			YDIFF[i] = self.dimLink.convert(YDIFF[i], self.dataValuesFromFPGA["y"].preferredConversionDimension, "FPGA_floatValue") * SUM[i]
 
-		#now, assuming that the formula for calculating x from SUM and XDIFF is
-			#x = (XDIFF - o_xdiff) / (SUM - o_sum ) - o_x
-			#and knowing that x ~ 0, let's estimate the 3 offsets by minimizing the error of the formula on the values we obtained
-			#(same thing for y, with the condition that o_sum is the same for both x and y)
-		#let's group together all the data for X and Y
-		xydiff = np.append(XDIFF, YDIFF)
-		sumsum = np.append(SUM, SUM)
-		#we might disable some offsets in case we want a simpler offset calculation
-		sumOffsetPosition = 1 if useXYDIFF_offset else 0
-		xOffsetPosition = sumOffsetPosition + (1 if useSUM_offset else 0)
-		def fxy(oo):
-			o = np.array([[oo[0]]*len(XDIFF) + [oo[1]]*len(YDIFF),
-						  [oo[2]]*len(xydiff),
-						  [oo[3]]*len(XDIFF) + [oo[4]]*len(YDIFF)])
-			return (xydiff - (o[0] if useXYDIFF_offset else 0)) - (sumsum - (o[1] if useSUM_offset else 0)) * o[2]
-				#when all the offsets are enabled, this formula equals to (xydiff - o[0]) - (sumsum - o[1]) * o[2].
-				#minimizing this formula is the same as minimizing		( (xydiff - o[0]) / (sumsum - o[1]) - o[2] ),
-				#but it is more stable since it doesn't have any variable in the denominator
+	# 	#now, assuming that the formula for calculating x from SUM and XDIFF is
+	# 		#x = (XDIFF - o_xdiff) / (SUM - o_sum ) - o_x
+	# 		#and knowing that x ~ 0, let's estimate the 3 offsets by minimizing the error of the formula on the values we obtained
+	# 		#(same thing for y, with the condition that o_sum is the same for both x and y)
+	# 	#let's group together all the data for X and Y
+	# 	xydiff = np.append(XDIFF, YDIFF)
+	# 	sumsum = np.append(SUM, SUM)
+	# 	#we might disable some offsets in case we want a simpler offset calculation
+	# 	sumOffsetPosition = 1 if useXYDIFF_offset else 0
+	# 	xOffsetPosition = sumOffsetPosition + (1 if useSUM_offset else 0)
+	# 	def fxy(oo):
+	# 		o = np.array([[oo[0]]*len(XDIFF) + [oo[1]]*len(YDIFF),
+	# 					  [oo[2]]*len(xydiff),
+	# 					  [oo[3]]*len(XDIFF) + [oo[4]]*len(YDIFF)])
+	# 		return (xydiff - (o[0] if useXYDIFF_offset else 0)) - (sumsum - (o[1] if useSUM_offset else 0)) * o[2]
+	# 			#when all the offsets are enabled, this formula equals to (xydiff - o[0]) - (sumsum - o[1]) * o[2].
+	# 			#minimizing this formula is the same as minimizing		( (xydiff - o[0]) / (sumsum - o[1]) - o[2] ),
+	# 			#but it is more stable since it doesn't have any variable in the denominator
 		
-		solution = least_squares(fxy, np.array([0,0,0,0,0]))
+	# 	solution = least_squares(fxy, np.array([0,0,0,0,0]))
 
-		self.xDiff_offset = solution.x[0]
-		self.yDiff_offset = solution.x[1]
-		self.SUM_offsetFor_div = -solution.x[2]
-		self.x_offset = solution.x[3]
-		self.y_offset = solution.x[4]
-		print(solution)
+	# 	self.xDiff_offset = solution.x[0]
+	# 	self.yDiff_offset = solution.x[1]
+	# 	self.SUM_offsetFor_div = -solution.x[2]
+	# 	self.x_offset = solution.x[3]
+	# 	self.y_offset = solution.x[4]
+	# 	print(solution)
 				
 	
 	def set_zOffset(self, time = 0.2):
@@ -789,7 +795,7 @@ class bioTweezerController(fpgaHandler):
 		self.updateDimensionLinker()
 	
 	@staticmethod
-	def segmentedCoefficient(x,y):
+	def segmentedCoefficient(x,y, finalLength = None):
 		'''
 			transforms the segmented function (x,y) into the list of ramps y[i](x) = q[i] + (s[i] - x * m[i]),
 			s[i] is the start input value of the ramp
@@ -807,6 +813,12 @@ class bioTweezerController(fpgaHandler):
 		m = (d-c) / (b-a)
 		s = a
 		q = c
+
+		if finalLength is not None:
+			s = np.append(s,[-1] * (finalLength - len(m)))
+			q = np.append(q,[0] * (finalLength - len(m)))
+			m = np.append(m,[0] * (finalLength - len(m)))
+
 		return (s,q,m)
 	
 	def SetOffsetLinearizer(self, singleCalibrationTime = 1, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 250e-3,4)]):
@@ -843,12 +855,9 @@ class bioTweezerController(fpgaHandler):
 			SUM[i] = np.mean(sum)
 			XDIFF[i] = np.mean(xdiff)
 
-		# SUM, XDIFF = np.array([0.0846253959693719, 0.17307535807291666, 0.2614683843963775]), np.array([0,0,0])
-		(s,q,m) = bioTweezerController.segmentedCoefficient(SUM, XDIFF)
+		# SUM, XDIFF = np.array([0.08467611, 0.17313996]), np.array([0.00382965, 0.00383945])
+		(s,q,m) = bioTweezerController.segmentedCoefficient(SUM, XDIFF, maxSamples)
 		
-		s = np.append(s,[-1] * (maxSamples - len(m)))
-		q = np.append(q,[0] * (maxSamples - len(m)))
-		m = np.append(m,[0] * (maxSamples - len(m)))
 		
 		self.setParameters(
 			offset_edgePoints10 = (s, "FPGA_SUMfloatValue"),
@@ -882,7 +891,13 @@ class bioTweezerController(fpgaHandler):
 		bioTweezerController.dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(bioTweezerController.piezo_V_to_distance))
 		bioTweezerController.dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
 		bioTweezerController.dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
-		print('TODO: update the function "updateDimensionLinker"!!!')
+		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "q_register", dimensionLinker.gainFunctions(2**15))
+		bioTweezerController.dimLink.addConnection("FPGA_RampFloatValue", "m_register", dimensionLinker.gainFunctions(2**13))
+		bioTweezerController.dimLink.addConnection("FPGA_SUMfloatValue", "edge_register", dimensionLinker.gainFunctions(2**15))
+		bioTweezerController.dimLink.addWordToListConnection(["edges_list0", "edges_list1"], "edge_register", byteSize=16, byteCountForWord=2)
+		bioTweezerController.dimLink.addWordToListConnection(["qs_list0", "qs_list1"], "q_register", byteSize=16, byteCountForWord=2)
+		bioTweezerController.dimLink.addWordToListConnection(["ms_list0", "ms_list1"], "m_register", byteSize=16, byteCountForWord=2)	
+		bioTweezerController.dimLink.addMultiConnection(["FPGA_SUMfloatValue", "FPGA_RampFloatValue", "FPGA_floatValue"], dimensionLinker.monomialFunctions(["FPGA_SUMfloatValue", "FPGA_RampFloatValue"], ["FPGA_floatValue"]))
 		bioTweezerController.dimLink.checkForLoops()
 	
 	dimLink.addConnection("QPD_output", "xy_voltage", dimensionLinker.gainFunctions(ADC_xyAttenuation))
@@ -910,60 +925,38 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addConnection("FPGA_SUMfloatValue", "edge_register", dimensionLinker.gainFunctions(2**15))
 	dimLink.addWordToListConnection(["edges_list0", "edges_list1"], "edge_register", byteSize=16, byteCountForWord=2)
 	dimLink.addWordToListConnection(["qs_list0", "qs_list1"], "q_register", byteSize=16, byteCountForWord=2)
-	dimLink.addWordToListConnection(["ms_list0", "ms_list1"], "m_register", byteSize=16, byteCountForWord=2)
-	
+	dimLink.addWordToListConnection(["ms_list0", "ms_list1"], "m_register", byteSize=16, byteCountForWord=2)	
 	dimLink.addMultiConnection(["FPGA_SUMfloatValue", "FPGA_RampFloatValue", "FPGA_floatValue"], dimensionLinker.monomialFunctions(["FPGA_SUMfloatValue", "FPGA_RampFloatValue"], ["FPGA_floatValue"]))
 	# dimLink.plot()
 	dimLink.checkForLoops()
 	
 
-if __name__ == "__main__":
-	print('''
-
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-
-	hey! did you mean to call NidaqPiezzo_doubleThreshold instead?
-	   	   
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_x_
-	_______________________________________________________________________________________________________________________
-	   
-	   ''')
+if __name__ == "__main__":	
+	bt = bioTweezerController()
 	
-	# q = bioTweezerController()
-	# # print(q.readBackParameter(("SUM_multiplierFor_z", "FPGA_floatValue")))
-	# # q.initiateTweezers(useXYDIFF_offset = False, useSUM_offset = False)
-	
-	# #q.EnableConstantOutput((0.0, "generator_input"))
-	
-	# q.EnablePI(kp = 0.01, ki = 0.0, setpoint = (-0, "FPGA_floatValue"), limitLow=(-.999,"FPGA_floatValue"), limitHigh=(.999,"FPGA_floatValue"))
-	
-	# #q.EnableBinaryFeedback((100e-7, "bead_position"),True, (0.2, "generator_input"), 0.2)#, 0.1, 0.3)	
+	SUM, XDIFF = np.array([0.0846253959693719, 0.17307535807291666, 0.2614683843963775]), np.array([0.000,0.000,0])
+	(s,q,m) = bioTweezerController.segmentedCoefficient(SUM, XDIFF, 4)
 
-	
-	# params = q.readAllParameters()
-	# for key, value in params.items():
-	# 	print(f"{key}: {value}")
+	bt.setParameters(
+		offset_edgePoints10 = (s, "FPGA_SUMfloatValue"),
+		offset_edgePoints32 = (s, "FPGA_SUMfloatValue"),
+		offset_qs10 = (q, "FPGA_floatValue"),
+		offset_qs32 = (q, "FPGA_floatValue"),
+		offset_ms10 = (m, "FPGA_RampFloatValue"),
+		offset_ms32 = (m, "FPGA_RampFloatValue"),
+		SUM_multiplierFor_z = (1, "FPGA_floatValue"),
+		SUM_multiplierFor_div = (- bt.SUM_multiplierForDIFF_SUM * bt.ADC_xyAttenuation / bt.ADC_sumAttenuation, "FPGA_floatValue"),
+		transmissionTime = (1e-3, "time"),
+	)
 
-
-
-	# # data = q.plotReceivedData(1,elementsToShow=["pid out", "x","z", "x^2"], **{"x" : "FPGA_floatValue", "x^2" : "FPGA_floatValue"})
-	
-	# # plt.plot(data["times"], np.array(data["x^2"]) - np.array(data["x"])**2, label="var_x", alpha=0.7)
-	# plt.legend()
+	data = bt.getDataStream(5)[0]
+	x=np.array(data["x"])
+	xdiff=np.array(data["y"])
+	sum=np.array(data["z"])
+	plt.plot(x, label="x")
+	plt.plot(xdiff, label="xdiff")
+	plt.plot(sum, label="sum")
+	plt.plot(-xdiff/sum*.7*2**15, label="xdiff/sum")
+	plt.legend()
+	plt.grid()
 

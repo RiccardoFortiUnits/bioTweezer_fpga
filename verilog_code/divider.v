@@ -73,7 +73,7 @@ lpm_divide#(
 	.lpm_drepresentation				("SIGNED"),
 	.lpm_hint				("MAXIMIZE_SPEED=6,LPM_REMAINDERPOSITIVE=FALSE"),
 	.lpm_nrepresentation				("SIGNED"),
-	.lpm_pipeline				(3),
+	.lpm_pipeline				(5),
 	.lpm_type				("LPM_DIVIDE"),
 	.lpm_widthd				(numDen_WIDTH),
 	.lpm_widthn				(numDen_WIDTH)

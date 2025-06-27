@@ -151,7 +151,7 @@ fixedPointShifter#(inputBitSize, inputFracSize, workingBitSize, workingFracSize,
 	
 wire [workingBitSize -1:0] xdiff_minusOffset_extended;
 fixedPointShifter#(inputBitSize + 1, inputFracSize, workingBitSize, workingFracSize, 1) 
-	xdiff_minusOffset(
+	xdiff_minusOffset_shift(
 		xdiff_minusOffset, 
 		xdiff_minusOffset_extended
 );
@@ -167,12 +167,12 @@ adder#(
 	.b					({x_offset_extended, y_offset_extended}),
 	.result				({x_untrimmed, y_untrimmed})
 );
-
+wire [outputBitSize -1:0] unusedY;
 fixedPointShifter#(workingBitSize, workingFracSize, outputBitSize, outputFracSize, 1) 
 	shift_xyz[0:2](
 		{x_untrimmed, y_untrimmed, z_untrimmed}, 
-		{x, y, z}
-);
+		{x, unusedY, z}
+); assign y = xdiff_minusOffset[outputBitSize -1:0];
 
 //get distance of the bead
 wire [workingBitSize -1:0] r;
@@ -380,3 +380,72 @@ assign leds[1] = PI_reset;
 assign leds[2] = singlePiReset;
 assign leds[3] = PI_enable;
 endmodule
+
+
+/*
+
+add wave -position insertpoint sim:/tweezerController/x sim:/tweezerController/clk sim:/tweezerController/reset sim:/tweezerController/XDIFF sim:/tweezerController/SUM sim:/tweezerController/sumForDivision_offset sim:/tweezerController/sumForDivision_multiplier sim:/tweezerController/z_offset sim:/tweezerController/z_multiplier sim:/tweezerController/xDiff_offset sim:/tweezerController/x_offset sim:/tweezerController/ray sim:/tweezerController/y sim:/tweezerController/z sim:/tweezerController/x_untrimmed sim:/tweezerController/y_untrimmed sim:/tweezerController/z_untrimmed sim:/tweezerController/x_normalized sim:/tweezerController/y_normalized sim:/tweezerController/sumForDivision sim:/tweezerController/xdiff_minusOffset sim:/tweezerController/ydiff_minusOffset sim:/tweezerController/x_offset_extended sim:/tweezerController/y_offset_extended sim:/tweezerController/xdiff_minusOffset_extended sim:/tweezerController/unusedY sim:/tweezerController/r sim:/tweezerController/r_valid sim:/tweezerController/usedInput_untrimmed sim:/tweezerController/usedInput 
+force -freeze sim:/tweezerController/clk 1 0, 0 {50 ps} -r 100
+force -freeze sim:/tweezerController/reset z1 0
+force -freeze sim:/tweezerController/SUM 107d 0
+force -freeze sim:/tweezerController/sumForDivision_offset 0 0
+force -freeze sim:/tweezerController/sumForDivision_multiplier 1000000 0
+force -freeze sim:/tweezerController/z_offset 0 0
+force -freeze sim:/tweezerController/z_multiplier 1000000 0
+force -freeze sim:/tweezerController/xDiff_offset 0 0
+force -freeze sim:/tweezerController/x_offset 0 0
+force -freeze sim:/tweezerController/used_inputs 0 0
+run
+force -freeze sim:/tweezerController/XDIFF fffe 0
+force -freeze sim:/tweezerController/reset 0 0
+run
+run
+run
+force -freeze sim:/tweezerController/XDIFF fff 0
+run
+run
+force -freeze sim:/tweezerController/XDIFF 0 0
+run
+force -freeze sim:/tweezerController/XDIFF 1 0
+run
+force -freeze sim:/tweezerController/XDIFF 2 0
+run
+force -freeze sim:/tweezerController/XDIFF 3 0
+run
+force -freeze sim:/tweezerController/XDIFF 4 0
+run
+force -freeze sim:/tweezerController/XDIFF 5 0
+run
+force -freeze sim:/tweezerController/XDIFF 6 0
+run
+force -freeze sim:/tweezerController/XDIFF 7 0
+run
+force -freeze sim:/tweezerController/XDIFF 8 0
+run
+force -freeze sim:/tweezerController/XDIFF 9 0
+run
+force -freeze sim:/tweezerController/XDIFF a 0
+run
+force -freeze sim:/tweezerController/XDIFF b 0
+run
+force -freeze sim:/tweezerController/XDIFF c 0
+run
+force -freeze sim:/tweezerController/XDIFF d 0
+run
+force -freeze sim:/tweezerController/XDIFF e 0
+run
+force -freeze sim:/tweezerController/XDIFF f 0
+run
+force -freeze sim:/tweezerController/XDIFF 10 0
+run
+force -freeze sim:/tweezerController/XDIFF 11 0
+run
+force -freeze sim:/tweezerController/XDIFF 12 0
+run
+force -freeze sim:/tweezerController/XDIFF 13 0
+run
+force -freeze sim:/tweezerController/XDIFF 14 0
+run
+force -freeze sim:/tweezerController/XDIFF 15 0
+run
+*/
