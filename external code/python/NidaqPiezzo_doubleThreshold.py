@@ -242,6 +242,7 @@ class NiFrame(Frame):
 		self.ai_buffer_max = np.zeros((self._ai_n_channels, 1), dtype=np.float64) - 100.0
 
 		self.task_status = 'none'
+		self.first_ao_event_time = -1.0
 
 		if self.dev is not None:
 			self.reset_tasks()
@@ -539,6 +540,8 @@ class NiFrame(Frame):
 		self.protocol_qpd_xynorm_var.set(0)
 		self.protocol_qpd_xyOffset_var = IntVar()
 		self.protocol_qpd_xyOffset_var.set(0)
+		self.protocol_freeze_output_when_condition = IntVar()
+		self.protocol_freeze_output_when_condition.set(0)
 		self.protocol_qpd_xynorm_checkbox = Checkbutton(self.node_frame, text='QPD norm', 
 														variable=self.protocol_qpd_xynorm_var, 
 														onvalue=1, offvalue=0, command=self.qpd_xyModifiers_check_callback)
@@ -546,7 +549,13 @@ class NiFrame(Frame):
 		self.protocol_qpd_xyOffset_checkbox = Checkbutton(self.node_frame, text='QPD offsets', 
 														variable=self.protocol_qpd_xyOffset_var, 
 														onvalue=1, offvalue=0, command=self.qpd_xyModifiers_check_callback)
+		
 		self.protocol_qpd_xyOffset_checkbox.pack(side='left')
+
+		self.protocol_freeze_condition_checkbox = Checkbutton(self.node_frame, text='Cond Freeze output', 
+														variable=self.protocol_freeze_output_when_condition, 
+														onvalue=1, offvalue=0)
+		self.protocol_freeze_condition_checkbox.pack(side='left')
 		
 
 		self.node_frame.pack(expand=False, fill='x', side='top')
@@ -611,8 +620,8 @@ class NiFrame(Frame):
 			if isinstance(func, types.FunctionType):
 				return getattr(self.acq, self.multiplePlots[selection])(files)
 			else:
-				acquisition.newFigure(f"multi-plot for {selection}")
 				acquisition.createNewFigure = False
+				plt.figure(f"multi-plot for {selection}")
 				for file in files:
 					a = acquisition(file)
 					getattr(a, self.multiplePlots[selection])()
@@ -854,6 +863,7 @@ class NiFrame(Frame):
 		self.ai_read_samples += read_samples
 
 		stop = time.perf_counter()
+		#print(f"Read callback: Time from first ao event{(stop - self.first_ao_event_time) * 1000} ms")
 		#print(f"Read event after {(stop-self.start_time) * 1000} msec, read {self.ai_read_samples} samples")
 		self.start_time = stop
 
@@ -898,11 +908,25 @@ class NiFrame(Frame):
 		stop = time.perf_counter()
 		#print(f"Write event after {(stop-self.start_time) * 1000} msec")
 		self.start_time = stop
+		if self.first_ao_event_time == -1.0:
+			self.first_ao_event_time = stop
 
-		
+		#print(f"Write callback: Time from first ao event{(stop - self.first_ao_event_time) * 1000} ms")
 		#print(f'Written samples {self.ao_written_samples}')
 		buf_pts = self.ao_buffer.shape[1]
 		points_left = buf_pts - self.ao_written_samples
+
+		if self.protocol_freeze_output_when_condition.get() == 1:
+			if self.protocol_conditional_freeze_output() == True:
+				print(f"Freezing output - ao_buffer shape is {self.ao_buffer.shape}, written samples {self.ao_written_samples}")
+				print(f"ao_chunk_size {self.ao_chunk_size}, ai_chunk_size {self.ai_chunk_size}")
+				#print(self.ao_buffer.shape)
+
+				for i in range(self.ao_buffer.shape[0]):
+					#print(i)
+					self.ao_buffer[i,self.ao_written_samples:] = self.ao_buffer[i,self.ao_written_samples-1]
+
+				self._ao_task.stop()
 
 		if points_left > 0:
 			if self.ao_chunk_size < points_left:
@@ -943,7 +967,7 @@ class NiFrame(Frame):
 			self.ai_buffer_max = -10.0
 			#print(f'ao_written_smples is {self.ao_written_samples}')
 			self.ao_written_samples = self._ao_streams.write_many_sample(np.ascontiguousarray(self.ao_buffer[:, :self.ao_written_samples]))
-			
+			self.first_ao_event_time = -1.0
 			#print(f'Written first {n} samples')
 			
 			
@@ -1001,7 +1025,7 @@ class NiFrame(Frame):
 		self._ao_task = self.create_ao_task("AOTask")
 		self._ai_task = self.create_ai_task('AITask')
 
-		self.ao_chunk_size = int(self.data_rate / 2.0)
+		self.ao_chunk_size = int(self.data_rate / 8.0)
 
 		self.add_ao_channels(self._ao_n_channels)
 		print(f'Current ao channels: {len(self._ao_task.ao_channels)}')
@@ -1130,14 +1154,15 @@ class NiFrame(Frame):
 
 			self.data_rate = int(self.wdg_data_rate_entry.get())
 			self.reset_tasks()
-			k = 4.0
+			k = 8.0
 			if self.data_rate >= 5000.0:
-				k = 2.0
+				k = 4.0
 
 			if self.dev is not None:
 				self.ai_chunk_size = int(self.data_rate / k)
 
-				self._ai_task.in_stream.input_buf_size = 4 * self.ai_chunk_size
+				self._ai_task.in_stream.input_buf_size = 2 * self.ai_chunk_size
+				#self._ao_task.out_stream.output_buf_size = 2 * self.ao_chunk_size
 
 				if (self.output_protocol is None) or (len(self.output_protocol) < 1):
 					buf = self.compute_ao_buffer_from_wave_parameters()
@@ -1687,7 +1712,7 @@ class NiFrame(Frame):
 		t,buf = self.acq.getNidaqAcquisition(returnType = np.ndarray)
 		
 		self._ai_n_channels = len(buf)
-		# self.ai_hide = [False] * self._ai_n_channels
+		self.ai_hide = [False] * self._ai_n_channels
 		
 		self.data_rate = int(1.0/np.mean(np.diff(t)))
 		self.data_rate_entry_var.set(self.data_rate)
@@ -1701,12 +1726,31 @@ class NiFrame(Frame):
 			self.bio_controller.dataStreamBuffer = self.bio_buffer
 		bio_t = np.array(self.bio_buffer["times"])
 		bio_buff = np.array([self.bio_buffer[key] for key in ["x", "y", "z"]]).T
-		# self.bio_hide = [False] * len(bio_buff[0])
+		self.bio_hide = [False] * len(bio_buff[0])
 		
 		# self.init_widgets(self.acq.file_conf)
 
 		self.ai_plot(t, self.ai_buffer, np.min(self.ai_buffer), np.max(self.ai_buffer), bio_x=bio_t, bio_y=bio_buff)
-		print(f'mean x:{1e9*bioTweezerController.dimLink.convert(np.mean(bio_buff[:,0]), "FPGA_floatValue", "bead_position")}nm ({np.mean(bio_buff[:,0])})')
+
+	def protocol_conditional_freeze_output(self:Self)->bool:
+		ans:bool = False
+		#print("Checking output freeze condition")
+
+		if self.ai_read_samples > 100:
+			sum_channel = 1
+			start_sum_offset = np.mean(self.ai_buffer[sum_channel, :10])
+			last_val = np.mean(self.ai_buffer[sum_channel, -10:])
+			last_second = self.data_rate
+			if self.ai_buffer.shape[1] > last_second:
+				last_second_val = np.mean(self.ai_buffer[sum_channel, -last_second:-last_second+10])
+			else:
+				last_second_val = start_sum_offset
+
+			print(f"Current value {last_val}, last_second_val {last_second_val}")
+			if abs(last_val - last_second_val) > 1.0:
+				ans = True
+
+		return ans
 		
 	def preprocess_ai_data(self:Self, t:np.ndarray, y:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
 		#selection interval
@@ -2032,7 +2076,7 @@ class NiFrame(Frame):
 if __name__ == '__main__':
 	root = Tk()
 	root.title('OT Thorlabs piezo QPD')
-	root.geometry('960x600')
+	root.geometry('1200x600')
 	niframe = NiFrame(root, 'Dev1')
 	niframe.pack(expand=True, fill='both')
 	root.mainloop()
