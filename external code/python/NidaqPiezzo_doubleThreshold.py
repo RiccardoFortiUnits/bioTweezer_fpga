@@ -929,14 +929,15 @@ class NiFrame(Frame):
 				self._ao_task.stop()
 
 		if points_left > 0:
-			if self.ao_chunk_size < points_left:
-				self._ao_streams.write_many_sample(
-						np.ascontiguousarray(self.ao_buffer[:, self.ao_written_samples:self.ao_written_samples+self.ao_chunk_size]))
-				self.ao_written_samples += self.ao_chunk_size
-			else:
-				self._ao_streams.write_many_sample(
-					np.ascontiguousarray(self.ao_buffer[:, self.ao_written_samples:]))
-				self.ao_written_samples += points_left 
+			if self._ao_streams is not None:
+				if self.ao_chunk_size < points_left:
+					self._ao_streams.write_many_sample(
+							np.ascontiguousarray(self.ao_buffer[:, self.ao_written_samples:self.ao_written_samples+self.ao_chunk_size]))
+					self.ao_written_samples += self.ao_chunk_size
+				else:
+					self._ao_streams.write_many_sample(
+						np.ascontiguousarray(self.ao_buffer[:, self.ao_written_samples:]))
+					self.ao_written_samples += points_left 
 
 		else:
 			#self.reset_tasks()
@@ -961,6 +962,7 @@ class NiFrame(Frame):
 			self.ao_written_samples = int(self.ao_chunk_size)
 			self.ai_buffer_times = None
 			self.ai_line_handles = None
+			self.bio_line_handles = None
 			self.ai_buffer = np.zeros((self._ai_n_channels, self.ai_chunk_size), dtype=np.float64)
 			self.ai_read_samples = 0
 			self.ai_buffer_min = 10.0
@@ -2042,23 +2044,29 @@ class NiFrame(Frame):
 		self.fig.canvas.draw()
 		
 	def addPlotSelectors(self):
-		
+		colors = matplotlib.rcParams['axes.prop_cycle'].by_key()['color']
+		colorIdx = 0
 		signals = self.getBaseSettingsFromFile(device = "Signal Names", returnType=dict)
 		for i in range(self._ai_n_channels):
 			signal = signals[f"ai {i}"]
 			var = IntVar(value=signal["Parameter value"])
-			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,
+			bgColor = colors[colorIdx%len(colors)]
+			colorIdx +=1
+			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0, bg = bgColor,
 					   command = lambda i=i, var=var: self.updateHideValueFromCheckButton(self.ai_hide, i, var))
-			if var.get() == 1:
+			self.ai_hide.__setitem__(i, var.get() == 0)
+			if not self.ai_hide[i]:
 				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
 			check.grid(column=0, row=i)
-
 		for i in range(3):
 			signal = signals[f"bio {i}"]
 			var = IntVar(value=signal["Parameter value"])
-			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,
+			bgColor = colors[colorIdx%len(colors)]
+			colorIdx +=1
+			check = Checkbutton(self.plotSelectors_frame, variable=var, text = signal["Parameter name"],onvalue=1,offvalue=0,  bg = bgColor,
 					   command = lambda i=i, var=var: self.updateHideValueFromCheckButton(self.bio_hide, i, var))
-			if var.get() == 1:
+			self.bio_hide.__setitem__(i, var.get() == 0)
+			if not self.bio_hide[i]:
 				check.select()#checkboxes really suck, and they don't want to start with the value of their variable. Let's manually check them
 			check.grid(column=1, row=i)
 			
