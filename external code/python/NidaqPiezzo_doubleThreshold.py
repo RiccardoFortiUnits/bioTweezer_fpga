@@ -1310,7 +1310,10 @@ class NiFrame(Frame):
 							if key != "Parameter value":
 								self.bio_configurationsToSave[key].append(value)
 							else:
-								self.bio_configurationsToSave[key].append(el.get())
+								val = el.get()
+								if isinstance(val, list) or isinstance(val, np.ndarray):
+									val = self.formatArrayNicely(val)
+								self.bio_configurationsToSave[key].append(val)
 		#sort the elements using the "Parameter id" column
 		sorted_indices = sorted(range(len(self.bio_configurationsToSave["Parameter id"])), key=lambda k: self.bio_configurationsToSave["Parameter id"][k])
 		self.bio_configurationsToSave = {key: [value[i] for i in sorted_indices] for key, value in self.bio_configurationsToSave.items()}
@@ -1875,12 +1878,14 @@ class NiFrame(Frame):
 		parent = entry.nametowidget(entry.winfo_parent())
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
 		entry.current(readvalue)
-
+	@staticmethod
+	def formatArrayNicely(array):
+		return "[" + " ".join([f"{x:.2e}" for x in array]) + "]"
 	def refreshListEntryFromFPGA(self, entry):
 		parent = entry.nametowidget(entry.winfo_parent())
 		entry.delete(0, END)
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
-		formatted = "[" + " ".join([f"{x:.2e}" for x in readvalue]) + "]"
+		formatted = self.formatArrayNicely(readvalue)
 		entry.insert(0, formatted)
 
 	def updateBioControllerParameterFromListEntry(self, event):
