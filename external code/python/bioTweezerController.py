@@ -79,38 +79,60 @@ class fpgaRegister:
 		if(startDimension is None):
 			startDimension = self.preferredConversionDimension
 		value = self.dimLinker.convert(value, startDimension, self.dimension)
+		if isinstance(value, np.ndarray):
+			return value.astype(int), startDimension	
 		return int(value), startDimension
-	
-	def floatToFixedPoint(self, value, startDimension = None):
-		#convert from a physical dimension to the corresponding FPGA value
-		val, startDimension = self.convertValue(value, startDimension)
-		bitsOutOfBound = val >> self.bitSize
+	@staticmethod
+	def _clipValue(val : int, bitSize : int, isSigned : bool, recalculateValueFunction):
+		bitsOutOfBound = val >> bitSize
 		if (bitsOutOfBound != 0 and bitsOutOfBound != -1):
-			maxVal = (1 << (self.bitSize-1)) - 1 if self.isSigned else (1 << self.bitSize) - 1
-			minVal = -(1 << (self.bitSize-1)) if self.isSigned else 0
+			maxVal = (1 << (bitSize-1)) - 1 if isSigned else (1 << bitSize) - 1
+			minVal = -(1 << (bitSize-1)) if isSigned else 0
 			if(val > maxVal):
-				maxVal_unConverted = self.dimLinker.convert(maxVal, self.dimension, startDimension)
+				maxVal_unConverted = recalculateValueFunction(maxVal)
 				print(f"warning: value too high! using Max value = {maxVal_unConverted}" )
 				val = int(maxVal)
 			elif(val < minVal):
-				minVal_unConverted = self.dimLinker.convert(minVal, self.dimension, startDimension)
+				minVal_unConverted = recalculateValueFunction(minVal)
 				print(f"warning: value too low! using Min value = {minVal_unConverted}" )
 				val = int(minVal)
-		if(len(self.command) > 1):
-			return [val >> 16, val & 0xffff]
-		return [val]
+		return val
+	def floatToFixedPoint(self, value, startDimension = None):
+		#convert from a physical dimension to the corresponding FPGA value
+		val, startDimension = self.convertValue(value, startDimension)
+		if isinstance(val, int):
+			val = fpgaRegister._clipValue(val, self.bitSize, self.isSigned, partial(self.dimLinker.convert, fromDimensions= self.dimension, toDimension= startDimension))
+			if(len(self.command) > 1):
+				return [val >> 16, val & 0xffff]
+			return [val]
+		for i in range(len(val)):
+			val[i] = fpgaRegister._clipValue(val[i], 16, self.isSigned, partial(self.dimLinker.convert, fromDimensions= self.dimension, toDimension= startDimension))
+		#in the FPGA, the 32bit registers are a bit messy, so we have to invert the 16bit registers
+		val[::2], val[1::2] = val[1::2].copy(), val[::2].copy()
+		return val
+
 	
 	def fixedPointToFloat(self, intValue, toDimension = None):
 		#convert from a FPGA value to the corresponding value of the selected physical dimension
-		if(len(self.command) > 1):
-			intValue = (intValue[0] << 16) + intValue[1]
-		if isinstance(intValue, list):
-			intValue = intValue[0]
-		intValue &= ((1<<self.bitSize) - 1)
-		if (self.isSigned) and (intValue >= (1 << (self.bitSize - 1))):
-			intValue -= (1 << self.bitSize)
+		if(len(self.command) > 2):
+			intValue = np.array(intValue)
+			#in the FPGA, the 32bit registers are a bit messy, so we have to invert the 16bit registers
+			intValue[::2], intValue[1::2] = intValue[1::2].copy(), intValue[::2].copy()
+			bitSize = self.bitSize // len(intValue)
+			for i in range(len(intValue)):
+				intValue[i] &= ((1<<bitSize) - 1)
+				if (self.isSigned) and (intValue[i] >= (1 << (bitSize - 1))):
+					intValue[i] -= (1 << bitSize)
+		else:
+			if(len(self.command) > 1):
+				intValue = (intValue[0] << 16) + intValue[1]
+			if isinstance(intValue, list):
+				intValue = intValue[0]
+			intValue &= ((1<<self.bitSize) - 1)
+			if (self.isSigned) and (intValue >= (1 << (self.bitSize - 1))):
+				intValue -= (1 << self.bitSize)
 		if(toDimension is None):
-			toDimension = self.preferredConversionDimension
+				toDimension = self.preferredConversionDimension
 		return self.dimLinker.convert(intValue, self.dimension, toDimension)
 		
 class fpgaHandler:
@@ -193,7 +215,7 @@ class fpgaHandler:
 				print(f"setting {parameters[i]} to {values[i]} ({register.preferredConversionDimension}), fpga number: {[hex(pv) for pv in paramVals]}")
 			for j in range(len(register.command)-1,-1,-1):
 				commandList.append(b"CPAR"+register.command[j].to_bytes(1,'big')+b"\0"+\
-								   (paramVals[j]&0xffff).to_bytes(2,'big'))
+								   (int(paramVals[j])&0xffff).to_bytes(2,'big'))
 		self.sendCommand(commandList)
 			
 	def readBackParameter(self, *parameters):
@@ -488,16 +510,10 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addDimension("piezo_voltage", "V")
 	dimLink.addDimension("byte", "B", bitSize = 8, isSigned = False)
 	dimLink.addDimension("word", "B", bitSize = 32, isSigned = False)
-	dimLink.addDimension("qs_list0", bitSize = 32)
-	dimLink.addDimension("qs_list1", bitSize = 32)
-	dimLink.addDimension("edges_list0", bitSize = 32)
-	dimLink.addDimension("edges_list1", bitSize = 32)
-	dimLink.addDimension("ms_list0", bitSize = 32)
-	dimLink.addDimension("ms_list1", bitSize = 32)
+	dimLink.addDimension("edge_register", bitSize = 64)
 	dimLink.addDimension("FPGA_RampFloatValue", "[adimensional]")
-	dimLink.addDimension("q_register", "bit", bitSize = 8)
-	dimLink.addDimension("m_register", "bit", bitSize = 8)
-	dimLink.addDimension("edge_register", "bit", bitSize = 16)
+	dimLink.addDimension("q_register", "bit", bitSize = 64)
+	dimLink.addDimension("m_register", "bit", bitSize = 64)
 	...
 
 	def initializeDimensionLinker(self):
@@ -531,12 +547,10 @@ class bioTweezerController(fpgaHandler):
 			# "binFeedback_cyclesForActivation"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			"binFeedback_maxTimeOn_x0"		: fpgaRegister(self.dimLink, "FPGA_timeRegister", "time"),
 			"binFeedback_preAverageTime"	: fpgaRegister(self.dimLink, "FPGA_smallTimeRegister", "time"),
-			"offset_ms10"					: fpgaRegister(self.dimLink, "ms_list0", "ms_list0"),
-			"offset_ms32"					: fpgaRegister(self.dimLink, "ms_list1", "ms_list1"),
-			"offset_edgePoints10"			: fpgaRegister(self.dimLink, "edges_list0", "edges_list0"),
-			"offset_edgePoints32"			: fpgaRegister(self.dimLink, "edges_list1", "edges_list1"),
-			"offset_qs10"					: fpgaRegister(self.dimLink, "qs_list0", "qs_list0"),
-			"offset_qs32"					: fpgaRegister(self.dimLink, "qs_list1", "qs_list1"),
+			"offset_ms3210"					: fpgaRegister(self.dimLink, "m_register", "m_register"),
+		
+			"offset_edgePoints3210"			: fpgaRegister(self.dimLink, "edge_register", "edge_register"),
+			"offset_qs3210"					: fpgaRegister(self.dimLink, "q_register", "q_register"),
 			
 			#small parameters
 			"outWhenPiDisabled"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "generator_input"),
@@ -682,12 +696,9 @@ class bioTweezerController(fpgaHandler):
 			SUM_multiplierFor_div = ( self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 			SUM_offsetFor_z = (0, "FPGA_floatValue"),
 			SUM_offsetFor_div = (0, "FPGA_floatValue"),
-			offset_ms32 = (0, "ms_list1"),
-			offset_ms10 = (0, "ms_list0"),
-			offset_edgePoints10 = (0, "edges_list0"),
-			offset_edgePoints32 = (0, "edges_list1"),
-			offset_qs10 = (0, "qs_list0"),
-			offset_qs32 = (0, "qs_list1"),
+			offset_ms3210 = (np.array([0,0,0,0]), "m_register"),
+			offset_edgePoints3210 = (np.array([0,0,0,0]), "edge_register"),
+			offset_qs3210 = (np.array([0,0,0,0]), "q_register"),
 		)
 	# def getCalibrationValues(self, singleCalibrationTime = 0.3, usedLaserPowers = [(n, "generator_current") for n in np.linspace(50e-3, 200e-3,6)], useXYDIFF_offset = True, useSUM_offset = True):
 	# 	self.set_zOffset(singleCalibrationTime)
@@ -838,12 +849,9 @@ class bioTweezerController(fpgaHandler):
 			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 			SUM_offsetFor_z = (0, "FPGA_floatValue"),
 			SUM_offsetFor_div = (0, "FPGA_floatValue"),
-			offset_ms32 = (0, "ms_list1"),
-			offset_ms10 = (0, "ms_list0"),
-			offset_edgePoints10 = (0, "edges_list0"),
-			offset_edgePoints32 = (0, "edges_list1"),
-			offset_qs10 = (0, "qs_list0"),
-			offset_qs32 = (0, "qs_list1"),
+			offset_ms3210 = (np.array([0,0,0,0]), "m_register"),
+			offset_edgePoints3210 = (np.array([0,0,0,0]), "edge_register"),
+			offset_qs3210 = (np.array([0,0,0,0]), "q_register"),
 		)
 		for i, intensity in enumerate(usedLaserPowers):
 			self.EnableConstantOutput(intensity)
@@ -860,12 +868,9 @@ class bioTweezerController(fpgaHandler):
 		
 		
 		self.setParameters(
-			offset_edgePoints10 = (s, "FPGA_SUMfloatValue"),
-			offset_edgePoints32 = (s, "FPGA_SUMfloatValue"),
-			offset_qs10 = (q, "FPGA_floatValue"),
-			offset_qs32 = (q, "FPGA_floatValue"),
-			offset_ms10 = (m, "FPGA_RampFloatValue"),
-			offset_ms32 = (m, "FPGA_RampFloatValue"),
+			offset_edgePoints3210 = (s, "FPGA_SUMfloatValue"),
+			offset_qs3210 = (q, "FPGA_floatValue"),
+			offset_ms3210 = (m, "FPGA_RampFloatValue"),
 			SUM_multiplierFor_z = (1, "FPGA_floatValue"),
 			SUM_multiplierFor_div = (- self.SUM_multiplierForDIFF_SUM * self.ADC_xyAttenuation / self.ADC_sumAttenuation, "FPGA_floatValue"),
 		)
@@ -894,9 +899,6 @@ class bioTweezerController(fpgaHandler):
 		bioTweezerController.dimLink.addConnection("FPGA_floatValue", "q_register", dimensionLinker.gainFunctions(2**15))
 		bioTweezerController.dimLink.addConnection("FPGA_RampFloatValue", "m_register", dimensionLinker.gainFunctions(2**13))
 		bioTweezerController.dimLink.addConnection("FPGA_SUMfloatValue", "edge_register", dimensionLinker.gainFunctions(2**15))
-		bioTweezerController.dimLink.addWordToListConnection(["edges_list0", "edges_list1"], "edge_register", byteSize=16, byteCountForWord=2)
-		bioTweezerController.dimLink.addWordToListConnection(["qs_list0", "qs_list1"], "q_register", byteSize=16, byteCountForWord=2)
-		bioTweezerController.dimLink.addWordToListConnection(["ms_list0", "ms_list1"], "m_register", byteSize=16, byteCountForWord=2)	
 		bioTweezerController.dimLink.addMultiConnection(["FPGA_SUMfloatValue", "FPGA_RampFloatValue", "FPGA_floatValue"], dimensionLinker.monomialFunctions(["FPGA_SUMfloatValue", "FPGA_RampFloatValue"], ["FPGA_floatValue"]))
 		bioTweezerController.dimLink.checkForLoops()
 	
@@ -923,9 +925,6 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addConnection("FPGA_floatValue", "q_register", dimensionLinker.gainFunctions(2**15))
 	dimLink.addConnection("FPGA_RampFloatValue", "m_register", dimensionLinker.gainFunctions(2**13))
 	dimLink.addConnection("FPGA_SUMfloatValue", "edge_register", dimensionLinker.gainFunctions(2**15))
-	dimLink.addWordToListConnection(["edges_list0", "edges_list1"], "edge_register", byteSize=16, byteCountForWord=2)
-	dimLink.addWordToListConnection(["qs_list0", "qs_list1"], "q_register", byteSize=16, byteCountForWord=2)
-	dimLink.addWordToListConnection(["ms_list0", "ms_list1"], "m_register", byteSize=16, byteCountForWord=2)	
 	dimLink.addMultiConnection(["FPGA_SUMfloatValue", "FPGA_RampFloatValue", "FPGA_floatValue"], dimensionLinker.monomialFunctions(["FPGA_SUMfloatValue", "FPGA_RampFloatValue"], ["FPGA_floatValue"]))
 	# dimLink.plot()
 	dimLink.checkForLoops()
@@ -938,12 +937,9 @@ if __name__ == "__main__":
 	(s,q,m) = bioTweezerController.segmentedCoefficient(SUM, XDIFF, 4)
 
 	bt.setParameters(
-		offset_edgePoints10 = (s, "FPGA_SUMfloatValue"),
-		offset_edgePoints32 = (s, "FPGA_SUMfloatValue"),
-		offset_qs10 = (q, "FPGA_floatValue"),
-		offset_qs32 = (q, "FPGA_floatValue"),
-		offset_ms10 = (m, "FPGA_RampFloatValue"),
-		offset_ms32 = (m, "FPGA_RampFloatValue"),
+		offset_edgePoints3210 = (s, "FPGA_SUMfloatValue"),
+		offset_qs3210 = (q, "FPGA_floatValue"),
+		offset_ms3210 = (m, "FPGA_RampFloatValue"),
 		SUM_multiplierFor_z = (1, "FPGA_floatValue"),
 		SUM_multiplierFor_div = (- bt.SUM_multiplierForDIFF_SUM * bt.ADC_xyAttenuation / bt.ADC_sumAttenuation, "FPGA_floatValue"),
 		transmissionTime = (1e-3, "time"),

@@ -1876,12 +1876,19 @@ class NiFrame(Frame):
 		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
 		entry.current(readvalue)
 
-	def updateBioControllerParameterFromEntry(self, event):
+	def refreshListEntryFromFPGA(self, entry):
+		parent = entry.nametowidget(entry.winfo_parent())
+		entry.delete(0, END)
+		readvalue = self.bio_controller.readBackParameter((parent.internalName,parent.internalUnit))
+		formatted = "[" + " ".join([f"{x:.2e}" for x in readvalue]) + "]"
+		entry.insert(0, formatted)
+
+	def updateBioControllerParameterFromListEntry(self, event):
 		entry = event.widget
 		parent = entry.nametowidget(entry.winfo_parent())
 		print(parent.internalName , entry.get(),parent.internalUnit)
-		self.bio_controller.setParameters(**{parent.internalName : (float(entry.get()),parent.internalUnit)})
-		self.refreshEntryFromFPGA(entry)
+		self.bio_controller.setParameters(**{parent.internalName : (np.array([float(i) for i in entry.get().replace("[","").replace("]","").split(" ")]),parent.internalUnit)})
+		self.refreshListEntryFromFPGA(entry)
 
 	def updateBioControllerParameterFromCheckbox(self, parent):
 		self.bio_controller.setParameters(**{parent.internalName : parent.var.get()})
@@ -1891,6 +1898,13 @@ class NiFrame(Frame):
 		parent = entry.nametowidget(entry.winfo_parent())
 		print(parent.internalName , entry.current(),parent.internalUnit)
 		self.bio_controller.setParameters(**{parent.internalName : entry.current()})
+
+	def updateBioControllerParameterFromEntry(self, event):
+		entry = event.widget
+		parent = entry.nametowidget(entry.winfo_parent())
+		print(parent.internalName , entry.get(),parent.internalUnit)
+		self.bio_controller.setParameters(**{parent.internalName : (float(entry.get()),parent.internalUnit)})
+		self.refreshEntryFromFPGA(entry)
 
 	def calibrateBioController(self):
 		#depending on if we want to use all the offsets or not, do different calibrations
@@ -2036,6 +2050,32 @@ class NiFrame(Frame):
 				el.menu.current(int(val))
 				bindingFunction(fakeEvent)
 			el.set = setValue
+		elif valuesFromCsvFile["Parameter type"] == "list":			
+			if valuesFromCsvFile["Parameter measure unit"] != "none":
+				el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']} ({valuesFromCsvFile['Parameter measure unit']})")
+			else:
+				el.label = Label(el, text=f"{valuesFromCsvFile['Parameter name']}")
+			el.entry = Entry(el, textvariable=DoubleVar(value=valuesFromCsvFile["Parameter value"].replace(";",",")))
+			def getValue():
+				return [float(x) for x in el.entry.get().replace("[", "").replace("]", "").split(' ')]
+			el.get = getValue
+			if bindingFunction is None:
+				bindingFunction = self.updateBioControllerParameterFromListEntry#self.updateBioControllerParameterFromEntry
+			fakeEvent = SimpleNamespace(widget = el.entry, parent = el)
+			def setValue(val):
+				el.entry.delete(0, END)
+				el.entry.insert(0, f"{val}")
+				bindingFunction(fakeEvent)
+			el.set = setValue
+			el.entry.bind("<Return>", bindingFunction)
+			el.entry.bind("<KeyRelease>", lambda x: el.entry.config(bg="white" if x.keysym == 'Return' else "yellow"))
+			# entry.event_generate("<Return>")
+			bindingFunction(fakeEvent)
+			el.label.pack(side=LEFT)
+			el.entry.pack(side=LEFT)
+			if refreshFunction is None:
+				refreshFunction = self.refreshListEntryFromFPGA#self.refreshEntryFromFPGA
+			el.refreshValue = partial(refreshFunction, el.entry)
 		return el
 	
 	def updateHideValueFromCheckButton(self, hideList, index, var):
