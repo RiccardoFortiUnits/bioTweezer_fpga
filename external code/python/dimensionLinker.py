@@ -185,6 +185,16 @@ class dimensionLinker():
 	@staticmethod
 	def inverseFunctions():
 		return (lambda x : 1/x, lambda x : 1/x)
+	@staticmethod
+	def logarithmExponentFunctions(base = np.e, referenceVal = 1):
+		'''
+		the first value is the logarihm, the second is the exponential
+		val0 = log_base(val1/referenceVal), val1=referenceVal * base^val0'''
+		def from0to1(val):
+			return referenceVal * base**val
+		def from1to0(val):
+			return np.log(val/referenceVal) / np.log(base)
+		return (from0to1, from1to0)
 	
 	@staticmethod
 	def wordToByteArrayFunctions(byteCount = 4, byteSize = 8):

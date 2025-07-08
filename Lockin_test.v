@@ -202,6 +202,12 @@ wire binFeedback_lastActiveDuration_dataValid, binFeedback_lastReachedThreshold;
 wire [1:0] binFeedback_transmissionCfg;
 wire [18:0] binFeedback_preAverageTime;
 wire [2:0] usedInput;
+
+parameter maxLog2OfLongAverageCoefficient = 30;//WARNING! If you change it, modify the register indexes in smallRegisterStartIdxs accordingly
+wire [15:0] xDrift;
+wire [$clog2(maxLog2OfLongAverageCoefficient+1) -1:0] log2OfLongAverageCoefficient;
+wire use_xDrift;
+
 	/*How to add custom connections to the network module:
 	
 	reception: parameter setting
@@ -244,19 +250,19 @@ wire [2:0] usedInput;
 */
 parameter nOflargeRegisters = 14;
 
-parameter largeRegisterStartIdxs = {32'd399, 32'd367, 32'd335	  , 32'd303		, 32'd271, 32'd239, 32'd207 				  , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
+parameter largeRegisterStartIdxs = {32'd399, 32'd367, 32'd335	  , 32'd303	    , 32'd271, 32'd239, 32'd207 				    , 32'd188                 , 32'd160           , 32'd132     , 32'd106                  , 32'd80           , 32'd54           , 32'd28									, 32'd0};
 wire [largeRegisterStartIdxs[nOflargeRegisters*32+32 -1-:32] -1:0] largeRegisters;
-assign                             {qs32   , qs10 	, edgePoints32, edgePoints10, ms32   , ms10	  , binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
+assign                             {qs32   , qs10   , edgePoints32, edgePoints10, ms32   , ms10   , binFeedback_preAverageTime, binFeedback_maxTimeOn_x0, enableToggleCycles, z_multiplier, sumForDivision_multiplier, pi_ti_coefficient, pi_kp_coefficient, TimeBetweenTransmissions_fromNetwork} = largeRegisters;
 
 wire [nOflargeRegisters -1:0] largeRegisters_update_cmd;
 assign {/*all the others are not necessary*/ pi_ti_coefficient_update_cmd_125, pi_kp_coefficient_update_cmd_125, TimeBetweenTransmissions_updated} = largeRegisters_update_cmd;
 
 
-parameter nOfsmallRegisters = 18;
+parameter nOfsmallRegisters = 20;
 
-parameter smallRegisterStartIdxs = {32'hDF      , 32'hD7                     , 32'hD5        , 32'hC5        , 32'hB5         , 32'hB4                    , 32'hA4                    , 32'h94      , 32'h84   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
+parameter smallRegisterStartIdxs = {32'hE5                      , 32'hE0    , 32'hDF      , 32'hD7                     , 32'hD5        , 32'hC5        , 32'hB5         , 32'hB4                    , 32'hA4                    , 32'h94      , 32'h84   , 32'h81         , 32'h80  , 32'h70  , 32'h60  , 32'h50               , 32'h40     , 32'h30     , 32'h20     , 32'h10                 , 32'h0};
 wire [smallRegisterStartIdxs[nOfsmallRegisters*32+32 -1-:32] -1:0] smallRegisters;
-assign                             {squaresShift, binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
+assign                             {log2OfLongAverageCoefficient, use_xDrift, squaresShift, binFeedback_transmissionCfg, binFeedback_x0, binFeedback_x1, binFeedback_cfg, binFeedback_valueWhenIn_x0, binFeedback_valueWhenIn_x1, yDiff_offset, usedInput, useToggleEnable, y_offset, x_offset, z_offset, sumForDivision_offset, pi_limit_HI, pi_limit_LO, pi_setpoint, output_when_pi_disabled} = smallRegisters;
 
 wire [nOfsmallRegisters -1:0] smallRegisters_update_cmd;
 //assign {...} = smallRegisters_update_cmd;
@@ -442,7 +448,7 @@ tweezerController#(
 	.ySquare								(ySquare),
 	.zSquare								(zSquare),
 	.squaresShift							(squaresShift),
-	.x_offset								(x_offset),
+	.x_offset								(use_xDrift ? -xDrift : x_offset),
 	.y_offset								(y_offset),
 	.xDiff_offset							(xDiff_offset),
 	.yDiff_offset							(yDiff_offset),
@@ -489,7 +495,16 @@ segmentedFunction#(
 	.qs					(xOffset_qs),
 	.ms					(xOffset_ms)
 );
-
+superLongAndCompactIIR#(
+	.dataBitSize				(16),
+	.log2_smallerCoefficient	(maxLog2OfLongAverageCoefficient)
+)average_xDrift(
+	.clk		(ADC_outclock_50),
+	.reset		(reset_50),
+	.in			(x+xDrift),
+	.log2Coeff	(log2OfLongAverageCoefficient),
+	.out		(xDrift)
+);
 dacs_ad5541a dacs_ad5541a_0 (
 	.clock			(ADC_outclock_50),
 	.reset			(reset_DAC),

@@ -514,6 +514,8 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addDimension("FPGA_RampFloatValue", "[adimensional]")
 	dimLink.addDimension("q_register", "bit", bitSize = 64)
 	dimLink.addDimension("m_register", "bit", bitSize = 64)
+	dimLink.addDimension("driftCoefficentRegister", "[adimensional]", bitSize=5, isSigned = False)
+	dimLink.addDimension("logTime", "log(s)")
 	...
 
 	def initializeDimensionLinker(self):
@@ -572,6 +574,8 @@ class bioTweezerController(fpgaHandler):
 			"binFeedback_x0"				: fpgaRegister(self.dimLink, "FPGA_signalRegister", "bead_position"),
 			"binFeedback_transmissionCfg"   : fpgaRegister(self.dimLink, "FPGA_bf_transmissionCfg", "FPGA_bf_transmissionCfg"),
 			"squaresShift"					: fpgaRegister(self.dimLink, "FPGA_bitShift", "FPGA_bitShift"),
+			"use_xDrift"					: fpgaRegister(self.dimLink, "FPGA_bitRegister", "FPGA_bitRegister"),
+			"xDriftTiming"					: fpgaRegister(self.dimLink, "driftCoefficentRegister", "time"),
 		}
 		super(bioTweezerController, self).__init__(**kwargs)
 		self.reset()
@@ -921,6 +925,8 @@ class bioTweezerController(fpgaHandler):
 	dimLink.addConnection("piezo_voltage", "bead_position", dimensionLinker.gainFunctions(piezo_V_to_distance))
 	dimLink.addConnection("time", "FPGA_timeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
 	dimLink.addConnection("time", "FPGA_smallTimeRegister", dimensionLinker.gainFunctions(fpgaHandler.fpga_controller_clock))
+	dimLink.addConnection("logTime", "time", dimensionLinker.logarithmExponentFunctions(2, 1/fpgaHandler.fpga_controller_clock))
+	dimLink.addConnection("logTime", "driftCoefficentRegister", dimensionLinker.gainFunctions(1))
 	
 	dimLink.addConnection("FPGA_floatValue", "q_register", dimensionLinker.gainFunctions(2**15))
 	dimLink.addConnection("FPGA_RampFloatValue", "m_register", dimensionLinker.gainFunctions(2**13))

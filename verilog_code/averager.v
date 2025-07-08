@@ -53,7 +53,7 @@ reg [1:0] state = IDLE;
 reg [AVERAGING_POINTS_BITS-1:0] sum_counter;
 
 reg sumFinished;
-localparam clockCyclesForDivision = 3;
+localparam clockCyclesForDivision = 5;
 reg [clockCyclesForDivision -1:0] previous_sumFinished;
 
 integer i;
@@ -116,7 +116,7 @@ divider#(
 	.FRAC_BITS_A		(0),
 	.FRAC_BITS_B		(0),
 	.FRAC_BITS_OUT		(0),
-	.areSignalsSigned	(1)
+	.areSignalsSigned	(SIGNED)
 )sumDivider(
 	.clk				(clock),
 	.reset				(reset),
