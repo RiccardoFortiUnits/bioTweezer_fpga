@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 from tkinter import filedialog, ttk
 import matplotlib.lines
 import matplotlib.pyplot as plt
@@ -41,7 +42,6 @@ import ast
 import threading
 	
 from acquisition import acquisition
-
 class ProtocolNode:
 	def __init__(self:Self, wave_type:List[str], amp:List[float], freq:List[float], off:List[float], duration:float, rate:float, n_chans:int=2):
 		self.wave_type = wave_type
@@ -220,7 +220,7 @@ class NiFrame(Frame):
 
 		if self.bio_controller is not None:
 			pass
-		
+		self.warnOfUnsavedData = False
 		#self.jit_prepare_ai_data = njit(add_ai_read_data)
 
 	def init_ni_data(self:Self):
@@ -753,7 +753,8 @@ class NiFrame(Frame):
 		x = float(x)
 		v = x / 2.0
 		o = x * self.ao_conversion_factor
-		print(f'slider {sld_id}, value {o}')
+		#
+		# print(f'slider {sld_id}, value {o}')
 
 		self.ao_buffer[sld_id,:] = v
 		tb = np.zeros((2,1), dtype=np.float64)
@@ -889,7 +890,13 @@ class NiFrame(Frame):
 			if self.bio_controller:
 				self.bio_buffer, self.crossTimings = self.bio_controller.stopDataStream()
 			self.reset_tasks()
+
+			#if the return to the initial position of the sliders is desired
 			self.update_from_ao_sliders()
+
+			
+
+
 		
 		t3 = time.perf_counter()
 
@@ -928,6 +935,12 @@ class NiFrame(Frame):
 
 				self._ao_task.stop()
 
+				#if user wants to let the output where it is at this moment
+				#update sliders with current values from buffer
+				print(self.ao_buffer[0,-1] * 2.0)
+				self.ao_desired_values[0].set(self.ao_buffer[0,-1] * 2.0)
+				self.ao_desired_values[1].set(self.ao_buffer[1,-1] * 2.0)
+
 		if points_left > 0:
 			if self._ao_streams is not None:
 				if self.ao_chunk_size < points_left:
@@ -940,10 +953,11 @@ class NiFrame(Frame):
 					self.ao_written_samples += points_left 
 
 		else:
-			#self.reset_tasks()
-			#self._ao_task.stop()
-			#self.protocol_start_button_text_var.set('Start wave')
-			pass
+			#if user wants to let the output where it is at this moment
+			#update sliders with current values from buffer
+			print(self.ao_buffer[0,-1] * 2.0)
+			self.ao_desired_values[0].set(self.ao_buffer[0,-1] * 2.0)
+			self.ao_desired_values[1].set(self.ao_buffer[1,-1] * 2.0)
 		
 		
 		#print(f'ao left points {points_left}, num samples event {num_samples}')
@@ -959,7 +973,7 @@ class NiFrame(Frame):
 
 	def start_tasks(self:Self):
 		if self._ao_task is not None and self._ao_streams is not None:
-			self.ao_written_samples = int(self.ao_chunk_size)
+			self.ao_written_samples = int(self.ao_chunk_size*2)
 			self.ai_buffer_times = None
 			self.ai_line_handles = None
 			self.bio_line_handles = None
@@ -1028,6 +1042,8 @@ class NiFrame(Frame):
 		self._ai_task = self.create_ai_task('AITask')
 
 		self.ao_chunk_size = int(self.data_rate / 8.0)
+		if self.ao_chunk_size < 10:
+			self.ao_chunk_size = 10
 
 		self.add_ao_channels(self._ao_n_channels)
 		print(f'Current ao channels: {len(self._ao_task.ao_channels)}')
@@ -1116,9 +1132,9 @@ class NiFrame(Frame):
 					if qpd_norm == 1:
 						if i==2 or i == 3:
 							if qpd_offset == 1:
-								self.ai_line_handles[i].set_ydata((y[:,i]-xdiff_offset[i]) / (reference_signal-sum_offset) - x_offset[i])
-							else:
 								self.ai_line_handles[i].set_ydata(y[:,i] / reference_signal)
+							else:
+								self.ai_line_handles[i].set_ydata((y[:,i]-xdiff_offset[i]) / (reference_signal-sum_offset) - x_offset[i])
 						elif i == 1:
 							self.ai_line_handles[i].set_ydata(y[:,i] / sum_average)
 						else:
@@ -1151,6 +1167,13 @@ class NiFrame(Frame):
 
 	def start_button_cb(self:Self):	
 		if self.protocol_start_button_text_var.get() == 'Start wave':
+			
+			if self.warnOfUnsavedData:
+				res=messagebox.askquestion('Unsaved data', 'Do you want to discard the previous data and start a new acquisition?')
+				if res == 'yes' :
+					pass
+				else :
+					return
 			#self.stop_tasks()
 			#self.start_tasks()
 
@@ -1196,6 +1219,7 @@ class NiFrame(Frame):
 			self.reset_tasks()
 			self.protocol_start_button_text_var.set('Start wave')
 			self.update_from_ao_sliders()
+			self.warnOfUnsavedData = True
 
 
 	def plot_bio_buffer(self:Self):
@@ -1222,6 +1246,46 @@ class NiFrame(Frame):
 		return {'Time (s)' : self.ai_buffer_times / self.data_rate, 
 		   			**{f'AI{i+1}' : self.ai_buffer[i, :] for i in range(self._ai_n_channels)}}
 
+	def save_ai_buffer_to_binary(self, folder_name, file_name, ext='.dat'):
+		# save channels in column order
+		# first two int32 is a number of ai channels plus 1 for times (columns) and number of points (rows)
+
+		full_file_name = f'{folder_name}\\{file_name}{ext}'
+		with open(full_file_name, 'wb') as fid:
+			n_channels:np.int32 = self._ai_n_channels
+			pts:np.int32 = self.ai_buffer.shape[1]
+
+			header = np.array([n_channels, pts], dtype=np.int32)
+			header.tofile(fid)
+
+			t = self.ai_buffer_times / self.data_rate
+			t.tofile(fid)
+			for i in range(n_channels):
+				self.ai_buffer[i, :].tofile(fid)
+
+	def load_data_from_binary(self,folder_name, file_name, ext='.dat'):
+		full_file_name = f'{folder_name}\\{file_name}{ext}'
+
+		with open(full_file_name, 'rb') as fid:
+			header = np.fromfile(fid, dtype=np.int32, count=2)
+
+			n_channels = header[0]
+			pts = header[1]
+
+			if n_channels > 0 and pts > 0:
+				data = np.zeros((n_channels, pts), dtype=np.float64)
+				for i in range(n_channels):
+					data[i,:] = np.fromfile(fid, dtype=np.float64, count=pts)
+
+				print(data.shape)
+				#print(data)
+				return data
+			
+
+		return None
+
+
+
 	def bio_buffer_forAcquisition(self):
 		return self.bio_buffer
 
@@ -1232,6 +1296,7 @@ class NiFrame(Frame):
 		return self.crossTimings
 
 	def save_data_to_file_cb(self:Self):
+		self.warnOfUnsavedData = False
 		fname = self.wdg_wave_save_file_entry_var.get()
 		name, extension = fname.rsplit('.', 1)
 		confName = f"{name}_conf.{extension}"
@@ -1242,8 +1307,14 @@ class NiFrame(Frame):
 
 		#save data from ai
 		if hasattr(self, "ai_buffer_times") and self.ai_buffer_times is not None:
+
+			#test 
+			#self.load_data_from_binary(folder_name, name)
+
 			data = self.ai_buffer_forAcquisition()			
 			self._saveCsv(data, folder_name, fname)
+
+			self.save_ai_buffer_to_binary(folder_name, name)
 		
 		#save configuration file
 		if hasattr(self, "bio_configurationsToSave") and self.bio_configurationsToSave is not None:
@@ -1740,19 +1811,25 @@ class NiFrame(Frame):
 	def protocol_conditional_freeze_output(self:Self)->bool:
 		ans:bool = False
 		#print("Checking output freeze condition")
+		pts_in_10ms = int(self.data_rate / 100)
+		pts_to_average = min(pts_in_10ms, 10)
 
-		if self.ai_read_samples > 100:
+
+		if self.ai_read_samples > pts_to_average:
 			sum_channel = 1
-			start_sum_offset = np.mean(self.ai_buffer[sum_channel, :10])
-			last_val = np.mean(self.ai_buffer[sum_channel, -10:])
+			
+			start_sum_offset = np.mean(self.ai_buffer[sum_channel, :pts_to_average])
+			last_val = np.mean(self.ai_buffer[sum_channel, -pts_to_average:])
 			last_second = self.data_rate
 			if self.ai_buffer.shape[1] > last_second:
-				last_second_val = np.mean(self.ai_buffer[sum_channel, -last_second:-last_second+10])
+				last_second_val = np.mean(self.ai_buffer[sum_channel, -last_second:-last_second+pts_to_average])
+				reference_val = np.mean(self.ai_buffer[sum_channel, -last_second:])
 			else:
 				last_second_val = start_sum_offset
+				reference_val = last_second_val
 
-			print(f"Current value {last_val}, last_second_val {last_second_val}")
-			if abs(last_val - last_second_val) > 1.0:
+			#print(f"Current value {last_val}, last_second_val {last_second_val}, reference_val{reference_val}")
+			if abs(last_val - last_second_val) > .15 * reference_val:
 				ans = True
 
 		return ans

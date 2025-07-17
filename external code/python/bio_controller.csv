@@ -10,7 +10,7 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 8,Bio Controller,Offset x,x_offset,float,0,none,FPGA_floatValue,general
 9,Bio Controller,Offset y,y_offset,float,0,none,FPGA_floatValue,general
 9,Bio Controller,use_xDrift,use_xDrift,bool,0,none,FPGA_bitRegister,general
-9,Bio Controller,xDriftTiming,xDriftTiming,float,1e-3,s,time,general
+9,Bio Controller,xDriftTiming,xDriftTiming,float,1,s,time,general
 9,Bio Controller,segment_sumVal,offset_edgePoints3210,list,[0 0 0 0],volt,QPD_output,general
 9,Bio Controller,segment_xdiffVal,offset_qs3210,list,[0 0 0 0],none,FPGA_floatValue,general
 9,Bio Controller,segment_xdiff/sum,offset_ms3210,list,[0 0 0 0],volt^-1,FPGA_RampFloatValue,general
@@ -18,8 +18,8 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 10,Bio Controller,Setpoint,setpoint,float,0,none,FPGA_floatValue,PI
 11,Bio Controller,Proportional control coefficient,kp,float,-1,none,FPGA_floatValue,PI
 12,Bio Controller,Integral control coefficient,ki,float,0,none,FPGA_floatValue,PI
-13,Bio Controller,Ouput low limit,limitLow,float,150e-3,ampere,generator_current,PI
-14,Bio Controller,Output high limit,limitHigh,float,350e-3,ampere,generator_current,PI
+13,Bio Controller,Ouput low limit,limitLow,float,50e-3,ampere,generator_current,PI
+14,Bio Controller,Output high limit,limitHigh,float,250e-3,ampere,generator_current,PI
 15,Bio Controller,Gain Sum,SUM_multiplierFor_div,float,0,none,FPGA_floatValue,general
 16,Bio Controller,Gain z,SUM_multiplierFor_z,float,0,none,FPGA_floatValue,general
 17,Bio Controller,x0,binFeedback_x0,float,0.01,none,FPGA_floatValue,wallFeedback
@@ -31,8 +31,8 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 23,Bio Controller,pre-average time,binFeedback_preAverageTime,float,1e-4,s,time,wallFeedback
 24,Bio Controller,transmission config,binFeedback_transmissionCfg,option,3,[x0 to x1;x1 to x0;any transition;every cross],FPGA_bf_transmissionCfg,wallFeedback
 25,Bio Controller Calibration,calibrate on recording start,calibrateOnRecordingStart,bool,1,none,\none,calibration
-25,Bio Controller Calibration,base current,baseCurrent,float,150e-3,ampere,\none,calibration
-26,Bio Controller Calibration,end current,EndCurrent,float,350e-3,ampere,\none,calibration
+25,Bio Controller Calibration,base current,baseCurrent,float,75e-3,ampere,\none,calibration
+26,Bio Controller Calibration,end current,EndCurrent,float,200e-3,ampere,\none,calibration
 27,Bio Controller Calibration,n of samples,nOfSamples,int,5,none,\none,calibration
 28,Bio Controller Calibration,sample duration,sampleTime,float,2,s,\none,calibration
 29,Bio Controller Calibration,enable offset on XDIFF,enableXdiff,bool,0,none,\none,calibration
@@ -41,8 +41,8 @@ Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parame
 32,Signal Names,SUM,ai 1, visible, 1, /,/,/
 33,Signal Names,XDIFF,ai 2, visible, 1, /,/,/
 34,Signal Names,YDIFF,ai 3, visible, 0, /,/,/
-35,Signal Names,feedback signal,ai 4, visible, 1, /,/,/
-35,Signal Names,piezo 1,ai 5, visible, 0, /,/,/
+35,Signal Names,piezo 1,ai 4, visible, 1, /,/,/
+35,Signal Names,feedback signal,ai 5, visible, 0, /,/,/
 36,Signal Names,current signal,ai 6, visible, 0, /,/,/
 37,Signal Names,x,bio 0, visible, 1, /,/,/
 38,Signal Names,xdiff,bio 1, visible, 0, /,/,/

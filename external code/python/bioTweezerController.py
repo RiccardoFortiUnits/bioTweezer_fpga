@@ -806,8 +806,8 @@ class bioTweezerController(fpgaHandler):
 		self.mode = 2
 
 	def updateGeneratorBaseCurrent(self, newCurrent_Ampere):
-		self.currentGenerator_baseCurrent = float(newCurrent_Ampere)
-		self.updateDimensionLinker()
+		bioTweezerController.currentGenerator_baseCurrent = float(newCurrent_Ampere)
+		bioTweezerController.updateDimensionLinker()
 	
 	@staticmethod
 	def segmentedCoefficient(x,y, finalLength = None):
