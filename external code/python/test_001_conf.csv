@@ -1,0 +1,37 @@
+Bio Controller version 1.0, acquisition time 01/07/2025 09:28:22
+Parameter id,Device,Parameter name,Parameter internal name,Parameter type,Parameter value,Parameter measure unit,Parameter internal unit,UI position
+0,Bio Controller,transmission time,transmissionTime,float,1.00e-02,s,time,general
+1,Current Generator,Base current,currentGenerator_baseCurrent,float,150e-3,ampere,generator_current,general
+2,Bio Controller,Base level,outWhenPiDisabled,float,1.50e-01,ampere,generator_current,general
+3,Bio Controller,used input,usedInput,option,0,[x; xdiff; |x|; √x^2+y^2; √x^2+y^2+z^2],FPGA_usedInputCfg,general
+5,Bio Controller,Offset YDiff,yDiff_offset,float,-0.00e+00,volt,QPD_output,general
+6,Bio Controller,Offset Sum,SUM_offsetFor_div,float,-0.00e+00,volt,QPD_output,general
+7,Bio Controller,Offset z,SUM_offsetFor_z,float,-0.00e+00,volt,QPD_output,general
+8,Bio Controller,Offset x,x_offset,float,0.00e+00,none,FPGA_floatValue,general
+9,Bio Controller,Offset y,y_offset,float,0.00e+00,none,FPGA_floatValue,general
+9,Bio Controller,segment_sumVal,offset_edgePoints3210,list,[-0.00e+00 -0.00e+00 -0.00e+00 -0.00e+00],volt,QPD_output,general
+9,Bio Controller,segment_xdiffVal,offset_qs3210,list,[0.00e+00 0.00e+00 0.00e+00 0.00e+00],none,FPGA_floatValue,general
+9,Bio Controller,segment_xdiff/sum,offset_ms3210,list,[0.00e+00 0.00e+00 0.00e+00 0.00e+00],volt^-1,FPGA_RampFloatValue,general
+9,Bio Controller,Squares shift,squaresShift,int,8,none,FPGA_bitShift,general
+10,Bio Controller,Setpoint,setpoint,float,0.00e+00,none,FPGA_floatValue,PI
+11,Bio Controller,Proportional control coefficient,kp,float,-1.00e+00,none,FPGA_floatValue,PI
+12,Bio Controller,Integral control coefficient,ki,float,0.00e+00,none,FPGA_floatValue,PI
+13,Bio Controller,Ouput low limit,limitLow,float,1.50e-01,ampere,generator_current,PI
+14,Bio Controller,Output high limit,limitHigh,float,3.50e-01,ampere,generator_current,PI
+15,Bio Controller,Gain Sum,SUM_multiplierFor_div,float,0.00e+00,none,FPGA_floatValue,general
+16,Bio Controller,Gain z,SUM_multiplierFor_z,float,0.00e+00,none,FPGA_floatValue,general
+17,Bio Controller,x0,binFeedback_x0,float,9.98e-03,none,FPGA_floatValue,wallFeedback
+18,Bio Controller,x1,binFeedback_x1,float,0.00e+00,none,FPGA_floatValue,wallFeedback
+19,Bio Controller,output after x0,binFeedback_valueWhenIn_x0,float,1.50e-01,ampere,generator_current,wallFeedback
+20,Bio Controller,output after x1,binFeedback_valueWhenIn_x1,float,1.50e-01,ampere,generator_current,wallFeedback
+21,Bio Controller,reset config,binFeedback_cfg,option,1,[use timer; use x1],FPGA_bf_cfg,wallFeedback
+22,Bio Controller,max active time,binFeedback_maxTimeOn_x0,float,0.00e+00,s,time,wallFeedback
+23,Bio Controller,pre-average time,binFeedback_preAverageTime,float,1.00e-04,s,time,wallFeedback
+24,Bio Controller,transmission config,binFeedback_transmissionCfg,option,3,[x0 to x1;x1 to x0;any transition;every cross],FPGA_bf_transmissionCfg,wallFeedback
+25,Bio Controller Calibration,calibrate on recording start,calibrateOnRecordingStart,bool,1,none,\none,calibration
+25,Bio Controller Calibration,base current,baseCurrent,float,150e-3,ampere,\none,calibration
+26,Bio Controller Calibration,end current,EndCurrent,float,350e-3,ampere,\none,calibration
+27,Bio Controller Calibration,n of samples,nOfSamples,int,5,none,\none,calibration
+28,Bio Controller Calibration,sample duration,sampleTime,float,2,s,\none,calibration
+29,Bio Controller Calibration,enable offset on XDIFF,enableXdiff,bool,0,none,\none,calibration
+30,Bio Controller Calibration,enable offset on SUM,enableSum,bool,0,none,\none,calibration

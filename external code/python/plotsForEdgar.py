@@ -137,8 +137,9 @@ def FPT_CDF_fromData(x, t, setpoint0, setpoint1 = 0, bins = 100):
 # 	plt.show()
 
 
-files = ["d:/lastline/bioTweezers/20250709/set_02_cell_bead_002", "d:/lastline/bioTweezers/20250709/set_02_free_bead_005"]
-
+# files = ["d:/lastline/bioTweezers/20250709/set_02_cell_bead_002", "d:/lastline/bioTweezers/20250709/set_02_free_bead_005"]
+#smaller files
+files = ["d:/lastline/bioTweezers/20250716/set02_cell_bead_feedback_003", "d:/lastline/bioTweezers/20250805/set04_free_bead_feedback_saturated_008"]
 for file, cellFree in zip(files, ["cell", "free"]):
 	acq = acquisition(file)
 	t, x = acq.nidaq_t_x
