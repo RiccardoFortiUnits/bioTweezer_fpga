@@ -137,67 +137,90 @@ def FPT_CDF_fromData(x, t, setpoint0, setpoint1 = 0, bins = 100):
 # 	plt.show()
 
 
-# files = ["d:/lastline/bioTweezers/20250709/set_02_cell_bead_002", "d:/lastline/bioTweezers/20250709/set_02_free_bead_005"]
+files = ["d:/lastline/bioTweezers/20250709/set_02_free_bead_005", "d:/lastline/bioTweezers/20250709/set_02_cell_bead_002"]
 #smaller files
-files = ["d:/lastline/bioTweezers/20250716/set02_cell_bead_feedback_003", "d:/lastline/bioTweezers/20250805/set04_free_bead_feedback_saturated_008"]
-for file, cellFree in zip(files, ["cell", "free"]):
-	acq = acquisition(file)
-	t, x = acq.nidaq_t_x
+# files = ["d:/lastline/bioTweezers/20250716/set02_cell_bead_feedback_003", "d:/lastline/bioTweezers/20250805/set04_free_bead_feedback_saturated_008"]
 
-	windowSize = int(0.5 / 1e-3)
-	x -= np.convolve(x, np.ones(windowSize)/windowSize, mode = "same")
-	x = x * 1e-6 / 1e-9 #x * Sx, in nm
-
-	counts, vals = np.histogram(x,bins=500)
-	counts = counts / len(x) / (vals[-1] - vals[0])
-	plt.plot(vals[:-1], counts, label = cellFree)
-
-	# Fit a Gaussian to the histogram
-
-	# def gaussian(x, a, mu, sigma):
-	# 	return a * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
-
-	# # Use the bin centers for fitting
-	# bin_centers = (vals[:-1] + vals[1:]) / 2
-	# p0 = [counts.max(), bin_centers[np.argmax(counts)], np.std(x)]
-	# params, _ = curve_fit(gaussian, bin_centers, counts, p0=p0)
-
-	# Plot the fitted Gaussian
-	# plt.plot(bin_centers, gaussian(bin_centers, *params), label=f'Gaussian fit ({cellFree})', linestyle='--', color=plt.gca().lines[-1].get_color())
-plt.legend(fontsize=12)
-plt.gcf().set_size_inches(12/2.54, 8/2.54)  # 12cm x 8cm in inches
-plt.xlabel("Position (nm)", fontsize=12, fontname="Arial")
-plt.ylabel("Probability Distribution Function", fontsize=12, fontname="Arial")
-plt.xticks(fontsize=12, fontname="Arial", )
-# Set y-ticks at desired positions (0, 2, 4, 6, 8, 10) * 1e-4
-yticks = np.arange(0, 0.0011, 0.0002)
-plt.yticks(fontsize=12, fontname="Arial")
-# plt.gcf().subplots_adjust(left=0.18)  # Increase left margin to prevent y-label clipping
-# plt.gcf().subplots_adjust(bottom=0.18)  # Increase bottom margin to prevent x-label clipping
-plt.gca().set_yticklabels(["$"+"{:.1e}".format(tick._y).replace("e", "\\times 10^{")+"}$" for tick in plt.gca().yaxis.get_ticklabels()])
-plt.ylabel("Probability Distribution Function", fontsize=12, fontname="Arial")
-plt.xlim(left=-30,right=20)
-plt.tight_layout()
-plt.savefig("d:\\lastline\\bioTweezers\\20250709\\position distribution.png", dpi=600)
-plt.show()
-
-setpoints = [5, 10, 15]
-
-for file, cellFree in zip(files, ["cell", "free"]):
-	acq = acquisition(file)
-	t, x = acq.nidaq_t_x
-	x = x * 1e-6 / 1e-9 #x * Sx, in nm
-	t = t * 1e3#in ms
-
-	windowSize = int(0.5 / 1e-3)
-	x -= np.convolve(x, np.ones(windowSize)/windowSize, mode = "same")
-
-	fpt, cdf = FPT_CDF_fromData(x, t, setpoints, 0, 1000)
-	pdf = np.array([np.gradient(cdf[:,i], fpt[:,i]) for i in range(len(cdf[0]))]).T
-	plt.semilogx(fpt, pdf, label = [f"{i}nm" for i in setpoints])
+def plotForPositionDistribution(fileName):
 	plt.legend(fontsize=12)
 	plt.gcf().set_size_inches(12/2.54, 8/2.54)  # 12cm x 8cm in inches
-	plt.xlabel(f"{cellFree} First Passage Time (ms)", fontsize=12, fontname="Arial")
+	plt.xlabel("Position (nm)", fontsize=12, fontname="Arial")
+	plt.ylabel("Probability Distribution Function", fontsize=12, fontname="Arial")
+	plt.xticks(fontsize=12, fontname="Arial", )
+	# Set y-ticks at desired positions (0, 2, 4, 6, 8, 10) * 1e-4
+	plt.yticks(fontsize=12, fontname="Arial")
+	# plt.gcf().subplots_adjust(left=0.18)  # Increase left margin to prevent y-label clipping
+	# plt.gcf().subplots_adjust(bottom=0.18)  # Increase bottom margin to prevent x-label clipping
+	plt.gca().set_yticklabels(["$"+"{:.1e}".format(tick._y).replace("e", "\\times 10^{")+"}$" for tick in plt.gca().yaxis.get_ticklabels()])
+	plt.ylabel("Probability Distribution Function", fontsize=12, fontname="Arial")
+	plt.xlim(left=-20,right=20)
+	plt.tight_layout()
+	plt.savefig(fileName, dpi=600)
+	plt.yscale("log")
+	plt.tight_layout()
+	plt.savefig(fileName.replace(".png", "_log.png"), dpi=600)
+	plt.show()
+
+for removeDrift in ["", "_drift removed"]:
+	for file, cellFree in zip(files, ["free", "cell"]):
+		acq = acquisition(file)
+		t, x = acq.nidaq_t_x
+
+		windowSize = int(0.5 / 1e-3)
+		if removeDrift == "":
+			x -= np.mean(x)
+		else:
+			x -= np.convolve(x, np.ones(windowSize)/windowSize, mode = "same")
+		x = x * 1e-6 / 1e-9 #x * Sx, in nm
+
+		counts, vals = np.histogram(x,bins=500)
+		counts = counts / len(x) / (vals[-1] - vals[0])
+		if cellFree=="cell":
+			stupidOrangeColor = "#ff7f0e"
+			plt.plot(vals[:-1], counts, color=stupidOrangeColor, label=cellFree)
+		else:
+			plt.plot(vals[:-1], counts, label = cellFree)
+		plotForPositionDistribution(f"d:\\lastline\\bioTweezers\\20250709\\position distribution_{cellFree}{removeDrift}.png")
+for removeDrift in ["", "_drift removed"]:
+	for file, cellFree in zip(files, ["free", "cell"]):
+		acq = acquisition(file)
+		t, x = acq.nidaq_t_x
+
+		windowSize = int(0.5 / 1e-3)
+		if removeDrift == "":
+			x -= np.mean(x)
+		else:
+			x -= np.convolve(x, np.ones(windowSize)/windowSize, mode = "same")
+		x = x * 1e-6 / 1e-9 #x * Sx, in nm
+
+		counts, vals = np.histogram(x,bins=500)
+		counts = counts / len(x) / (vals[-1] - vals[0])
+		if cellFree=="cell":
+			stupidOrangeColor = "#ff7f0e"
+			plt.plot(vals[:-1], counts, color=stupidOrangeColor, label=cellFree)
+		else:
+			plt.plot(vals[:-1], counts, label = cellFree)
+	plotForPositionDistribution(f"d:\\lastline\\bioTweezers\\20250709\\position distribution{removeDrift}.png")
+
+setpoints = [10, 15]
+for setpoint in setpoints:
+	for file, cellFree in zip(files, ["free", "cell"]):
+		acq = acquisition(file)
+		t, x = acq.nidaq_t_x
+		x = x * 1e-6 / 1e-9 #x * Sx, in nm
+		t = t * 1e3#in ms
+
+		
+		windowSize = int(0.5 / 1e-3)
+		x -= np.convolve(x, np.ones(windowSize)/windowSize, mode = "same")
+
+		fpt, cdf = FPT_CDF_fromData(x, t, setpoint, 0, 1000)
+		pdf = np.gradient(cdf, fpt)
+		# pdf = np.array([np.gradient(cdf[:,i], fpt[:,i]) for i in range(len(cdf[0]))]).T
+		plt.semilogx(fpt, pdf, label = cellFree)#[f"{i}nm" for i in setpoints])
+	plt.legend(fontsize=12)
+	plt.gcf().set_size_inches(12/2.54, 8/2.54)  # 12cm x 8cm in inches
+	plt.xlabel(f"First Passage Time (ms)", fontsize=12, fontname="Arial")
 	plt.xticks(fontsize=12, fontname="Arial")
 	# plt.gca().set_yticks([])
 	plt.ylabel("Probability Distribution Function", fontsize=12, fontname="Arial")
@@ -206,7 +229,9 @@ for file, cellFree in zip(files, ["cell", "free"]):
 	plt.tight_layout()
 	plt.savefig("histogram_plot.png", dpi=600)
 	plt.tight_layout()
-	plt.savefig(f"d:\\lastline\\bioTweezers\\20250709\\fpt {cellFree}.png", dpi=600)
+	plt.xlim(.1,20)
+	plt.ylim(-0.007, .32)
+	plt.savefig(f"d:\\lastline\\bioTweezers\\20250709\\fpt_setpoint{setpoint}.png", dpi=600)
 	plt.show()
 
 
