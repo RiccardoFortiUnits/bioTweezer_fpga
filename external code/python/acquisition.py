@@ -162,7 +162,32 @@ class acquisition():
 			x = np.array(d["x"])
 			return t, x
 		return self._genericPropertyFromFileOrFunctionOrValue("bio_t_x", get_t_x)
+	@property
+	def bio_variance_x(self):
+		d=self.bio_buffer
+		x = np.array(d["x"])
+		x2 = np.array(d["x^2"])
+		squareShift = int(self.configurations["squaresShift"]["Parameter value"])
+		x2 /= (2**squareShift)
+		return np.mean(x2) - np.mean(x)**2
+		
+	@property
+	def fptSetpointToEnergyFraction(self):
+		'''knowing that the thermal energy of the particle is E_T = k_b T / 2, 
+		and that the elastic energy is E_e = K * x^2 / 2, we can write
+		K = k_b T / σ^2_x, thus
+		E_e = k_b T / 2 * x^2 / σ^2_x = E_T * x^2 / σ^2_x
+		So, if the particle is at a certain distance from the center, we 
+		can correlate its elastic energy to its intrinsic thermal energy.
 
+		Also, this correlation is valid even if we don't have the correct 
+		scale of x. Assuming to have access to the signal v, where x = a*v 
+		(but we don't know the value of a), we have that 
+		σ^2_x = E[x^2] - E[x]^2 = E[a^2v^2] - E[av]^2 = a^2(E[v^2]-E[v]^2) = a^2 σ^2_v
+		and x^2 = a^2v^2, thus x^2 / σ^2_x = a^2 v^2 / a^2σ^2_v = v^2 / σ^2_v
+		'''
+		setpoint = float(self.configurations["binFeedback_x0"]["Parameter value"])
+		return setpoint**2 / self.bio_variance_x
 	@staticmethod
 	def _getAcquisitions(fileName, returnType = dict):
 		pf = pd.read_csv(fileName, sep='\t', lineterminator='\n')
@@ -203,7 +228,7 @@ class acquisition():
 		elif returnType == np.ndarray:
 			return np.column_stack((t.to_numpy(dtype=np.float64), pf["reachedThreshold"].to_numpy(dtype = np.int8)))
 		
-	def getBioControllerRawFPT(self, bothTransitions = True, onlyLongTransitions = False):
+	def getBioControllerRawFPT(self, bothTransitions = True, onlyLongTransitions = False, sortValues = True):
 		'''
 		returns all the sorted transition timings from x0 to x1 and (if bothTransitions is True) from x1 to x0
 
@@ -230,9 +255,11 @@ class acquisition():
 			if not onlyLongTransitions:
 				t[transitionIndexes]=0
 				allTimes = longestTimes[np.searchsorted(transitionIndexes, np.arange(len(t)-1), side='right')] - t[1:]
-				xx[i] = np.sort(allTimes[reachedThresholds[:-1] == i])
+				xx[i] = allTimes[reachedThresholds[:-1] == i]
 			else:
-				xx[i] = np.sort(longestTimes[reachedThresholds[transitionIndexes] == 1-i])
+				xx[i] = longestTimes[reachedThresholds[transitionIndexes] == 1-i]
+			if sortValues:
+				xx[i] = np.sort(xx[i])
 		# x0x1 = np.sort(allTimes[reachedThresholds[:-1] == 1])
 		if bothTransitions:
 			x0x1,x1x0 = xx[0], xx[1]
@@ -570,7 +597,7 @@ class acquisition():
 	# def getFiringTimings
 	
 	@staticmethod
-	def FPT_CDF_fromData(x, t, setpoint0, setpoint1 = 0, bins = 100, removeHighPercentage = 0.0001, onlyLongTransitions = False):
+	def FPT_CDF_fromData(x, t, setpoint0, setpoint1 = 0, bins = 100, onlyLongTransitions = False):
 		'''
 		returns the probability distribution function (PDF) of the first passage time (FPT) of a signal x, with the corresponding times.
 		
@@ -578,7 +605,9 @@ class acquisition():
 
 		t: corresponding timings of the signal
 
-		setpoint0: inital setpoint. The first passage times will start when x crosses this value
+		setpoint0: inital setpoint. The first passage times will start when x crosses this value. This variable 
+			can be a vector of values. In that case, the FPT will be calculated for each specified setpoint, 
+			returning a grid of values
 
 		setpoint1: final setpoint. The first passage times will end when x crosses this value
 		
@@ -589,14 +618,18 @@ class acquisition():
 		only the timing between the first setpoint0 crossing and the setpoint1 crossing will be returned
 
 		Returns:
-			(fpt, pdf): the first passage time and the corresponding probability density function (PDF) (Probability(first passage time == fpt[i]) = pdf[i])
+			if setpoint1 is a single values
+				(fpt, pdf): the first passage time and the corresponding probability density function (PDF) (pdf[i] = Probability(first passage time(setpoint1,setpoint0) == fpt[i]))
+			if setpoint1 is a list of values
+				(fptGrid, setpoint1Grid, pdf): The grid values for the first passage time and setpoint, and the corresponding PDF (pdf[i, j] = Probability(first passage time(j,setpoint0) == fpt[i]))
 		'''
 		#stupid floats, differences that should be the same are not the same, let's just work with integers first and then rescale them at the end
 		dt = t[1]-t[0]
 		t = np.round(t/dt).astype(int)
 
 		x0, x1 = setpoint0, setpoint1
-		if not isinstance(x0, (list, np.ndarray)):
+		deList = not isinstance(x0, (list, np.ndarray))
+		if deList:
 			x0 = np.array([x0])
 		nOfSetpoints = x0.size
 		x0 = np.array(x0)[None,:]
@@ -664,6 +697,8 @@ class acquisition():
 			# count = np.cumsum(count)
 			# count = count / count[-1] * len(fpt[i]) / fpt[i][-1]
 			# pdf[i] = acquisition.derivativeForCDF(np.concatenate((count, [count[-1], count[-1]])))
+		if deList:
+			return fpt[0], pdf[0]
 		startPoints = np.repeat(x0[0,:,None], bins, axis=1)
 		return fpt, startPoints, pdf
 
@@ -794,6 +829,111 @@ class acquisition():
 		# 	'FPT_setpoint1' : float(self.configurations["binFeedback_x1"]["Parameter value"]),
 		# 	'driftCompensationTime' :float(self.configurations["xDriftTiming"]["Parameter value"]),
 		# }
+	@staticmethod
+	def normalizedDifference(a,b):
+		if np.abs(a) < np.abs(b):
+			return acquisition.normalizedDifference(b, a)
+		return np.abs((a-b)/a)
+	def getPiezoRampValues(self):
+		'''returns some info on the initial piezo movements, in particular
+			- direction of the movement, as an angle (in degrees)
+			- speed of the movement, in V/s
+			- duration of the ramp
+		
+		the piezo signals are assumed to be ramps with constant steepness, followed by a 
+		constant value, and the constant value "starts" at the same time on the 2 piezo signals
+		'''
+		piezoX = self.ai_buffer["AI1"]
+		piezoY = self.ai_buffer["AI5"]
+		t = self.ai_buffer["Time (s)"]
+
+		piezoX *= -1#let's orient the axes as they are in the camera acquisitions (so, x is flipped to respect to the piezo signal direction)
+
+		d = np.zeros(2)
+		times = np.array([-1,-1], dtype=float)
+		error = .05
+		for i, signal in enumerate([piezoX, piezoY]):
+			initialValue = signal[0]
+			finalValue = signal[-1]
+			if acquisition.normalizedDifference(initialValue, finalValue) < error:
+				continue
+			if initialValue > finalValue:
+				indices_above = np.where(signal < (initialValue + finalValue) / 2)[0]
+			else:
+				indices_above = np.where(signal > (initialValue + finalValue) / 2)[0]
+			halfIndex = indices_above[0]
+			halfTime = t[halfIndex] - t[0]
+			times[i] = halfTime * 2
+			d[i] = (finalValue - initialValue) / times[i]
+		time = np.where(times != -1)[0]
+		
+		if(len(time) == 0):
+			return 0, 0, 0
+		
+		time = times[time[0]]
+		angle = np.rad2deg(np.arctan2(d[1], d[0]))
+		speed = np.linalg.norm(d)
+
+		return angle, speed, time
+
+	def getBioFiringTimings(self):
+		crosses = self.getBioControllerRawFPT(bothTransitions=True, onlyLongTransitions=True, sortValues=False)
+		reachedThresholds = self.crossTimings['reachedThreshold']
+		crossingIndexes = 1+np.where(reachedThresholds[1:]!=reachedThresholds[:-1])[0]
+		timings = self.crossTimings["timing"][crossingIndexes]
+		return self.crossTimings["startTimes"][0] - self.crossTimings["timing"][0] + np.cumsum(timings)
+
+	def showjumpOscillation(self):
+		laserIntensity = self.ai_buffer["AI6"]
+		density, bins = np.histogram(laserIntensity, 100, density=True)
+		peakIndexes = 1 + np.where(np.logical_and(density[1:-1] > density[:-2], density[1:-1] > density[2:]))[0]
+		peak_densities = density[peakIndexes]
+		top2_indices = np.argsort(peak_densities)[-2:]
+		peakIndexes = peakIndexes[top2_indices]
+		t = np.array(self.ai_buffer["Time (s)"])
+		sum = np.array(self.ai_buffer["AI2"])
+		xdiff = np.array(self.ai_buffer["AI3"])
+		x = xdiff/sum
+		halfValue = np.mean(bins[peakIndexes])
+		if laserIntensity[0] < halfValue:
+			isValueActive = lambda x: x > halfValue
+		else:
+			isValueActive = lambda x: x < halfValue
+		isActive = isValueActive(laserIntensity)
+		indexOffset = 1
+		leftDistance = 5
+		rightDistance = 5
+		
+		activatingIndexes = np.where(np.logical_and(np.logical_not(isActive[:-1]), isActive[1:]))[0] + indexOffset
+		deactivatingIndexes = np.where(np.logical_and(isActive[:-1], np.logical_not(isActive[1:])))[0] + indexOffset
+		xActivatingError = x[activatingIndexes - leftDistance] - x[activatingIndexes + 1 + rightDistance]
+		xDeactivatingError = x[deactivatingIndexes - leftDistance] - x[deactivatingIndexes + 1 + rightDistance]
+		switchingIndex = np.where(np.logical_xor(isActive[:-1], isActive[1:]))[0] + indexOffset
+		switchingErrors = np.concatenate(((np.stack((xActivatingError[:len(xDeactivatingError),None], -xDeactivatingError[:, None]), axis=1)).flatten(), xActivatingError[len(xDeactivatingError):]))
+
+		# for i in [0,1]:
+		# 	if i == 0:
+		# 		interpolatedTimes = np.linspace(t[activatingIndexes[0]], t[activatingIndexes[-1]], len(xActivatingError))
+		# 		interpolatedSwitchingErrors = np.interp(interpolatedTimes, t[activatingIndexes], xActivatingError)
+		# 	else:
+		# 		interpolatedTimes = np.linspace(t[deactivatingIndexes[0]], t[deactivatingIndexes[-1]], len(xDeactivatingError))
+		# 		interpolatedSwitchingErrors = np.interp(interpolatedTimes, t[deactivatingIndexes], xDeactivatingError)
+		interpolatedTimes = np.linspace(t[switchingIndex[0]], t[switchingIndex[-1]], len(switchingErrors))
+		interpolatedSwitchingErrors = np.interp(interpolatedTimes, t[switchingIndex], switchingErrors)
+
+		interpolatedSwitchingErrors_fft = np.abs(np.fft.fft(interpolatedSwitchingErrors))
+		frequencies = np.fft.fftfreq(len(interpolatedSwitchingErrors), interpolatedTimes[1] - interpolatedTimes[0])
+		interpolatedSwitchingErrors_fft = interpolatedSwitchingErrors_fft[:len(interpolatedSwitchingErrors_fft)//2]
+		frequencies = frequencies[:len(frequencies)//2]
+			# plt.loglog(frequencies, interpolatedSwitchingErrors_fft)
+		# plt.show()
+		xRemoved = x.copy()
+		for i in range(len(xDeactivatingError)):
+			xRemoved[activatingIndexes[i]:deactivatingIndexes[i]] += xActivatingError[i]
+		plt.plot(x)
+		plt.plot(xRemoved)
+		
+
 
 
 def getFittingFunction(x,y,fittingFunction, parametersRanges, alsoReturnF_x=False, printErrors = True):
@@ -1080,26 +1220,26 @@ if __name__ == "__main__":
 
 	'''create usefulData and multiSetpoint files for all the acquisitions in a folder'''
 	
-	folder = "d:/lastline/bioTweezers/20250715/"
-	files = acquisition.getAllBaseFiles(folder)
+	# folder = "d:/lastline/bioTweezers/20250715/"
+	# files = acquisition.getAllBaseFiles(folder)[0]
 
-	# for file in files:
-	# 	mainFile = f"{file}_usefulData.pkl"
-	# 	if os.path.exists(mainFile):
-	# 		continue
-	# 	acq = acquisition(file)
-	# 	q = experimentJuly2025(acq, 0.5)
-	# 	pickle.dump(q, open(mainFile, "wb"))
+	# # for file in files:
+	# # 	mainFile = f"{file}_usefulData.pkl"
+	# # 	if os.path.exists(mainFile):
+	# # 		continue
+	# # 	acq = acquisition(file)
+	# # 	q = experimentJuly2025(acq, 0.5)
+	# # 	pickle.dump(q, open(mainFile, "wb"))
 	
-	# for file in files:
-	# 	multiSetpointFile = f"{file}_fpt_multiSetpoint.pkl"
-	# 	if os.path.exists(multiSetpointFile):
-	# 		continue
-	# 	q = pickle.load(open(f"{file}_usefulData.pkl", "rb"))
+	# # for file in files:
+	# # 	multiSetpointFile = f"{file}_fpt_multiSetpoint.pkl"
+	# # 	if os.path.exists(multiSetpointFile):
+	# # 		continue
+	# # 	q = pickle.load(open(f"{file}_usefulData.pkl", "rb"))
 	# 	w = fpt_multiSetpoint(q.nidaqX, q.nidaqTimings, 0, pointResolution=100, bins=300, usedDataRatio=0.99)
-	# 	pickle.dump(w, open(multiSetpointFile, "wb"))
+	# # 	pickle.dump(w, open(multiSetpointFile, "wb"))
 
-	'''plot all the multisetpoint files'''
+	# '''plot all the multisetpoint files'''
 	# for file in files:
 	# 	w = pickle.load(open(f"{file}_fpt_multiSetpoint.pkl", "rb"))
 	# 	fig = plt.figure(os.path.basename(file))
@@ -1288,40 +1428,82 @@ if __name__ == "__main__":
 	# plt.scatter(displacement, stiffness * x,alpha=0.03)
 	# plt.show()
 
-	acq = acquisition("d:/lastline/bioTweezers/20250708/set02_cell_bead_001.csv")
-	t, x = acq.nidaq_t_x
-	# Instead of using fixed bin_edges, use the bin edges returned by np.histogram for each section.
-	num_sections = 400
+	# acq = acquisition("d:/lastline/bioTweezers/20250708/set02_cell_bead_001.csv")
+	# t, x = acq.nidaq_t_x
+	# # Instead of using fixed bin_edges, use the bin edges returned by np.histogram for each section.
+	# num_sections = 400
 
-	section_edges = np.linspace(t.min(), t.max(), num_sections + 1)
-	hist_matrix = []
-	bin_centers_list = []
+	# section_edges = np.linspace(t.min(), t.max(), num_sections + 1)
+	# hist_matrix = []
+	# bin_centers_list = []
 
-	for i in range(num_sections):
-		mask = (t >= section_edges[i]) & (t < section_edges[i+1])
-		x_section = x[mask]
-		if len(x_section) > 0:
-			counts, bin_edges = np.histogram(x_section, bins='auto')
-			bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-			normalized_counts = counts / np.sum(counts) if np.sum(counts) > 0 else counts
-			hist_matrix.append(normalized_counts)
-			bin_centers_list.append(bin_centers)
-		else:
-			hist_matrix.append([])
-			bin_centers_list.append([])
+	# for i in range(num_sections):
+	# 	mask = (t >= section_edges[i]) & (t < section_edges[i+1])
+	# 	x_section = x[mask]
+	# 	if len(x_section) > 0:
+	# 		counts, bin_edges = np.histogram(x_section, bins='auto')
+	# 		bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+	# 		normalized_counts = counts / np.sum(counts) if np.sum(counts) > 0 else counts
+	# 		hist_matrix.append(normalized_counts)
+	# 		bin_centers_list.append(bin_centers)
+	# 	else:
+	# 		hist_matrix.append([])
+	# 		bin_centers_list.append([])
 
-	# Plot each section as a line in 3D (since bins are not aligned)
-	fig = plt.figure("Distribution of x over time (variable bins)")
-	ax = fig.add_subplot(111, projection='3d')
-	for i, (counts, bins) in enumerate(zip(hist_matrix, bin_centers_list)):
-		if len(counts) > 0:
-			section_time = (section_edges[i] + section_edges[i+1]) / 2
-			ax.plot(bins, [section_time]*len(bins), counts, color='b', alpha=0.5)
+	# # Plot each section as a line in 3D (since bins are not aligned)
+	# fig = plt.figure("Distribution of x over time (variable bins)")
+	# ax = fig.add_subplot(111, projection='3d')
+	# for i, (counts, bins) in enumerate(zip(hist_matrix, bin_centers_list)):
+	# 	if len(counts) > 0:
+	# 		section_time = (section_edges[i] + section_edges[i+1]) / 2
+	# 		ax.plot(bins, [section_time]*len(bins), counts, color='b', alpha=0.5)
 
-	ax.set_xlabel('x')
-	ax.set_ylabel('Time (s)')
-	ax.set_zlabel('Normalized Distribution')
-	plt.show()
+	# ax.set_xlabel('x')
+	# ax.set_ylabel('Time (s)')
+	# ax.set_zlabel('Normalized Distribution')
+	# plt.show()
+
+
+
+	'''todo continua con jumpOscillation'''
+	# files = ["d:\\lastline\\bioTweezers\\20250716\\set06_free_bead_feedback_011.csv",
+	# 	  "d:\\lastline\\bioTweezers\\20250716\\set06_cell_bead_feedback_009_conf.csv",
+	# 	  "d:\\lastline\\bioTweezers\\20250716\\set05_free_bead_feedback_008_bioControllerAcquisition.csv",
+	# 	  "d:\\lastline\\bioTweezers\\20250716\\set05_cell_bead_feedback_007_bioControllerAcquisition.csv",
+	# 	  ]
+	# for file in files:
+	# 	acq = acquisition(file)
+	# 	# print(acq.getPiezoRampValues())
+	# 	acq.showjumpOscillation()
+	# plt.show()
+
+	# file = "d:\\lastline\\bioTweezers\\20250716\\set04_cell_bead_feedback_005.csv"
+	# acq = acquisition(file)
+	# d = acq.ai_buffer
+	# t = d["Time (s)"]
+	# sum = d["AI2"]
+	# xd = d["AI3"]
+	# yd = d["AI4"]
+	# maxIndex = np.where(t > 6.5)[0][0]
+	# signals = [t, sum, xd, yd]
+	# for i in range(len(signals)):
+	# 	signals[i] = signals[i][:maxIndex]
+	# t, sum, xd, yd = signals
+	# plt.plot(t, sum, label = "SUM")
+	# plt.plot(t, xd, label = "XDIFF")
+	# plt.plot(t, -yd, label = "YDIFF")
+	# plt.legend(fontsize=12)
+	# plt.grid(True)
+	# plt.legend()
+	# plt.xlabel("time (s)", fontsize=12, fontname="Arial")
+	# plt.ylabel("QPD signal (V)", fontsize=12, fontname="Arial")
+	# plt.show()
+
+	'''testing variance calculation'''
+	f = r"d:\lastline\bioTweezers\20250709\set_03_cell_bead_003_conf.csv"
+	a = acquisition(f)
+	print(a.bio_variance_x)
+	print(a.fptSetpointToEnergyFraction)
 
 
 	
